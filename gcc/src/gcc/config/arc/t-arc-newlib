@@ -1,0 +1,4 @@
+MULTILIB_OPTIONS = mA5/mARC700 EL/EB
+MULTILIB_DIRNAMES = arcompact arc700 le be
+MULTILIB_MATCHES= mA5=mA6 mA5=mARC600 mARC700=mA7 EB=mbig-endian
+PROFILE_OSDEP = $(T)prof-freq-stub.o $(T)profil.o

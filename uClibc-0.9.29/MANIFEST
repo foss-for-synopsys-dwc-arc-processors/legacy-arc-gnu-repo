@@ -1,0 +1,63 @@
+Files added by Codito:
+  extra/Configs/Config.arc
+  ldso/ldso/arc
+  ldso/ldso/arc/dl-syscalls.h
+  ldso/ldso/arc/resolve.S
+  ldso/ldso/arc/dl-startup.h
+  ldso/ldso/arc/elfinterp.c
+  ldso/ldso/arc/dl-sysdep.h
+  libc/sysdeps/linux/arc
+  libc/sysdeps/linux/arc/vfork.S
+  libc/sysdeps/linux/arc/syscall.c
+  libc/sysdeps/linux/arc/brk.c
+  libc/sysdeps/linux/arc/bits
+  libc/sysdeps/linux/arc/bits/kernel_stat.h
+  libc/sysdeps/linux/arc/bits/syscalls.h
+  libc/sysdeps/linux/arc/bits/uClibc_page.h
+  libc/sysdeps/linux/arc/bits/endian.h
+  libc/sysdeps/linux/arc/bits/setjmp.h
+  libc/sysdeps/linux/arc/bits/kernel_types.h
+  libc/sysdeps/linux/arc/bits/fcntl.h
+  libc/sysdeps/linux/arc/bits/wordsize.h
+  libc/sysdeps/linux/arc/bits/mman.h
+  libc/sysdeps/linux/arc/clone.S
+  libc/sysdeps/linux/arc/crti.S
+  libc/sysdeps/linux/arc/setjmp.S
+  libc/sysdeps/linux/arc/___longjmp.S
+  libc/sysdeps/linux/arc/__longjmp.S
+  libc/sysdeps/linux/arc/crtn.S
+  libc/sysdeps/linux/arc/bsd-_setjmp.S
+  libc/sysdeps/linux/arc/bsd-setjmp.S
+  libc/sysdeps/linux/arc/crt0.S
+  libc/sysdeps/linux/arc/sigrestorer.S
+  libc/sysdeps/linux/arc/Makefile
+  libc/sysdeps/linux/arc/sys
+  libc/sysdeps/linux/arc/sys/ucontext.h
+  libc/sysdeps/linux/arc/sys/procfs.h
+  libc/sysdeps/linux/arc/sys/user.h
+  libpthread/linuxthreads/sysdeps/arc
+  libpthread/linuxthreads/sysdeps/arc/stackinfo.h
+  libpthread/linuxthreads/sysdeps/arc/sigcontextinfo.h
+  libpthread/linuxthreads/sysdeps/arc/pt-machine.h
+Files changed by Codito:
+  include/elf.h
+  extra/Configs/Config.in
+  utils/ldd.c
+  ldso/ldso/ldso.c
+  ldso/include/dl-hash.h
+  Rules.mak
+  libc/stdlib/malloc-standard/free.c
+
+Files added by ARC employees:
+  libc/sysdeps/linux/common/profil.c
+  libc/string/arc
+  libc/string/arc/newlib (svn external pointing to newlib/libc/machine/arc)
+  libc/string/arc/Makefile
+  libc/string/arc/memcmp.S
+  libc/string/arc/memcpy.S
+  libc/string/arc/memset.S
+  libc/string/arc/strchr.S
+  libc/string/arc/strcmp.S
+  libc/string/arc/strcpy.S
+  libc/string/arc/strlen.S
+  libc/string/arc/uclibc-asm.h
