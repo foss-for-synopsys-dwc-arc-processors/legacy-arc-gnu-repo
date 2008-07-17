@@ -13985,10 +13985,13 @@ libgcc_visibility=no
 
 if test $gcc_cv_as_hidden = yes && test $gcc_cv_ld_hidden = yes; then
   libgcc_visibility=yes
-#  AC_DEFINE(HAVE_GAS_HIDDEN, 0,
-#  [Define if your assembler and linker support .hidden.])
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GAS_HIDDEN 1
+_ACEOF
+
 fi
-  # ARC workaround for C++ dynamic linking problem. Undef HAVE_GAS_HIDDEN
+
 
 # Check if we have .[us]leb128, and support symbol arithmetic with it.
 echo "$as_me:$LINENO: checking assembler for .sleb128 and .uleb128" >&5

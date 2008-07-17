@@ -2140,9 +2140,8 @@ AC_SUBST(libgcc_visibility)
 GCC_TARGET_TEMPLATE([HAVE_GAS_HIDDEN])
 if test $gcc_cv_as_hidden = yes && test $gcc_cv_ld_hidden = yes; then
   libgcc_visibility=yes
-  # ARC workaround for C++ dynamic linking problem. Undef HAVE_GAS_HIDDEN
-#  AC_DEFINE(HAVE_GAS_HIDDEN, 0,
-#  [Define if your assembler and linker support .hidden.])
+  AC_DEFINE(HAVE_GAS_HIDDEN, 1,
+  [Define if your assembler and linker support .hidden.])
 fi
 
 
