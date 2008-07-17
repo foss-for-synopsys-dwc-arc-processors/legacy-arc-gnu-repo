@@ -115,4 +115,7 @@ ENTRY(strchr)
 	mov.mi	r0,0
 #endif /* ENDIAN */
 ENDFUNC(strchr)
+
+strong_alias(strchr,index)
+
 #endif /* __ARC700__ */

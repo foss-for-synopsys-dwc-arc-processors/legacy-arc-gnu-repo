@@ -152,4 +152,7 @@ ENTRY(strchr)
 	add.eq	r0,r0,1
 #endif /* ENDIAN */
 ENDFUNC(strchr)
+
+strong_alias(strchr,index)
+
 #endif /* !__ARC_700__ */

@@ -150,3 +150,7 @@ ENTRY(memcmp)
 	j_s.d	[blink]
 	mov_l	r0,0
 ENDFUNC(memcmp)
+
+
+libc_hidden_def(memcmp)
+strong_alias(memcmp,bcmp)
