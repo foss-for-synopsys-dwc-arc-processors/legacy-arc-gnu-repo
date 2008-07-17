@@ -59,7 +59,7 @@
         "mov %0, r0 \n\t"                                       \
 	     : "=r" (_sys_result)						            \
 	     : "i" (SYS_ify(name)) ASM_ARGS_##nr			        \
-	     : "r0","r8");							                \
+	     : "r0","r8","memory");							                \
     }									                        \
     if(_sys_result >= (unsigned long) -125) {				    \
 	        __set_errno(-_sys_result);			            	\
@@ -82,7 +82,7 @@
         "mov %0, r0 \n\t"                                       \
 	     : "=r" (_sys_result)						            \
 	     : "i" (SYS_ify(name)), "r"(_r0) ASM_ARGS_##nr			        \
-	     : "r0","r8");							                \
+	     : "r0","r8","memory");							                \
     }									                        \
     if(_sys_result >= (unsigned long) -125) {				    \
 	        __set_errno(-_sys_result);			            	\
@@ -152,7 +152,7 @@
 	     : 								\
 	     : "i" (SYSCALL_IRQ), "i" (AUX_IRQ_HINT),			\
 	       "i" (SYS_ify(name)) ASM_ARGS_##nr			\
-	     : "r0");							\
+	     : "r0","memory");							\
 									\
 	_sys_result = _r0;						\
     }									\
