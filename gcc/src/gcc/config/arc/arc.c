@@ -4219,6 +4219,25 @@ arc_strip_name_encoding (const char *name)
 
 
 
+/* An address that needs to be expressed as an explicit sum of pcl + offset.  */
+int
+arc_legitimate_pc_offset_p (rtx addr)
+{
+  if (GET_CODE (addr) != CONST)
+    return 0;
+  addr = XEXP (addr, 0);
+  if (GET_CODE (addr) == PLUS)
+    {
+      if (GET_CODE (XEXP (addr, 1)) != CONST_INT)
+	return 0;
+      addr = XEXP (addr, 0);
+    }
+  return (GET_CODE (addr) == UNSPEC
+	  && XVECLEN (addr, 0) == 1
+	  && XINT (addr, 1) == ARC_UNSPEC_GOT
+	  && GET_CODE (XVECEXP (addr, 0, 0)) == SYMBOL_REF);
+}
+
 /* check whether it is a valid pic address or not 
  * A valid pic address on arc should look like
  * const (unspec (SYMBOL_REF/LABEL) (ARC_UNSPEC_GOTOFF/ARC_UNSPEC_GOT))
@@ -4359,15 +4378,12 @@ arc_legitimize_pic_address (rtx orig, rtx oldx)
   else if (GET_CODE (addr) == SYMBOL_REF)
     {
       /* This symbol must be referenced via a load from the
-	 Global Offset Table (@GOT). */
-      rtx pcrtx = gen_rtx_REG (Pmode, PROGRAM_COUNTER_REGNO);
+	 Global Offset Table (@GOTPC). */
   
       new = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, addr), ARC_UNSPEC_GOT);
       new = gen_rtx_CONST (Pmode, new);
-      new = gen_rtx_PLUS (Pmode, pcrtx, new);
       new = gen_rtx_MEM (Pmode, new);
-/*       ashwin : commented out, just like arm */
-/*       RTX_UNCHANGING_P (new) = 1; */
+      MEM_READONLY_P (new) = 1;
       
       if (oldx == 0)
 	oldx = gen_reg_rtx (Pmode);
@@ -4501,8 +4517,7 @@ arc_output_pic_addr_const (FILE * file, rtx x, int code)
       if (GET_CODE (XEXP (x, 0)) == CONST_INT)
 	{
 	  arc_output_pic_addr_const (file, XEXP (x, 1), code);
-	  if (INTVAL (XEXP (x, 0)) >= 0)
-	    fprintf (file, "+");
+	  fprintf (file, "+");
 	  arc_output_pic_addr_const (file, XEXP (x, 0), code);
 	}
       else if (GET_CODE (XEXP (x, 1)) == CONST_INT)
@@ -4542,10 +4557,12 @@ arc_output_pic_addr_const (FILE * file, rtx x, int code)
       break;
 
 
-     case UNSPEC:
-       gcc_assert (XVECLEN (x, 0) == 1);
-       arc_output_pic_addr_const (file, XVECEXP (x, 0, 0), code);
-       switch (XINT (x, 1))
+    case UNSPEC:
+      gcc_assert (XVECLEN (x, 0) == 1);
+      if (XINT (x, 1) == ARC_UNSPEC_GOT)
+	fputs ("pcl,", file);
+      arc_output_pic_addr_const (file, XVECEXP (x, 0, 0), code);
+      switch (XINT (x, 1))
  	{
  	case ARC_UNSPEC_GOT:
  	  fputs ("@gotpc", file);

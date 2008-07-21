@@ -102,6 +102,7 @@ extern int check_if_valid_regno_const (rtx *, int );
 extern int check_if_valid_sleep_operand (rtx *, int );
 extern int check_if_valid_sleep_operand (rtx *, int );
 extern bool arc_legitimate_constant_p (rtx);
+extern int arc_legitimate_pc_offset_p (rtx);
 extern int arc_legitimate_pic_addr_p (rtx);
 extern void arc_assemble_name (FILE *, const char*);
 extern int symbolic_reference_mentioned_p (rtx);

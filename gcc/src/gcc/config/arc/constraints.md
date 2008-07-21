@@ -205,6 +205,14 @@
 			|| ARC_ENCODED_SHORT_CALL_ATTR_P (XSTR (op, 0))"))
       (match_code "label_ref")))
 
+(define_constraint "Cpc"
+  "pc-relative constant"
+  (match_test "arc_legitimate_pc_offset_p (op)"))
+
+(define_constraint "Cal"
+  "constant for arithmetic/logical operations"
+  (match_test "immediate_operand (op, VOIDmode) && !arc_legitimate_pc_offset_p (op)"))
+
 (define_constraint "Rcq"
   "@internal
    Cryptic q - for short insn generation while not affecting register allocation
