@@ -4037,7 +4037,14 @@ arc_rtx_costs (rtx x, int code, int outer_code ATTRIBUTE_UNUSED, int *total)
     case CONST:
     case LABEL_REF:
     case SYMBOL_REF:
-      *total = COSTS_N_INSNS (1);
+      if ((code == CONST) && arc_legitimate_pic_addr_p (x))
+        {
+          *total = 0;
+        }
+      else
+        {  
+          *total = COSTS_N_INSNS (1);
+        }
       return true;
 
     case CONST_DOUBLE:
