@@ -26,6 +26,7 @@
 */
 
 
+#define __ASSEMBLY__
 #include <features.h>
 #include <sys/syscall.h>
 .text

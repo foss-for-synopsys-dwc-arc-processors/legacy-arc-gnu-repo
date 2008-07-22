@@ -23,6 +23,7 @@
 
 #define _SETJMP_H
 #define _ASM
+#define __ASSEMBLY__
 #include <bits/setjmp.h>
 #include <sys/syscall.h>
 

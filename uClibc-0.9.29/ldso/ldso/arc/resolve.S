@@ -36,6 +36,7 @@
  * Registers are pushed / popped in the order defined in struct ptregs
  * in asm/ptrace.h
  */
+#define __ASSEMBLY__
  #include <sys/syscall.h>
 .macro	SAVE_CALLER_SAVED
 	st.a	r0, [sp, -4]

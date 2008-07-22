@@ -20,6 +20,7 @@
 /* clone() is even more special than fork() as it mucks with stacks
    and invokes a function in the right context after its all over.  */
 
+#define __ASSEMBLY__
 #include <asm/errno.h>
 #include <sys/syscall.h>
 

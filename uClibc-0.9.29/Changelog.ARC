@@ -1,3 +1,13 @@
+2008-07-22  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* ldso/ldso/arc/resolve.S: Define __ASSEMBLY__
+	* libc/sysdeps/linux/arc/vfork.S: Likewise.
+	* libc/sysdeps/linux/arc/clone.S: Likewise.
+	* libc/sysdeps/linux/arc/setjmp.S: Likewise.
+	* libc/sysdeps/linux/arc/bsd-_setjmp.S: Likewise.
+	* libc/sysdeps/linux/arc/bsd-setjmp.S: Likewise.
+	* libc/sysdeps/linux/arc/crt1.S: Likewise.
+
 2008-06-11  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* libpthread/linuxthreads.old/sysdeps/arc/pt-machine.h:
