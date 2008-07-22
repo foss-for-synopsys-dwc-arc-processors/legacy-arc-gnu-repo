@@ -1,3 +1,11 @@
+2008-07-22  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_legitimize_pic_address): Use gen_const_mem.
+	(arc_output_addr_const_extra): New function.
+	* config/arc/arc-protos.h (arc_output_addr_const_extra): Declare.
+	* config/arc/arc.h (LEGITIMIZE_ADDRESS): Don't pass OLDX.
+	(OUTPUT_ADDR_CONST_EXTRA): Define.
+
 2008-04-17  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.h (LINK_SPEC): Switch default back to -Bstatic.

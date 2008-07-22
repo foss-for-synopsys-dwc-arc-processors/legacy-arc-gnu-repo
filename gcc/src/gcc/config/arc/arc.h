@@ -1335,7 +1335,7 @@ do { \
 #define LEGITIMIZE_ADDRESS(X, OLDX, MODE, WIN)				\
 {									\
   if (flag_pic && SYMBOLIC_CONST (X)) 					\
-     (X) =  arc_legitimize_pic_address (X, OLDX);			\
+     (X) =  arc_legitimize_pic_address (X, 0);			\
   if (memory_address_p (MODE, X))					\
      goto WIN;								\
 }
@@ -1963,6 +1963,10 @@ enum arc_function_type {
 	  || (MODE) == CC_FPXmode) \
 	 ? reverse_condition_maybe_unordered ((CODE)) \
 	 : reverse_condition ((CODE)))
+
+#define OUTPUT_ADDR_CONST_EXTRA(FILE, X, FAIL) \
+  if (!arc_output_addr_const_extra ((FILE), (X))) \
+    goto FAIL;
 
 #if 0
 #define REGISTER_MOVE_COST(MODE, CLASS1, CLASS2) \

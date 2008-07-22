@@ -4382,8 +4382,7 @@ arc_legitimize_pic_address (rtx orig, rtx oldx)
   
       new = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, addr), ARC_UNSPEC_GOT);
       new = gen_rtx_CONST (Pmode, new);
-      new = gen_rtx_MEM (Pmode, new);
-      MEM_READONLY_P (new) = 1;
+      new = gen_const_mem (Pmode, new);
       
       if (oldx == 0)
 	oldx = gen_reg_rtx (Pmode);
@@ -7171,4 +7170,15 @@ arc_output_libcall (const char *fname)
   else
     sprintf (buf, "bl%%* @%s", fname);
   return buf;
+}
+
+bool
+arc_output_addr_const_extra (FILE *file, rtx x)
+{
+  if (GET_CODE (x) == UNSPEC && XINT (x, 1) == ARC_UNSPEC_GOT)
+    {
+      output_addr_const (file, XVECEXP (x, 0, 0));
+      return 1;
+    }
+  return 0;
 }
