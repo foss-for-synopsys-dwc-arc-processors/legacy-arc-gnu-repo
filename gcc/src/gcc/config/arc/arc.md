@@ -143,7 +143,8 @@
 
 (define_attr "type"
   "move,load,store,cmove,unary,binary,compare,shift,uncond_branch,branch,
-   brcc,brcc_no_delay_slot,call,call_no_delay_slot,multi,umulti, two_cycle_core,lr,sr,divaw,loop,
+   brcc,brcc_no_delay_slot,call,sfunc,call_no_delay_slot,
+   multi,umulti, two_cycle_core,lr,sr,divaw,loop,
    misc,spfp,dpfp_mult,dpfp_addsub,
    simd_vload, simd_vload128, simd_vstore, simd_vmove, simd_vmove_else_zero,
    simd_vmove_with_acc, simd_varith_1cycle, simd_varith_2cycle, 
@@ -351,7 +352,7 @@
 ;; Delay slots.
 
 (define_attr "in_delay_slot" "false,true"
-  (cond [(eq_attr "type" "uncond_branch,branch,call,call_no_delay_slot, 
+  (cond [(eq_attr "type" "uncond_branch,branch,call,sfunc,call_no_delay_slot, 
                           brcc, brcc_no_delay_slot,loop")
 	 (const_string "false")
 	 ]
@@ -359,6 +360,13 @@
 	 (if_then_else (eq_attr "length" "2,4")
 		       (const_string "true")
 		       (const_string "false"))))
+
+(define_attr "in_sfunc_delay_slot" "false,true"
+  (cond [(eq_attr "in_delay_slot" "false")
+	 (const_string "false")
+	 (ne (symbol_ref "regno_use_in (12, PATTERN (insn))") (const_int 0))
+	 (const_string "false")]
+	(const_string "true")))
 
 (define_delay (and (eq_attr "type" "call,branch,uncond_branch")
                    (ne (symbol_ref "TARGET_A4") (const_int 0)))
@@ -381,6 +389,13 @@
 			  )))
   [(eq_attr "in_delay_slot" "true")
    (eq_attr "in_delay_slot" "true")
+   (nil)])
+
+;; -mlongcall -fpic sfuncs use r12 to load the function address
+(define_delay (and  (ne (symbol_ref "TARGET_ARCOMPACT") (const_int 0))
+		    (eq_attr "type" "sfunc"))
+  [(eq_attr "in_sfunc_delay_slot" "true")
+   (eq_attr "in_sfunc_delay_slot" "true")
    (nil)])
 
 (define_attr "tune" "none,arc600,arc700_4_2_std,arc700_4_2_xmac"
@@ -4461,9 +4476,11 @@
   "TARGET_ARC700 && !TARGET_SPFP"
   "*return arc_output_libcall (\"__eqsf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpdf_eq"
@@ -4473,9 +4490,11 @@
   "TARGET_ARC700 && !TARGET_DPFP"
   "*return arc_output_libcall (\"__eqdf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpsf_gt"
@@ -4485,9 +4504,11 @@
   "TARGET_ARC700 && !TARGET_SPFP"
   "*return arc_output_libcall (\"__gtsf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpdf_gt"
@@ -4497,9 +4518,11 @@
   "TARGET_ARC700 && !TARGET_DPFP"
   "*return arc_output_libcall (\"__gtdf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpsf_ge"
@@ -4509,9 +4532,11 @@
   "TARGET_ARC700 && !TARGET_SPFP"
   "*return arc_output_libcall (\"__gesf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpdf_ge"
@@ -4521,9 +4546,11 @@
   "TARGET_ARC700 && !TARGET_DPFP"
   "*return arc_output_libcall (\"__gedf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpsf_uneq"
@@ -4533,9 +4560,11 @@
   "TARGET_ARC700 && !TARGET_SPFP"
   "*return arc_output_libcall (\"__uneqsf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpdf_uneq"
@@ -4545,9 +4574,11 @@
   "TARGET_ARC700 && !TARGET_DPFP"
   "*return arc_output_libcall (\"__uneqdf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 (define_insn "*cmpsf_ord"
@@ -4557,9 +4588,11 @@
   "TARGET_ARC700 && !TARGET_SPFP"
   "*return arc_output_libcall (\"__ordsf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 	      
 ;; N.B. double precision fpx sets bit 31 for NaNs.  We need bit 51 set
@@ -4571,9 +4604,11 @@
   "TARGET_ARC700 && !TARGET_DPFP"
   "*return arc_output_libcall (\"__orddf2\");"
   [(set (attr "type")
-	(if_then_else (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
-		      (const_string "call_no_delay_slot")
-		      (const_string "call")))]
+	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	       (const_string "call")
+	       (ne (symbol_ref "flag_pic") (const_int 0))
+	       (const_string "sfunc")]
+	      (const_string "call_no_delay_slot")))]
 )
 
 (define_insn "abssf2"

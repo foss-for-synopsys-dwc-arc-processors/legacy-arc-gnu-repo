@@ -31,7 +31,7 @@ __uneqdf2:
 #endif /* DEBUG */
 	.global __uneqdf2
 	.balign 4
-	FUNC(__uneqdf2)
+	HIDDEN_FUNC(__uneqdf2)
 __uneqdf2:
 	cmp_s	DBL0H,DBL1H
 	cmp.eq	DBL0L,DBL1L

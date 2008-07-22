@@ -31,7 +31,7 @@ __uneqsf2:
 #endif /* DEBUG */
 	.global __uneqsf2
 	.balign 4
-	FUNC(__uneqsf2)
+	HIDDEN_FUNC(__uneqsf2)
 __uneqsf2:
 	mov_s	r12, \
 		0x7fc00000

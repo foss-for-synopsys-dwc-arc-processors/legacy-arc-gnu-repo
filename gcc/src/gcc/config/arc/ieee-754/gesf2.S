@@ -28,7 +28,7 @@ __gesf2:
 #endif /* DEBUG */
 	.global __gesf2
 	.balign	4
-	FUNC(__gesf2)
+	HIDDEN_FUNC(__gesf2)
 __gesf2:
 	or.f	r12,r0,r1
 	bmi.d	.Lneg

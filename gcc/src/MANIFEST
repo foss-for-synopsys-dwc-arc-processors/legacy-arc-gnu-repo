@@ -102,6 +102,7 @@ By ARC employees:
   gcc/gcc/config/arc/lib1funcs.asm
   gcc/gcc/config/arc/t-arc700-uClibc
   gcc/gcc/config/arc/constraints.md
+  gcc/gcc/config/arc/libgcc-excl.ver
   gcc/libstdc++-v3/testsuite/27_io/basic_stringbuf/overflow/char/1.cc
   gcc/libstdc++-v3/testsuite/ext/pb_ds/example/priority_queue_dijkstra.cc
   gcc/libstdc++-v3/testsuite/lib/libstdc++.exp

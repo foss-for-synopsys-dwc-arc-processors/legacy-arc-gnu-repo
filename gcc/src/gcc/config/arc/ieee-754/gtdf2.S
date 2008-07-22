@@ -28,7 +28,7 @@ __gtdf2:
 #endif /* DEBUG */
 	.global __gtdf2
 	.balign	4
-	FUNC(__gtdf2)
+	HIDDEN_FUNC(__gtdf2)
 __gtdf2:
 	or.f	r12,DBL0H,DBL1H
 	bmi.d	.Lneg

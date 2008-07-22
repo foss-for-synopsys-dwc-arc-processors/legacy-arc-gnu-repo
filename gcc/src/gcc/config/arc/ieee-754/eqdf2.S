@@ -28,7 +28,7 @@ __eqdf2:
 #endif /* DEBUG */
 	.global __eqdf2
 	.balign 4
-	FUNC(__eqdf2)
+	HIDDEN_FUNC(__eqdf2)
 	/* Good performance as long as the difference in high word is
 	   well predictable (as seen from the branch predictor).  */
 __eqdf2:

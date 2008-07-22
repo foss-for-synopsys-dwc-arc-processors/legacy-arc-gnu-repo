@@ -7162,11 +7162,16 @@ const char *
 arc_output_libcall (const char *fname)
 {
   unsigned len = strlen (fname);
-  static char buf[32];
+  static char buf[64];
 
   gcc_assert (len < sizeof buf - 6);
   if (TARGET_LONG_CALLS_SET)
-    sprintf (buf, "jl%%? @%s", fname);
+    {
+      if (flag_pic)
+	sprintf (buf, "add r12,pcl,@%s-(.&2)\n\tjl%%* r12", fname);
+      else
+	sprintf (buf, "jl%%? @%s", fname);
+    }
   else
     sprintf (buf, "bl%%* @%s", fname);
   return buf;

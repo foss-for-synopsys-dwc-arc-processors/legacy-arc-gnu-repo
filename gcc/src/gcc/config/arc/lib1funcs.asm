@@ -49,6 +49,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
  	
 #define FUNC(X)         .type SYM(X),@function
+#define HIDDEN_FUNC(X)	FUNC(X)` .hidden X
 #define ENDFUNC0(X)     .Lfe_##X: .size X,.Lfe_##X-X
 #define ENDFUNC(X)      ENDFUNC0(X)
 

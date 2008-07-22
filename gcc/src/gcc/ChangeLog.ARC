@@ -1,3 +1,25 @@
+2008-07-23  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_output_libcall): Emit speical sequence for
+	-fpic -mlong-calls.
+	* config/arc/arc.h (INSN_SETS_ARE_DELAYED): Also return true for
+	TYPE_SFUNC.
+	* config/arc/t-arc700-uClibc (SHLIB_MAPFILES): Define.
+	* config/arc/arc.md (attribute type): Add sfunc.
+	(attribute in_delay_slot): False for sfunc.
+	(attribute in_sfunc_delay_slot): New.
+	(toplevel): Add define_delay for sfunc.
+	(cmpsf_eq, cmpdf_eq): Type sfunc for -fpic -mlong-call.
+	(cmpsf_gt, cmpdf_gt, cmpsf_ge, cmpdf_ge: Likewise.
+	(cmpsf_uneq, cmpdf_uneq, cmpsf_ord, cmpdf_ord): Likewise.
+	* config/arc/lib1funcs.asm (HIDDEN_FUNC): Define.
+	* config/arc/ieee-754/eqsf2.S, onfig/arc/ieee-754/orddf2.S: Use it.
+	* config/arc/ieee-754/uneqsf2.S, config/arc/ieee-754/gtsf2.S: Likewise.
+	* config/arc/ieee-754/gedf2.S, config/arc/ieee-754/ordsf2.S: Likewise.
+	* config/arc/ieee-754/eqdf2.S, config/arc/ieee-754/uneqdf2.S: Likewise.
+	* config/arc/ieee-754/gesf2.S, config/arc/ieee-754/gtdf2.S: Likewise.
+	* config/arc/libgcc-excl.ver: New file.
+
 2008-07-22  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.c (arc_legitimize_pic_address): Use gen_const_mem.

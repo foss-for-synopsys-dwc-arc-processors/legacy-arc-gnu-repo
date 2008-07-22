@@ -28,7 +28,7 @@ __ordsf2:
 #endif /* DEBUG */
 	.global __ordsf2
 	.balign 4
-	FUNC(__ordsf2)
+	HIDDEN_FUNC(__ordsf2)
 __ordsf2:
 	bmsk r12,r0,23
 	add1.f	r12,r12,r0 /* clear z; set c if NaN.  */

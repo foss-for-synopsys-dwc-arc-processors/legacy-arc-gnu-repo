@@ -30,7 +30,7 @@ __eqsf2:
 	   well predictable (as seen from the branch predictor).  */
 	.global __eqsf2
 	.balign 4
-	FUNC(__eqsf2)
+	HIDDEN_FUNC(__eqsf2)
 __eqsf2:
 	breq	r0, r1,.Lno_bdiff
 	or	r12,r0,r1

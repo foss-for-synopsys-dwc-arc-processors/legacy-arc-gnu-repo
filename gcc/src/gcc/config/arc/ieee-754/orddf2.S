@@ -28,7 +28,7 @@ __orddf2:
 #endif /* DEBUG */
 	.global __orddf2
 	.balign 4
-	FUNC(__orddf2)
+	HIDDEN_FUNC(__orddf2)
 __orddf2:
 	bmsk r12,DBL0H,20
 	add1.f	r12,r12,DBL0H /* clear z; set c if NaN.  */

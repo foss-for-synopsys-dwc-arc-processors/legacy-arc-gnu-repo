@@ -8,3 +8,9 @@ CRTSTUFF_T_CFLAGS_S = $(CRTSTUFF_T_CFLAGS) -mA7 -fPIC
 TARGET_LIBGCC2_CFLAGS = -mA7 -fPIC
 
 PROFILE_OSDEP = $(T)prof-freq.o
+
+# Override t-slibgcc-elf-ver to hide some lib1func
+# routines which should not be called via PLT.
+SHLIB_MAPFILES = \
+        $(srcdir)/libgcc-std.ver \
+        $(srcdir)/config/sh/libgcc-excl.ver
