@@ -188,8 +188,9 @@ UCLIBC_BUILD_NOEXECSTACK=y
 #
 CROSS_COMPILER_PREFIX="arc-linux-uclibc-"
 UCLIBC_EXTRA_CFLAGS="-mA7 -isystem %LINUX%/include/"
-DODEBUG=y
+# DODEBUG is not set
 # DODEBUG_PT is not set
+DOSTRIP=y
 # DOASSERTS is not set
 SUPPORT_LD_DEBUG=y
 # SUPPORT_LD_DEBUG_EARLY is not set
