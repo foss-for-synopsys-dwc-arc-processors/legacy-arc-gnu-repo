@@ -1,6 +1,6 @@
 2008-07-23  J"orn Rennecke  <joern.rennecke@arc.com>
 
-	* config/arc/arc.c (arc_output_libcall): Emit speical sequence for
+	* config/arc/arc.c (arc_output_libcall): Emit special sequence for
 	-fpic -mlong-calls.
 	* config/arc/arc.h (INSN_SETS_ARE_DELAYED): Also return true for
 	TYPE_SFUNC.
