@@ -5610,8 +5610,8 @@ md_assemble (char *str)
 				}
 			    }
 
-			/* Force GOT symbols to be limm */			
-			if (cond_p ==0 && needGOTSymbol == 1)
+			/* Force GOT symbols to be limm in case of ld instruction: workaround*/			
+			if (cond_p ==0 && needGOTSymbol == 1 && (insn_name[0] == 'l' || insn_name[0] == 'L') && ((insn_name[1] == 'd' || insn_name[1] == 'D'))  )
 				break;
 			  /*
 			     In any of the above PIC related cases we would
