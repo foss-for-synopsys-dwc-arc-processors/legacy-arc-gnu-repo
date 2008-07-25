@@ -9029,6 +9029,7 @@ loc_descriptor (rtx rtl)
       break;
 
     case MEM:
+      rtl = targetm.delegitimize_address (rtl);
       loc_result = mem_loc_descriptor (XEXP (rtl, 0), GET_MODE (rtl));
       break;
 

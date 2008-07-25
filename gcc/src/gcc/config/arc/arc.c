@@ -343,6 +343,7 @@ arc_vector_mode_supported_p (enum machine_mode mode)
 static int last_insn_set_cc_p; /* ??? Use was deleted. Check if this variable can go.  */
 static int current_insn_set_cc_p;
 static bool arc_preserve_reload (rtx in);
+static rtx arc_delegitimize_address (rtx);
 
 /* initialize the GCC target structure.  */
 #undef TARGET_ASM_ALIGNED_HI_OP
@@ -444,6 +445,9 @@ static bool arc_preserve_reload (rtx in);
 
 #undef TARGET_PRESERVE_RELOAD
 #define TARGET_PRESERVE_RELOAD arc_preserve_reload
+
+#undef TARGET_DELEGITIMIZE_ADDRESS
+#define TARGET_DELEGITIMIZE_ADDRESS arc_delegitimize_address
 
 /* Try to keep the (mov:DF _, reg) as early as possible so 
    that the d<add/sub/mul>h-lr insns appear together and can
@@ -7177,13 +7181,12 @@ arc_output_libcall (const char *fname)
   return buf;
 }
 
-bool
-arc_output_addr_const_extra (FILE *file, rtx x)
+static rtx
+arc_delegitimize_address (rtx x)
 {
-  if (GET_CODE (x) == UNSPEC && XINT (x, 1) == ARC_UNSPEC_GOT)
-    {
-      output_addr_const (file, XVECEXP (x, 0, 0));
-      return 1;
-    }
-  return 0;
+  if (GET_CODE (x) == MEM && GET_CODE (XEXP (x, 0)) == CONST
+      && GET_CODE (XEXP (XEXP (x, 0), 0)) == UNSPEC
+      && XINT (XEXP (XEXP (x, 0), 0), 1) == ARC_UNSPEC_GOT)
+    return XVECEXP (XEXP (XEXP (x, 0), 0), 0, 0);
+  return x;
 }

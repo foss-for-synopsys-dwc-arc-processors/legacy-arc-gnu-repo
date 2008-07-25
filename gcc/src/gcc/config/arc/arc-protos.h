@@ -125,4 +125,3 @@ extern enum reg_class arc_secondary_reload (bool, rtx, enum reg_class,
 					    struct secondary_reload_info *);
 extern int arc_register_move_cost (enum machine_mode, enum reg_class,
 				   enum reg_class);
-extern bool arc_output_addr_const_extra (FILE *file, rtx x);

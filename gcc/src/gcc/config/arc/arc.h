@@ -1964,10 +1964,6 @@ enum arc_function_type {
 	 ? reverse_condition_maybe_unordered ((CODE)) \
 	 : reverse_condition ((CODE)))
 
-#define OUTPUT_ADDR_CONST_EXTRA(FILE, X, FAIL) \
-  if (!arc_output_addr_const_extra ((FILE), (X))) \
-    goto FAIL;
-
 #if 0
 #define REGISTER_MOVE_COST(MODE, CLASS1, CLASS2) \
    arc_register_move_cost ((MODE), (CLASS1), (CLASS2))

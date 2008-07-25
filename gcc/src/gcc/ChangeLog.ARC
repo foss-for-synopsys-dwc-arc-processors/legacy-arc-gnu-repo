@@ -1,3 +1,13 @@
+2008-07-25  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* dwarf2out.c (loc_descriptor): Pass entire MEM expressions
+	through targetm.delegitimize_address.
+	* config/arc/arc.c (arc_delegitimize_address): New function.
+	(TARGET_DELEGITIMIZE_ADDRESS): Redefine.
+	(arc_output_addr_const_extrao): Remove.
+	* config/arc/arc.h (OUTPUT_ADDR_CONST_EXTRA): Remove.
+	* config/arc/arc-protos.h (arc_output_addr_const_extra): Don't declare.
+
 2008-07-23  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.c (arc_output_libcall): Emit special sequence for
