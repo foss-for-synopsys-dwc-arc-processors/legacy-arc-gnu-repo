@@ -56,7 +56,7 @@ static int flagshimm_handled_p;
 static int addrwb_p;
 
 /* Nonzero if we've seen a 'q' suffix (condition code).  */
-static int cond_p;
+int cond_p;
 
 /* Nonzero if we've inserted a nullify condition.  */
 static int nullify_p;

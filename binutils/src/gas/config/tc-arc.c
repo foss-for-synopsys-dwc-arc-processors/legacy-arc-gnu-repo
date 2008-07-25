@@ -36,6 +36,10 @@
    (current_pic_flag == GOT_TYPE)?"GOT":"NO_TYPE") 
 */
 
+/* Defined in arc-opc.c: Nonzero if we've seen a 'q' suffix (condition code).  */
+/*   'Q'	FORCELIMM	set `cond_p' to 1 to ensure a constant is a limm */
+extern int cond_p;
+
 extern int arc_get_mach (char *);
 extern int arc_insn_not_jl (arc_insn);
 extern int arc_get_noshortcut_flag (void);
@@ -5518,7 +5522,10 @@ md_assemble (char *str)
 		    }
 		  else
 		    {
-		      int needGOTSymbol = 0;
+		
+
+     
+ 			int needGOTSymbol = 0;
 		      if (strchr (str, '@'))
 			{
 			  if (!strncmp (str, "@gotpc", 6))
@@ -5603,6 +5610,9 @@ md_assemble (char *str)
 				}
 			    }
 
+			/* Force GOT symbols to be limm */			
+			if (cond_p ==0 && needGOTSymbol == 1)
+				break;
 			  /*
 			     In any of the above PIC related cases we would
 			     have to make a GOT symbol if it is NULL
