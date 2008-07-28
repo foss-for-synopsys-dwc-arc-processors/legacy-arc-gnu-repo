@@ -1,3 +1,19 @@
+2008-07-28  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.h (STATIC_LINK_SPEC): Define, making default to
+	use dynamic libraries where available.
+	(LINK_SPEC): Use STATIC_LINK_SPEC.
+	* config.gcc (arc*-*-linux-uclibc*): Retain OS specific files in
+	tmake_file.
+	* config/arc/t-arc700-uClibc (SHLIB_MAPFILES): Fix pasto.
+	(SHLIB_LINK: Override to use a linker script libgcc_s.so.
+	(SHLIB_INSTALL): Likewise.
+	* config/arc/lib1funcs.asm (__mulsi3): Use (HIDDEN_)FUNC / ENDFUNC.
+	(__udivmodsi4, __umodsi3, __modsi3, __clzsi2): Likewise.
+	(__umulsidi3): Likewise.  Add ARC700 optimized code.
+	* config/arc/ieee-754/adddf3.S: Use (HIDDEN_)FUNC / ENDFUNC.
+	* config/arc/ieee-754/muldf3.S: Likewise.
+
 2008-07-25  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* dwarf2out.c (loc_descriptor): Pass entire MEM expressions

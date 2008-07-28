@@ -39,6 +39,7 @@ __muldf3_support: /* This label makes debugger output saner.  */
    one (if the other exponent is too small, return 0), and normalize the
    denormal.  Then re-run the computation.  */
 	.balign 4
+	FUNC(__muldf3)
 .Ldenorm_dbl0:
 	mov_s r12,DBL0L
 	mov_s DBL0L,DBL1L
@@ -202,6 +203,7 @@ __muldf3:
 	mov_s DBL0H,r9
 	j_s.d [blink]
 	bset.mi DBL0H,DBL0H,31
+	ENDFUNC(__muldf3)
 
 	.balign 4
 .L7ff00000:

@@ -151,6 +151,15 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef USE_UCLIBC
+#if 1
+/* Note that the default is to link against dynamic libraries, if they
+   available.  While it is a bit simpler to get started with static linking,
+   it is much easier to comply with the LGPL when you use dynamic linking, and
+   thus get a product that you can legally ship.  */
+#define STATIC_LINK_SPEC "%{static:-Bstatic}"
+#else /* Make ease of use of producing something the main concern.  */
+#define STATIC_LINK_SPEC "%{!mdynamic:%{!shared:-Bstatic}}"
+#endif
 #if 0
 /* Note that the default is to link against dynamic libraries, if they
    available.  While it is a bit simpler to get started with static linking,
@@ -168,7 +177,7 @@ Boston, MA 02111-1307, USA.  */
 #else /* Make ease of use of producing something the main concern.  */
 #define LINK_SPEC "%{h*} %{version:-v} \
                    %{b} %{Wl,*:%*}     \
-                   %{!mdynamic:%{!shared:-Bstatic}}  \
+		   "STATIC_LINK_SPEC" \
                    %{symbolic:-Bsymbolic} \
                    %{rdynamic:-export-dynamic}\
                    %{!dynamic-linker:-dynamic-linker /lib/ld-uClibc.so.0}\

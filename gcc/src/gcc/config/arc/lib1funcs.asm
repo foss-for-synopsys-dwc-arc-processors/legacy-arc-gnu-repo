@@ -75,6 +75,7 @@ SYM(__mulsi3):
 */
 
 #ifdef __A4__
+	FUNC(__mulsi3)
 	mov r2,0		; Accumulate result here.
 .Lloop:
 	sub.f 0,r0,0		; while (a)
@@ -119,10 +120,13 @@ SYM(__mulsi3):
 	bne.d	.Loop
 	add2.cs	r0,r0,r1
 	j	[blink]
+	ENDFUNC(__mulsi3)
 #else
+	HIDDEN_FUNC(__mulsi3)
 	mpyu	r0,r0,r1
 	nop_s
 	j_s	[blink]
+	ENDFUNC(__mulsi3)
 #endif
 #else
 /********************************************************/
@@ -162,6 +166,16 @@ SYM(__umulsidi3):
       b <<= 1;
     }
 */
+#ifdef __ARC700__
+#include "ieee-754/arc-ieee-754.h"
+	HIDDEN_FUNC(__umulsidi3)
+	mov_s	r12,DBL0L
+	mpyu	DBL0L,r12,DBL0H
+	j_s.d	[blink]
+	mpyhu	DBL0H,r12,DBL0H
+	ENDFUNC(__umulsidi3)
+#else /* !__ARC700__*/
+	FUNC(__umulsidi3)
 	mov r2,0		; Top part of b.
 	mov r3,0		; Accumulate result here.
 	mov r4,0
@@ -188,6 +202,8 @@ SYM(__umulsidi3):
 	mov r0,r4
 	j.d [blink]
 	mov r1,r3
+	ENDFUNC(__umulsidi3)
+#endif /* !__ARC700__*/
 #endif
 #endif
 
@@ -257,6 +273,7 @@ udivmodsi4(int modwanted, unsigned long num, unsigned long den)
 
 	.balign 4
 	.global SYM(__udivmodsi4)
+	FUNC(__udivmodsi4)
 SYM(__udivmodsi4):
 
 #ifdef __A4__	
@@ -389,6 +406,7 @@ SYM(__udivmodsi4):
 	mov_s r0,r3		; r0 = res
 /******************************************************/
 #endif
+	ENDFUNC(__udivmodsi4)
 
 #endif
 
@@ -806,11 +824,13 @@ SYM(__divsi3):
 
 #ifdef __base__
 	.global SYM(__umodsi3)
+	FUNC(__umodsi3)
 SYM(__umodsi3):
 	mov r7,blink
 	bl.nd @SYM(__udivmodsi4)
 	j.d [r7]
 	mov r0,r1
+	ENDFUNC(__umodsi3)
 #if 0 /* interferes with linux loader */
 	.section .__arc_profile_forward, "a"
 	.long SYM(__umodsi3)
@@ -827,6 +847,7 @@ SYM(__umodsi3):
 
 #ifdef __base__
 	.global SYM (__modsi3)
+	FUNC(__modsi3)
 SYM(__modsi3):
 #ifndef __ARC700__
 	mov r7,blink
@@ -865,6 +886,7 @@ SYM(__modsi3):
 	j_s.d	[blink]
 	sub.hs	r0,r0,r5
 #endif /* __ARC700__ */
+	ENDFUNC(__modsi3)
 #endif
 
 #endif /* L_modsi3 */
@@ -875,11 +897,14 @@ SYM(__modsi3):
        .global SYM (__clzsi2)
 SYM(__clzsi2):	
 #ifdef __ARC700__
+	HIDDEN_FUNC(__clzsi2)
 	norm.f	r0,r0
 	mov.n	r0,0
 	j_s.d	[blink]
 	add.pl	r0,r0,1
+	ENDFUNC(__clzsi2)
 #elif !defined (__A4__)
+	FUNC(__clzsi2)
 /* N.B. zero-overhead loops have some restrictions for these targets
    which makes them tricky to use correctly for small loops.  */
 	asl.f 0,r0,2
@@ -900,6 +925,7 @@ SYM(__clzsi2):
 .Ldone_1:
 	j_s.d [blink]
 	sub_s r0,r1,1
+	ENDFUNC(__clzsi2)
 #else
 	mov	lp_count,32
 	lp	@SYM(.Ldone)

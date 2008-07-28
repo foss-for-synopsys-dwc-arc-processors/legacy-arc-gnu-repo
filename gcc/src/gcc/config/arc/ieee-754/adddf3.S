@@ -61,6 +61,8 @@ __subdf3:
 	.global __adddf3
 	.global __subdf3
 	.long 0x7ff00000 ; exponent mask
+	FUNC(__adddf3)
+	FUNC(__subdf3)
 __subdf3:
 	bxor_l DBL1H,DBL1H,31
 __adddf3:
@@ -483,3 +485,5 @@ __adddf3:
 	brlt.d r10,0,.Lrsub
 	mov_s DBL0H,0
 	b_l .Ladd_dbl1_gt
+	ENDFUNC(__adddf3)
+	ENDFUNC(__subdf3)
