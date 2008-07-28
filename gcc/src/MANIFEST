@@ -86,6 +86,7 @@ By ARC employees:
   gcc/gcc/libgcc2.c
   gcc/gcc/builtins.c
   gcc/gcc/combine.c
+  gcc/gcc/dwarf2out.c
   gcc/gcc/expr.h
   gcc/gcc/expr.c
   gcc/gcc/gimplify.c
