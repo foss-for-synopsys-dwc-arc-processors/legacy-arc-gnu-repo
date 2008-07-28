@@ -17,11 +17,13 @@ SHLIB_MAPFILES = \
 
 # Override SHLIB_LINK and SHLIB_INSTALL to use linker script
 # libgcc_s.so.
+# We don't use $(SHLIB_LC) here because we have to build the compiler before
+# we can build the C library.
 SHLIB_LINK = $(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) -shared -nodefaultlibs \
 	-Wl,--soname=$(SHLIB_SONAME) \
 	-Wl,--version-script=$(SHLIB_MAP) \
 	-o $(SHLIB_DIR)/$(SHLIB_SONAME).tmp @multilib_flags@ \
-	$(SHLIB_OBJS) $(SHLIB_LC) && \
+	$(SHLIB_OBJS) && \
 	rm -f $(SHLIB_DIR)/$(SHLIB_SOLINK) && \
 	if [ -f $(SHLIB_DIR)/$(SHLIB_SONAME) ]; then \
 	  mv -f $(SHLIB_DIR)/$(SHLIB_SONAME) \

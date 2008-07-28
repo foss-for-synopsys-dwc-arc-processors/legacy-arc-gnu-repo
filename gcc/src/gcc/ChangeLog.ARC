@@ -1,5 +1,7 @@
 2008-07-28  J"orn Rennecke  <joern.rennecke@arc.com>
 
+	* config/arc/t-arc700-uClibc (SHLIB_LINK): Don't use SHLIB_LC.
+
 	* config/arc/arc.h (STATIC_LINK_SPEC): Define, making default to
 	use dynamic libraries where available.
 	(LINK_SPEC): Use STATIC_LINK_SPEC.
