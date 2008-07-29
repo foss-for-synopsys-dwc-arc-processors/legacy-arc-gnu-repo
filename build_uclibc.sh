@@ -16,6 +16,8 @@ echo "#build binutils" >> uclibc_log.txt
 echo "#-------------------------------------------------------------------------------------------------------------" >> uclibc_log.txt
 cd binutils/build
 rm -r -f *
+echo "Start building BINUTILS!"
+echo "..."
 ../src/configure --prefix=$INSTALLDIR --target=arc-linux-uclibc --disable-werror > ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 make >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 echo "Finish building BINUTILS!"
@@ -43,6 +45,8 @@ cp -r $LINUXDIR/include/asm-arc $INSTALLDIR/arc-linux-uclibc/include/asm
 echo "#build gcc" >> uclibc_log.txt
 cd gcc/build
 rm -r -f *
+echo "Start building GCC!"
+echo "..."
 ../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --with-headers=$INSTALLDIR/arc-linux-uclibc/include --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --disable-c99 >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 make all-gcc >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 echo "Finish building GCC!"
@@ -53,6 +57,8 @@ cd ../..
 
 #-------------------------------------------------------------------------------------------------------------
 echo "#configure and build uClibc" >> uclibc_log.txt
+echo "Start building uClibc!"
+echo "..."
 cd uClibc-0.9.29
  # Preparing a known working uclibc configuration.
  sed -e "s#%LINUX%#$LINUXDIR#" -e "s#%INSTALL%#$INSTALLDIR#"< arc_config > .config
@@ -68,8 +74,10 @@ cd ..
 #-------------------------------------------------------------------------------------------------------------
 echo "C/C++ libs" >> uclibc_log.txt
 cd gcc/build
+echo "Start building C++ libs!"
+echo "..."
 make >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
-echo "Finish building uClibc!"
+echo "Finish building C++ libs!"
 echo "Press Enter to continue"
 read
 make install >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
@@ -82,6 +90,8 @@ cp -r $INSTALLDIR/include/c++ $INSTALLDIR/arc-linux-uclibc/include
 #-------------------------------------------------------------------------------------------------------------
 
 echo "# build insight/gdb" >> uclibc_log.txt
+echo "Start building insight/GDB!"
+echo "..."
 cd insight/build
 rm -r -f *
 ../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --disable-werror >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
@@ -89,4 +99,12 @@ make >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 echo "Finish building insight/GDB!"
 make install >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 cd ../..
+
+#-------------------------------------------------------------------------------------------------------------
+echo "Start building gdbserver!"
+echo "..."
+cd insight/src/gdb/gdbserver/build
+./build_gdbserver.sh
+cd ../../../../..
+echo "Finish building gdbserver!"
 #-------------------------------------------------------------------------------------------------------------
