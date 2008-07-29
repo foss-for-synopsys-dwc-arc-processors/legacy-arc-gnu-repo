@@ -4560,7 +4560,7 @@ md_assemble (char *str)
   long insn2;
   static int init_tables_p = 0;
   current_special_sym_flag = NO_TYPE;
-  char insn_name[16];
+  char insn_name[64]={0};
   int insn_name_idx = 0;
 
   assembling_instruction = 1;
@@ -4578,12 +4578,18 @@ md_assemble (char *str)
     str++;
 
   /* Check whether insn being encoded is 16-bit ARCompact insn */
-  for (s = str; *s && ISALNUM (*s); s++)
-  {
-      insn_name[insn_name_idx] = *s;
-	  insn_name_idx++;
+  for (s = str; (*s && (ISALNUM (*s) ) ) ; s++)
+  {;}
 
+
+  for (insn_name_idx=0; insn_name_idx<strlen(str); insn_name_idx++)
+  {
+	if ( !(ISALNUM(str[insn_name_idx]) || str[insn_name_idx] == '_') ){
+		break;
+	}
+	insn_name[insn_name_idx] = str[insn_name_idx];
   }
+
   /* All ARCompact 16 bit instructions have a <operation_name>_s which
    * is what we attempt to exploit here .
    */
@@ -5610,9 +5616,16 @@ md_assemble (char *str)
 				}
 			    }
 
-			/* Force GOT symbols to be limm in case of ld instruction: workaround*/			
-			if (cond_p ==0 && needGOTSymbol == 1 && (insn_name[0] == 'l' || insn_name[0] == 'L') && ((insn_name[1] == 'd' || insn_name[1] == 'D')) && insn_name[2] != '_' )
+			/* Force GOT symbols to be limm in case of ld (@gotpc & @gotoff) instruction: 	workaround*/			
+
+			if (cond_p ==0 && 
+			current_special_sym_flag != SDA_REF_TYPE &&
+			 needGOTSymbol == 1 && 
+			(insn_name[0] == 'l' || insn_name[0] == 'L') &&
+			 (insn_name[1] == 'd' || insn_name[1] == 'D') &&
+			 (!(insn_name[2] == '_')) ) {
 				break;
+			}
 			  /*
 			     In any of the above PIC related cases we would
 			     have to make a GOT symbol if it is NULL
@@ -5846,8 +5859,10 @@ md_assemble (char *str)
 	      {
 		if (!mach_a4)
 		  {
-		    if (ac_branch_or_jump_insn (insn))
+		    if (ac_branch_or_jump_insn (insn)) {
+
 		      as_bad ("branch/jump instruction in delay slot");
+			}
 		    else if (ac_lpcc_insn (insn))
 		      as_bad ("lpcc instruction in delay slot");
 		    else if (ARC700_rtie_insn (insn))
