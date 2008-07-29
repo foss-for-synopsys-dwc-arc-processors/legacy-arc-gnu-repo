@@ -1,5 +1,10 @@
 2008-07-29  J"orn Rennecke  <joern.rennecke@arc.com>
 
+	* config/arc/arc.h (LINK_COMMAND_SPEC): When creating a shared
+	library with -nostdlib, add -lgcc_s.
+
+2008-07-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
 	* config/arc/fp-hack.c: Disable debug functions for ARC700.
 	* config/arc/dp-hack.c: Likewise.
 

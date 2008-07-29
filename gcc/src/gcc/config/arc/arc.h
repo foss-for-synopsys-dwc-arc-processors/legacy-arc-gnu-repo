@@ -186,6 +186,20 @@ Boston, MA 02111-1307, USA.  */
                    %{shared:-shared}\
 		   %{pg|p|profile:-marclinux_prof;: -marclinux}"
 #endif
+/* Like the standard LINK_COMMAND_SPEC, but add -lgcc_s when building
+   a shared library with -nostdlib, so that the hidden functions of libgcc
+   will be incorporated.  */
+#define LINK_COMMAND_SPEC "\
+%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
+    %(linker) %l " LINK_PIE_SPEC "%X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} %{r}\
+    %{s} %{t} %{u*} %{x} %{z} %{Z} %{!A:%{!nostdlib:%{!nostartfiles:%S}}}\
+    %{static:} %{L*} %(mfwrap) %(link_libgcc) %o\
+    %{fopenmp:%:include(libgomp.spec)%(link_gomp)} %(mflib)\
+    %{fprofile-arcs|fprofile-generate|coverage:-lgcov}\
+    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}}\
+    %{shared:%{nostdlib:%{!really-nostdlib: -lgcc_s }}} \
+    %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} }}}}}}"
+
 #else
 #define LINK_SPEC "%{v} %{mbig-endian:-EB} %{EB} %{EL}\
   %{pg|p:-marcelf_prof;mA7|mARC700: -marcelf}"
