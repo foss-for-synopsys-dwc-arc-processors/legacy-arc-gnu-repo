@@ -1,3 +1,8 @@
+2008-07-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/fp-hack.c: Disable debug functions for ARC700.
+	* config/arc/dp-hack.c: Likewise.
+
 2008-07-28  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/t-arc700-uClibc (SHLIB_LINK): Don't use SHLIB_LC.
