@@ -1662,6 +1662,19 @@ do {							\
     }							\
 } while (0)
 
+/* This is how to output a reference to a symbol_ref / label_ref as
+   (part of) an operand.  To disambiguate from register names like
+   a1 / a2 / status etc, symbols are preceded by '@'.  */
+#define ASM_OUTPUT_SYMBOL_REF(FILE,SYM) \
+  ASM_OUTPUT_LABEL_REF ((FILE), XSTR ((SYM), 0))
+#define ASM_OUTPUT_LABEL_REF(FILE,STR)			\
+  do							\
+    {							\
+      fputc ('@', file);				\
+      assemble_name ((FILE), (STR));			\
+    }							\
+  while (0)
+
 /* Store in OUTPUT a string (made with alloca) containing
    an assembler-name for a local static variable named NAME.
    LABELNO is an integer which is different for each call.  */

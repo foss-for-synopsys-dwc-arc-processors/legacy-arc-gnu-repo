@@ -1796,7 +1796,7 @@ arc_assemble_integer (rtx x, unsigned int size, int aligned_p)
 	fputs ("\t.word\t", asm_out_file);
 	/* %st is to be generated only for A4 */
 	if( TARGET_A4 )
-	    fputs("%st(@", asm_out_file);
+	    fputs("%st(", asm_out_file);
 	output_addr_const (asm_out_file, x);
 	if( TARGET_A4 )
 	    fputs (")", asm_out_file);
@@ -2869,9 +2869,6 @@ arc_print_operand (FILE *file,rtx x,int code)
 	{
 	  fputc ('[', file);
 
-	  if (symbolic_reference_mentioned_p(x))
-	      fputc ('@', file);
-	  
 	  /* Handle possible auto-increment.  For PRE_INC / PRE_DEC /
 	    PRE_MODIFY, we will have handled the first word already;
 	    For POST_INC / POST_DEC / POST_MODIFY, the access to the
@@ -2913,50 +2910,38 @@ arc_print_operand (FILE *file,rtx x,int code)
 		error ("Function address arithmetic is not supported.\n");
 		return;
 	    }
-	    else
-		fputc ('@', file);
 	}
 	
 	else if (symbolic_reference_mentioned_p(x))
 	{
 	    if(TARGET_A4  && ARC_FUNCTION_NAME_PREFIX_P (* (XSTR (x, 0))))
 	    {
-		fprintf (file, "%%st(@");
+	      fprintf (file, "%%st(");
 		output_addr_const (file, x);
 		fprintf (file, ")");
 		return;
 	    }
 	    else if (TARGET_A4 && GET_CODE (x) == LABEL_REF)
 	    {
-		fprintf (file, "%%st(@");
+	      fprintf (file, "%%st(");
 		output_addr_const (file, x);
 		fprintf (file, ")");
 		return;
 	    }
-	    else
-		fputc ('@', file);
 	}
 	
 	else if (GET_CODE (x) == LABEL_REF)
 	{
 	    if (TARGET_A4)
 	    {
-		fprintf (file, "%%st(@");
+		fprintf (file, "%%st(");
 		output_addr_const (file, x);
 		fprintf (file, ")");
 		return;
 	    }
-	    else
-		fputc ('@', file);
 	}
 	break;
-    case 'B' :
-      if (symbolic_reference_mentioned_p(x))
-	{
-	  fputc ('@', file);
-	  output_addr_const (file, x);
-	  return;
-	}
+    case 'B' /* Branch - now same as default.  */ :
       break;
     case 'H' :
     case 'L' :
@@ -3202,11 +3187,9 @@ arc_print_operand_address (FILE *file , rtx addr)
       fputs (reg_names[REGNO (addr)], file);
       break;
     case SYMBOL_REF :
-      fprintf (file, "@");
-
-	if (/*???*/ 0 &&  ARC_FUNCTION_NAME_PREFIX_P (* (XSTR (addr, 0))))
+      if (TARGET_A4 && ARC_FUNCTION_NAME_PREFIX_P (* (XSTR (addr, 0))))
 	{
-	  fprintf (file, "%%st(@");
+	  fprintf (file, "%%st(");
 	  output_addr_const (file, addr);
 	  fprintf (file, ")");
 	}

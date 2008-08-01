@@ -1,3 +1,11 @@
+2008-08-01  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.h (ASM_OUTPUT_SYMBOL_REF): Define.
+	(ASM_OUTPUT_LABEL_REF): Likewise.
+	* config/arc/arc.c (arc_assemble_integer, arc_print_operand):
+	Don't emit '@' before labels / symbols.
+	(arc_print_operand_address): Likewise.
+
 2008-07-29  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.h (LINK_COMMAND_SPEC): When creating a shared
