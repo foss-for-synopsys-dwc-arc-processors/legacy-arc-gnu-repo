@@ -2,11 +2,11 @@
 #ifndef __A4__
 
 	.section .init
-	.global __init
-	.global __fini
+	.global _init
+	.global _fini
 	.global __monstartup
-	mov_s	r0,__init
-	mov_s	r1,__fini
+	mov_s	r0,_init
+	mov_s	r1,_fini
 	jl	__monstartup
 
 	.section .__arc_profile_desc, "a"

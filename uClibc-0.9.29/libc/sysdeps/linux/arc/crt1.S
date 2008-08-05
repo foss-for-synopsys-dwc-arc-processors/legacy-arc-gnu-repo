@@ -34,8 +34,8 @@
 	.type	__start,@function
 
 #ifndef __UCLIBC_CTOR_DTOR__
-	.weak	__init
-	.weak	__fini
+	.weak	_init
+	.weak	_fini
 #endif
 /* Stick in a dummy reference to main(), so that if an application
  * is linking when the main() function is in a static library (.a)
@@ -59,8 +59,8 @@ __start:
 #endif
 
 	mov_s	r0, main
-	mov_s	r3, __init
-	mov	r4, __fini
+	mov_s	r3, _init
+	mov	r4, _fini
 ;;; 	mov	r3, 0x0
 ;;; 	mov	r4, 0x0
 

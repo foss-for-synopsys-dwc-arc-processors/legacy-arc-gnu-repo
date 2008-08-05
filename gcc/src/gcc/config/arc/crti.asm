@@ -4,14 +4,14 @@
 		
 	.section .init
 	.balign 4
-	.global __init
+	.global _init
 	.word 0
-__init:
+_init:
 	push_s	blink
 
 	.section .fini
 	.balign 4
-	.global __fini
+	.global _fini
 	.word 0
-__fini:
+_fini:
 	push_s	blink

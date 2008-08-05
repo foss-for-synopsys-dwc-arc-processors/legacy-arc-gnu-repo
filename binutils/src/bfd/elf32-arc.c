@@ -90,8 +90,8 @@ static reloc_howto_type * arc_elf_calculate_howto_index
   (enum elf_arc_reloc_type r_type);
 
 
-#define INIT_SYM_STRING "init"
-#define FINI_SYM_STRING "fini"
+#define INIT_SYM_STRING "_init"
+#define FINI_SYM_STRING "_fini"
 
 /* The default symbols representing the init and fini dyn values */
 char * init_str = INIT_SYM_STRING;
@@ -1921,7 +1921,7 @@ elf_arc_relocate_section (bfd *output_bfd,
 					 + sgot->output_offset
 					 + off);
 		      /* RELA relocs */
-		      outrel.r_addend = 0;
+		      outrel.r_addend = 0; //PBB??
 
 		      outrel.r_info = ELF32_R_INFO (0, R_ARC_RELATIVE);
 		      loc = srelgot->contents;
@@ -2052,7 +2052,7 @@ elf_arc_relocate_section (bfd *output_bfd,
 	      if (outrel.r_offset == (bfd_vma) -1)
 		  skip = TRUE;
 	      	      
-	      outrel.r_addend = 0;
+	      outrel.r_addend = rel->r_addend;
 	      outrel.r_offset += (input_section->output_section->vma
 				  + input_section->output_offset);
 
@@ -2079,7 +2079,7 @@ elf_arc_relocate_section (bfd *output_bfd,
 			  && h->def_regular))
 		    {
 		      relocate = TRUE;
-		      outrel.r_addend = 0;
+		      /* outrel.r_addend = 0; */
 		      outrel.r_info = ELF32_R_INFO (0, R_ARC_RELATIVE);
 		    }
 		  else

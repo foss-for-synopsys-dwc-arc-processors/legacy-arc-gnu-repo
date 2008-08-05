@@ -2,8 +2,8 @@ ___gnu_compiled_c:
 	
 	.section .init
 	.align 4
-	.global	__init
-	.type	 __init,@function
+	.global	_init
+	.type	 _init,@function
 	; EPILOGUE
 #ifdef __A4__
 	ld	fp, [sp]
@@ -15,12 +15,12 @@ ___gnu_compiled_c:
 	j.d [blink]
 	add sp,sp,4
 .Lfe2:
-	.size	 __init,.Lfe2-__init
+	.size	 _init,.Lfe2-_init
 	
 	.section .fini
 	.align 4
-	.global	__fini
-	.type	 __fini,@function
+	.global	_fini
+	.type	 _fini,@function
 	; EPILOGUE
 #ifdef __A4__
 	ld	fp, [sp]
@@ -32,5 +32,5 @@ ___gnu_compiled_c:
 	j.d [blink]
 	add sp,sp,4
 .Lfe3:
-	.size	 __fini,.Lfe3-__fini
+	.size	 _fini,.Lfe3-_fini
 	

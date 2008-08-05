@@ -197,6 +197,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct dyn_elf *scope,
 	char *symname;
 	unsigned long *reloc_addr;
 	unsigned long symbol_addr;
+    unsigned long addend;
 #if defined (__SUPPORT_LD_DEBUG__)
 	unsigned long old_val;
 	unsigned long new_val;
@@ -207,6 +208,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct dyn_elf *scope,
 	symtab_index = ELF32_R_SYM(rpnt->r_info);
 	symbol_addr  = 0;
 	symname      = strtab + symtab[symtab_index].st_name;
+    addend = (unsigned long)rpnt->r_addend;
 
 	if (symtab_index) {
 
@@ -246,6 +248,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct dyn_elf *scope,
 				value = (unsigned long)*ptr++;
                 value |= ((unsigned long)*ptr) << 16;
 				value += symbol_addr;
+                value += addend;
                 *ptr-- = (unsigned short)(value >> 16);
                 *ptr = (unsigned short)value; 
 #if defined (__SUPPORT_LD_DEBUG__)
@@ -259,7 +262,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct dyn_elf *scope,
                 unsigned long value = 0;
 				value = (unsigned long)*ptr++;
                 value |= ((unsigned long)*ptr) << 16;
-				value += symbol_addr - (unsigned long) reloc_addr;
+				value += (symbol_addr + addend)  - (unsigned long) reloc_addr;
                 *ptr-- = (unsigned short)(value >> 16);
                 *ptr = (unsigned short)value; 
 #if defined (__SUPPORT_LD_DEBUG__)
@@ -305,7 +308,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct dyn_elf *scope,
 		}
 #if defined (__SUPPORT_LD_DEBUG__)
 	if(_dl_debug_reloc && _dl_debug_detail)
-		_dl_dprintf(_dl_debug_file, "\tpatched: %x ==> %x @ %x", old_val, new_val, reloc_addr);
+		_dl_dprintf(_dl_debug_file, "\tpatched: %x ==> %x @ %x : addend is %x ", old_val, new_val, reloc_addr, addend);
 #endif
 
 	return 0;
