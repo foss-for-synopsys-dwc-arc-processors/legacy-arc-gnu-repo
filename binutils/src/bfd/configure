@@ -2838,7 +2838,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=bfd
- VERSION=2.17.ARC_2.1.Skymedi.20080730
+ VERSION=2.17.ARC_2.1.Skymedi.20080806
 
 
 cat >>confdefs.h <<_ACEOF
