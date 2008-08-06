@@ -87,6 +87,14 @@ cd ../..
 cp $INSTALLDIR/lib/libstdc++.so* $INSTALLDIR/arc-linux-uclibc/lib
 cp $INSTALLDIR/lib/libstdc++.a $INSTALLDIR/arc-linux-uclibc/lib
 cp -r $INSTALLDIR/include/c++ $INSTALLDIR/arc-linux-uclibc/include
+
+# Make necessary soft links
+pushd .
+cd $INSTALLDIR/arc-linux-uclibc/lib
+ln -s libm.so libm.so.0
+ln -s libdl.so libdl.so.0
+ln -s libgcc_s.so libgcc_s.so.0
+popd
 #-------------------------------------------------------------------------------------------------------------
 
 echo "# build insight/gdb" >> uclibc_log.txt
