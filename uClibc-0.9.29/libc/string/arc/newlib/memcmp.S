@@ -138,6 +138,7 @@ ENTRY(memcmp)
 	brne	r3,r12,.Lbyte_odd
 .Lbyte_end:
 	bcc_l	.Lbyte_even
+	brne	r4,r5,.Lbyte_even
 	ldb_s	r3,[r0,1]
 	ldb_s	r12,[r1,1]
 .Lbyte_odd:
