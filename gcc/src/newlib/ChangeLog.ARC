@@ -1,3 +1,7 @@
+2008-08-12  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* libc/sys/arc (__start): Remove extra '_' from init / fini references.
+
 2008-02-14  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* libc/machine/arc/asm.h: New file.

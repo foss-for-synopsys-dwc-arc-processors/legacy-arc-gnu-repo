@@ -93,23 +93,23 @@ __start:
  	mov_s	r14, r1 
 #if defined (_REENT_SMALL) || defined (__A4__)
 #ifdef __A4__
- 	mov	r0, %st(@__fini)
+ 	mov	r0, %st(@_fini)
 #else 
- 	mov_s	r0, @__fini 
+ 	mov_s	r0, @_fini 
 #endif	
  	bl	@atexit
 #else
 	; calling atexit drags in malloc, so instead poke the function
 	; address directly into the reent structure
 	ld	r1,[gp,@_impure_ptr@sda]
- 	mov_s	r0, @__fini 
+ 	mov_s	r0, @_fini 
 	add	r1,r1,0x14c	; &_GLOBAL_REENT->atexit0
 	st	r1, [r1,-4]	; _GLOBAL_REENT->atexit
 	st_s	r0, [r1,8]	; _GLOBAL_REENT->atexit0._fns[0]
 	mov_s	r0, 1
 	st_s	r0, [r1,4]	; _GLOBAL_REENT->atexit0._ind
 #endif
-	bl	@__init
+	bl	@_init
 	mov_s	r0, r13
 	mov_s	r1, r14
 	bl.d	@main
