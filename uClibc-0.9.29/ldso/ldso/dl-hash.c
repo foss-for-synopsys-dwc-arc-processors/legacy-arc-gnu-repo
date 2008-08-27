@@ -59,6 +59,7 @@ struct dyn_elf *_dl_handles = NULL;
  * it to decode the hash table.  */
 static inline Elf_Symndx _dl_elf_hash(const unsigned char *name)
 {
+#if 0
 	unsigned long hash=0;
 	unsigned long tmp;
 
@@ -75,6 +76,29 @@ static inline Elf_Symndx _dl_elf_hash(const unsigned char *name)
 		hash ^= tmp >> 24;
 	}
 	return hash;
+#else /* Higher performance - back-translation from ARC assembly.  */
+	unsigned long r1,r2,r3;
+
+	r1 = name[0];
+	r3 = name[1];
+	r2 = *(name+=2);
+	if (__builtin_expect (r1 != 0, 1)) {
+		r1 <<= 4;
+		if (__builtin_expect (r3 != 0, 1)) {
+			r1 += r3;
+			r1 <<= 4;
+			while (__builtin_expect (r2 != 0, 1)) {
+				r1 += r2;
+				r2 = *++name;
+				r3 = r1 >> 20;
+				r1 <<= 4;
+				r3 &= ~0xff;
+				r1 ^= r3;
+			}
+		}
+	}
+	return r1 >> 4;
+#endif
 }
 
 /*
@@ -111,11 +135,15 @@ struct elf_resolve *_dl_add_elf_hash_table(const char *libname,
 
 	if (dynamic_info[DT_HASH] != 0) {
 		hash_addr = (Elf_Symndx*)dynamic_info[DT_HASH];
+#ifdef COPY_HASH
+		COPY_HASH(tpnt, hash_addr);
+#else /* !COPY_HASH */
 		tpnt->nbucket = *hash_addr++;
 		tpnt->nchain = *hash_addr++;
 		tpnt->elf_buckets = hash_addr;
 		hash_addr += tpnt->nbucket;
 		tpnt->chains = hash_addr;
+#endif /* COPY_HASH */
 	}
 	tpnt->loadaddr = loadaddr;
 	for (i = 0; i < DYNAMIC_SIZE; i++)

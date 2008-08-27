@@ -745,7 +745,7 @@ struct gcc_target
 				      struct secondary_reload_info *);
   /* Return true if a reload loading IN should share a reload register
      with an unrelated output reload.  */
-  bool (*preserve_reload) (rtx in);
+  bool (*preserve_reload_p) (rtx in);
 
   /* Functions specific to the C++ frontend.  */
   struct cxx {

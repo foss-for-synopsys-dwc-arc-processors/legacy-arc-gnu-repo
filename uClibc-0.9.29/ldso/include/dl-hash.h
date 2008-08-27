@@ -59,10 +59,8 @@ struct elf_resolve {
   dev_t st_dev;      /* device */
   ino_t st_ino;      /* inode */
 
-#ifdef __powerpc__
-  /* this is used to store the address of relocation data words, so
-   * we don't have to calculate it every time, which requires a divide */
-  unsigned long data_words;
+#ifdef ELF_RESOLVE_TDEP
+  ELF_RESOLVE_TDEP
 #endif
 };
 

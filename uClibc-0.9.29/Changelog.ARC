@@ -1,3 +1,14 @@
+2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* ldso/ldso/powerpc/dl-sysdep.h (ELF_RESOLVE_TDEP): Define.
+	* ldso/ldso/dl-hash.c (_dl_elf_hash): Use implementation with
+	tighter loop core.
+	(_dl_add_elf_hash_tab): Take COPY_HASH into account.
+	* ldso/ldso/arc/dl-sysdep.h (__udivmodsi4): Extern hidden declaration.
+	(do_rem): Use __udivmodsi4.
+	* ldso/include/dl-hash.h (struct elf_resolve): Use ELF_RESOLVE_TDEP
+	instead of ad-hoc #ifdefs.
+
 2008-07-22  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* ldso/ldso/arc/resolve.S: Define __ASSEMBLY__

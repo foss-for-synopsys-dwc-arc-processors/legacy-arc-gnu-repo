@@ -27,6 +27,10 @@
 (define_register_constraint "c" "CORE_REGS"
   "core register @code{r0}-@code{r60}, @code{ap},@code{pcl}")
 
+; FIXME
+(define_register_constraint "w" "CORE_REGS"
+  "writable core register @code{r0}-@code{r60}")
+
 (define_register_constraint "l" "LPCOUNT_REG"
   "@internal
    Loop count register @code{r60}")

@@ -1564,6 +1564,49 @@
   [(set_attr "type" "multi")
   (set_attr "length" "16")])
 
+;; ??? The hardware allows immediate operands, but allowing 
+;; (zero_extend:DI (const_int)) leads to internal errors in combine.
+(define_insn "umulsi3_highpart_i"
+  [(set (match_operand:SI 0 "register_operand"            "=w, w, w,  w,  w")
+	(truncate:SI
+	 (lshiftrt:DI
+	  (mult:DI
+	   (zero_extend:DI (match_operand:SI 1 "register_operand"  " 0, 0, 0,  c,  c"))
+	   (zero_extend:DI (match_operand:SI 2 "register_operand" "cL, I, J, cL, Cal")))
+	  (const_int 32))))]
+  "TARGET_ARC700 && !TARGET_NOMPY_SET"
+  "@
+	mpyhu%? %0,%1,%2
+	mpyhu %0,%1,%2
+	mpyhu%? %0,%1,%2
+	mpyhu %0,%1,%2
+	mpyhu %0,%1,%S2"
+  [(set_attr "length" "4,4,8,4,8")
+   (set_attr "type" "umulti,umulti,umulti,umulti, umulti")
+   (set_attr "cond" "canuse,nocond,canuse,nocond,nocond")])
+
+(define_expand "umulsi3_highpart"
+  [(set (match_operand:SI 0 "general_operand"  "")
+	(truncate:SI
+	 (lshiftrt:DI
+	  (mult:DI
+	   (zero_extend:DI (match_operand:SI 1 "register_operand" ""))
+	   (zero_extend:DI (match_operand:SI 2 "register_operand" "")))
+	  (const_int 32))))]
+  "TARGET_ARC700 && !TARGET_NOMPY_SET"
+  "
+{
+  rtx target = operands[0];
+
+  if (!register_operand (target, SImode))
+    target = gen_reg_rtx (SImode);
+
+  emit_insn (gen_umulsi3_highpart_i (target, operands[1], operands[2]));
+  if (target != operands[0])
+    emit_move_insn (operands[0], target);
+  DONE;
+}")
+
 (define_insn "umulqihi3"
   [(set (match_operand:HI 0 "register_operand" "=r")
 	(mult:HI (zero_extend:HI (match_operand:QI 1 "register_operand" "c"))

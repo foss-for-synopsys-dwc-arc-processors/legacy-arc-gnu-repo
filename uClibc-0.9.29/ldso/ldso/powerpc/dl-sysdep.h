@@ -185,3 +185,7 @@ do { \
 if (dpnt->d_tag == DT_PPC_GOT) \
      dynamic[DT_PPC_GOT_IDX] = dpnt->d_un.d_ptr; \
 } while (0)
+
+/* this is used to store the address of relocation data words, so
+ * we don't have to calculate it every time, which requires a divide */
+#define ELF_RESOLVE_TDEP unsigned long data_words;

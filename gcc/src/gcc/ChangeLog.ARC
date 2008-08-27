@@ -1,3 +1,24 @@
+2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_final_prescan_insn): Move code after
+	declarations.
+
+	* config/arc/arc.md (umulsi3_highpart_i, umulsi3_highpart):
+	New patterns.
+
+	* constraints.md ("w"): Stub constraint.
+
+2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* target-def.h (TARGET_PRESERVE_RELOAD_P): Define.
+	(TARGET_INITIALIZER): Add TARGET_PRESERVE_RELOAD_P.
+	* target.h (struct gcc_target): New member preserve_reload_p.
+	* reload.c (push_reload): Mark values flagged by
+	targetm.preserve_reload_p as RELOAD_OTHER.
+	* config/arc/arc.c (arc_preserve_reload_p): New function.
+	(TARGET_PRESERVE_RELOAD_P): Redefine.
+	* doc/tm.texi (TARGET_PRESERVE_RELOAD_P): Document.
+
 2008-08-01  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.h (ASM_OUTPUT_SYMBOL_REF): Define.
@@ -226,16 +247,8 @@
 
 2008-03-19  J"orn Rennecke  <joern.rennecke@arc.com>
 
-	* target-def.h (TARGET_PRESERVE_RELOAD_P): Define.
-	(TARGET_INITIALIZER): Add TARGET_PRESERVE_RELOAD_P.
-	* target.h (struct gcc_target): New member preserve_reload.
 	* reload.c (push_secondary_reload): Add missing break.
-	(push_reload): Mark values flagged by targetm.preserve_reload as
-	RELOAD_OTHER.
-	* config/arc/arc.c (arc_preserve_reload): New function.
-	(TARGET_PRESERVE_RELOAD): Redefine.
 	* config/arc/arc.h (LEGITIMIZE_RELOAD_ADDRESS): Define.
-	* doc/tm.texi (TARGET_PRESERVE_RELOAD): Document.
 
 2008-03-18  J"orn Rennecke  <joern.rennecke@arc.com>
 

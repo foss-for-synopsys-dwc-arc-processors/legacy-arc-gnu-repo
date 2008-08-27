@@ -342,7 +342,7 @@ arc_vector_mode_supported_p (enum machine_mode mode)
 
 static int last_insn_set_cc_p; /* ??? Use was deleted. Check if this variable can go.  */
 static int current_insn_set_cc_p;
-static bool arc_preserve_reload (rtx in);
+static bool arc_preserve_reload_p (rtx in);
 static rtx arc_delegitimize_address (rtx);
 
 /* initialize the GCC target structure.  */
@@ -443,8 +443,8 @@ static rtx arc_delegitimize_address (rtx);
 #undef TARGET_INVALID_WITHIN_DOLOOP
 #define TARGET_INVALID_WITHIN_DOLOOP arc_invalid_within_doloop
 
-#undef TARGET_PRESERVE_RELOAD
-#define TARGET_PRESERVE_RELOAD arc_preserve_reload
+#undef TARGET_PRESERVE_RELOAD_P
+#define TARGET_PRESERVE_RELOAD_P arc_preserve_reload_p
 
 #undef TARGET_DELEGITIMIZE_ADDRESS
 #define TARGET_DELEGITIMIZE_ADDRESS arc_delegitimize_address
@@ -3396,9 +3396,6 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
   /* BODY will hold the body of INSN.  */
   register rtx body = PATTERN (insn);
 
-  if (TARGET_DUMPISIZE)
-    fprintf (asm_out_file, "\n! at %04x\n", INSN_ADDRESSES (INSN_UID (insn)));
-
   /* This will be 1 if trying to repeat the trick (ie: do the `else' part of
      an if/then/else), and things need to be reversed.  */
   int reverse = 0;
@@ -3413,6 +3410,9 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
   /* Type of the jump_insn. Brcc insns don't affect ccfsm changes, 
      since they don't rely on a cmp preceding them */
   enum attr_type jump_insn_type;
+
+  if (TARGET_DUMPISIZE)
+    fprintf (asm_out_file, "\n! at %04x\n", INSN_ADDRESSES (INSN_UID (insn)));
 
   /* Update compare/branch separation marker.  */
   record_cc_ref (insn);
@@ -6859,7 +6859,7 @@ arc_secondary_reload (bool in_p, rtx x, enum reg_class class,
 }
 
 static bool
-arc_preserve_reload (rtx in)
+arc_preserve_reload_p (rtx in)
 {
   return (GET_CODE (in) == PLUS
 	  && RTX_OK_FOR_BASE_P (XEXP (in, 0))

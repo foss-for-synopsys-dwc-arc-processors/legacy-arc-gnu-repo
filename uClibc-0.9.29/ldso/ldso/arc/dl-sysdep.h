@@ -179,9 +179,59 @@ static inline unsigned long arc_modulus(unsigned long m, unsigned long p) {
         return m;
 }
 
+extern unsigned __udivmodsi4 (unsigned, unsigned)
+  __attribute ((visibility("hidden")));
 
+#define do_rem(result, n, base)  \
+  ((result) \
+   = (__builtin_constant_p (base) \
+      ? (n) % (unsigned) (base) \
+      : ({ \
+	   register unsigned r1 __asm__ ("r1") = (base); \
+ \
+	   __asm("bl.d @__udivmodsi4` mov r0,%1" : "=r" (r1) \
+	         : "r" (n), "r" (r1) \
+	         : "r0", "r2", "r3", "r4", "lp_count", "blink", "cc"); \
+	   r1; })))
 
-#define do_rem(result, n, base)  result = arc_modulus(n,base);
+#if 0
+#define COPY_HASH(TPNT, HASH_ADDR) \
+do { \
+  int tmp0, tmp1, tmp2;
+  asm("\
+	ld.ab %0,[%[addr],4] /* nbucket */ \
+	ld.ab %1,[%[addr],4] /* nchain */ \
+	st %[addr],%[elf_buckets] \
+	norm %2,%0 \
+	st %0,%[nbucket] \
+	asl %2,%0,%2 \
+	st %1,%[nchain] \
+	divaw %0,0x40000000,%2 \
+	.rep 14 \
+	divaw %0,%0,%2 \
+	.endr \
+	add %[addr],%[addr],%1 \
+	bmsk %1,%0,14 \
+	bic %0,%0,%1 \
+	.rep15 \
+	divaw %0,%0,%2 \
+	.endr \
+	asl %1,%1,15 \
+	bmsk %0,%0,14 \
+	add %0,%0,%1 \
+	add %0,%0,1 \
+	st %[addr],%[chains] \
+	st %[nbucket_inv],%0" \
+	: "=&r" (tmp0), "=&r" (tmp1), "=&r" (tmp2), \
+	  [addr] "+r" (HASH_ADDR), [nbucket] "=m" ((TPNT)->nbucket), \
+	  [nchain] "=m" ((TPNT)->nchain), \
+	  [elf_buckets] "=m" ((TPNT)->elf_buckets), \
+	  [chains] "=m" ((TPNT)->chains), \
+	  [nbucket_inv] "=m" ((TPNT)->nbucket_inv)); \
+} while (0)
+
+#define ELF_RESOLVE_TDEP unsigned long nbucket_inv;
+#endif
 
 /* 8192 bytes alignment */
 #define PAGE_ALIGN 0xffffe000

@@ -2656,7 +2656,7 @@ Do not define this macro if you do not define
 is @code{BITS_PER_WORD} bits wide is correct for your machine.
 @end defmac
 
-@deftypefn {Target Hook} bool TARGET_PRESERVE_RELOAD (rtx @var{in})
+@deftypefn {Target Hook} bool TARGET_PRESERVE_RELOAD_P (rtx @var{in})
 Called when doing an input reload using the value @var{in}.  Return true
 if the reload register should be available for inheritance later.  This
 might increase the spill pressure, but enhances reload inheritance.
