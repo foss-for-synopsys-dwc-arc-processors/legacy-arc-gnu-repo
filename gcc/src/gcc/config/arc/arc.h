@@ -152,7 +152,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef USE_UCLIBC
 #if 1
-/* Note that the default is to link against dynamic libraries, if they
+/* Note that the default is to link against dynamic libraries, if they are
    available.  While it is a bit simpler to get started with static linking,
    it is much easier to comply with the LGPL when you use dynamic linking, and
    thus get a product that you can legally ship.  */
@@ -160,21 +160,6 @@ Boston, MA 02111-1307, USA.  */
 #else /* Make ease of use of producing something the main concern.  */
 #define STATIC_LINK_SPEC "%{!mdynamic:%{!shared:-Bstatic}}"
 #endif
-#if 0
-/* Note that the default is to link against dynamic libraries, if they
-   available.  While it is a bit simpler to get started with static linking,
-   it is much easier to comply with the LGPL when you use dynamic linking, and
-   thus get a product that you can legally ship.  */
-#define LINK_SPEC "%{h*} %{version:-v} \
-                   %{b} %{Wl,*:%*}     \
-                   %{static:-Bstatic}  \
-                   %{symbolic:-Bsymbolic} \
-                   %{rdynamic:-export-dynamic}\
-                   %{!dynamic-linker:-dynamic-linker /lib/ld-uClibc.so.0}\
-                   -X %{mbig-endian:-EB} \
-                   %{EB} %{EL} \
-		   %{pg|p|profile:-marclinux_prof;: -marclinux}"
-#else /* Make ease of use of producing something the main concern.  */
 #define LINK_SPEC "%{h*} %{version:-v} \
                    %{b} %{Wl,*:%*}     \
 		   "STATIC_LINK_SPEC" \
@@ -185,7 +170,6 @@ Boston, MA 02111-1307, USA.  */
                    %{EB} %{EL} \
                    %{shared:-shared}\
 		   %{pg|p|profile:-marclinux_prof;: -marclinux}"
-#endif
 /* Like the standard LINK_COMMAND_SPEC, but add -lgcc_s when building
    a shared library with -nostdlib, so that the hidden functions of libgcc
    will be incorporated.  */
@@ -627,12 +611,17 @@ if (GET_MODE_CLASS (MODE) == MODE_INT		\
       for (i=64; i<88; i++)			       \
 	reg_alloc_order [i] = i;		       \
     }						       \
-  /* For Arctangent-A5 / ARC600, lp_count may not be	\
-     read in an instruction following immediately after	\
-     another one setting it to a new value.		\
-     Till we can ensure this property is kept, disable	\
-     lp_count use.  */					\
-  if (!TARGET_ARC700)					\
+  /* For Arctangent-A5 / ARC600, lp_count may not be read in an instruction \
+     following immediately after another one setting it to a new value. \
+     There was some discussion on how to enforce scheduling constraints for \
+     processors with missing interlocks on the gcc mailing list: \
+     http://gcc.gnu.org/ml/gcc/2008-05/msg00021.html . \
+     However, we can't actually use this approach, beccause for ARC the \
+     delay slot scheduling pass is active, which runs after \
+     machine_dependent_reorg.  */                     \
+  if (TARGET_ARC600)                                  \
+    CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], LP_COUNT); \
+  else if (!TARGET_ARC700)                            \
     fixed_regs[LP_COUNT] = 1;				\
   for (regno = 0; regno < FIRST_PSEUDO_REGISTER; regno++) \
     if (!call_used_regs[regno])				\
@@ -735,6 +724,7 @@ enum reg_class
 };
 
 #define N_REG_CLASSES (int) LIM_REG_CLASSES
+#define WRITABLE_CORE_REGS CORE_REGS /* FIXME */
 
 /* Give names of register classes as strings for dump file.   */
 #define REG_CLASS_NAMES	  \
@@ -1456,7 +1446,10 @@ arc_select_cc_mode (OP, X, Y)
 
 /* Compute extra cost of moving data between one register class
    and another.  */
-#define REGISTER_MOVE_COST(MODE, CLASS1, CLASS2) 2
+#define REGISTER_MOVE_COST(MODE, CLASS, TO_CLASS) \
+  ((TARGET_ARC600 \
+    && ((TO_CLASS) == LPCOUNT_REG || (TO_CLASS) == WRITABLE_CORE_REGS)) \
+   ? 3 : 2)
 
 /* Compute the cost of moving data between registers and memory.  */
 /* Memory is 3 times as expensive as registers.
@@ -1901,7 +1894,7 @@ arc_asm_output_aligned_decl_local (STREAM, DECL, NAME, SIZE, ALIGNMENT, 0)
    < (unsigned int) MOVE_RATIO)
 
 /* Undo the effects of the movmem pattern presence on STORE_BY_PIECES_P .  */
-#define MOVE_RATIO ((unsigned int) (optimize_size ? 3 : 15))
+#define MOVE_RATIO (optimize_size ? 3 : 15)
 
 /* Define this to be nonzero if shift instructions ignore all but the low-order
    few bits. Changed from 1 to 0 for rotate pattern testcases
@@ -1999,6 +1992,11 @@ enum arc_function_type {
 	  || (MODE) == CC_FPXmode) \
 	 ? reverse_condition_maybe_unordered ((CODE)) \
 	 : reverse_condition ((CODE)))
+
+#define ADJUST_INSN_LENGTH(X, LENGTH)                           \
+  (LENGTH) += arc_insn_length_adjustment (X)
+
+#define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '`')
 
 #if 0
 #define REGISTER_MOVE_COST(MODE, CLASS1, CLASS2) \

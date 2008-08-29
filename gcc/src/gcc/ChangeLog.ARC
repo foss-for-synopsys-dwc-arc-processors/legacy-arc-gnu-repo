@@ -1,3 +1,39 @@
+2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_final_prescan_insn): Output a nop if necessary
+	to prevent a hazard.
+	(arc_output_mi_thunk): Formatting fixes.
+	(arc_secondary_reload): Also require temporary
+	GENERAL_REGS if loading WRITABLE_CORE_REGS.
+	(arc600_corereg_hazard_1, arc600_corereg_hazard): New functions.
+	(arc_hazard, arc_insn_length_adjustment): Likewise.
+	(write_ext_corereg_1, arc_write_ext_corereg): Likewise.
+	* config/arc/arc.h (CONDITIONAL_REGISTER_USAGE):  For ARC600, merely
+	remove LP_COUNT from SIBCALL_REGS.
+	(REGISTER_MOVE_COST): Increase for LPCOUNT_REG / WRUTABLE_CORE_REGS
+	on ARC600.
+	(MOVE_RATIO): Remove cast.
+	(ADJUST_INSN_LENGTH): Define.
+	(IS_ASM_LOGICAL_LINE_SEPARATOR): Define.
+	* config/arc/arc.md (in_delay_slot): Take hazards into account.
+	* config/arc/arc-protos.h (arc_insn_length_adjustment): Declare.
+	(arc_corereg_hazard, arc_hazard, arc_write_ext_corereg): Likewise.
+	* config/arc/constraints.md ("w"): Use WRITABLE_CORE_REGS.
+
+	* config/arc/arc.h (WRITABLE_CORE_REGS): Stub definition.
+
+	* loop-doloop.c (doloop_modify): Pass doloop_end pattern to
+	gen_doloop_begin.
+	* config/c4x/c4x.md (doloop_begin): Operand 4 is doloop_end pattern.
+	* loop-doloop.c (doloop_optimize): Pass flag to indicate if loop is
+	entered at top to gen_doloop_end.
+	* config/arc/arc.c (arc_reorg): If we can't find the loop entry at
+	the loop top, search entire function for a matching loop begin,
+	and record information about it if found.
+	* config/arc/arc.md (doloop_begin): Now takes five operands.
+	(doloop_begin_i): Likewise.
+	(doloop_end): Now takes 6 operands.
+
 2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/ieee-754/fixdfsi.S: Fix shift by zero case.

@@ -20,16 +20,19 @@
 
 ;; Register constraints
 
-; Some core registers (.e.g lp_count) can't be used as the destination of a
-; load and/or multiply.  A large number are extension registers.
-; Nevertheless, if the register is present, we shoud allow all the
-; standard arithmentic instructions to use them. 
+; Most instructions accept arbitrary core registers for their inputs, even
+; if the core register in question cannot be written to, like the multiply
+; result registers of the ARCtangent-A5 and ARC600
 (define_register_constraint "c" "CORE_REGS"
   "core register @code{r0}-@code{r60}, @code{ap},@code{pcl}")
 
-; FIXME
-(define_register_constraint "w" "CORE_REGS"
-  "writable core register @code{r0}-@code{r60}")
+; Some core registers (.e.g lp_count) aren't general registers because they
+; can't be used as the destination of a multi-cycle operation like
+; load and/or multiply, yet they are still writable in the sense that
+; register-register moves and single-cycle arithmetic (e.g "add", "and",
+; but not "mpy") can write to them.
+(define_register_constraint "w" "WRITABLE_CORE_REGS"
+  "writable core register: @code{r0}-@code{r31}, @code{r60}, nonfixed core register")
 
 (define_register_constraint "l" "LPCOUNT_REG"
   "@internal

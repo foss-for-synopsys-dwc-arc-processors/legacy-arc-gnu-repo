@@ -3162,9 +3162,9 @@ arc_print_operand (FILE *file,rtx x,int code)
 	    {
 	      x = XEXP (x, 0);
 	      output_addr_const (file, XEXP (x, 0));
-	      if (GET_CODE (XEXP (x, 0)) == SYMBOL_REF && SYMBOL_REF_SMALL_P (XEXP (x, 0))) 
-		fprintf (file, "@sda");		
-	      
+	      if (GET_CODE (XEXP (x, 0)) == SYMBOL_REF && SYMBOL_REF_SMALL_P (XEXP (x, 0)))
+		fprintf (file, "@sda");
+
 	      if (GET_CODE (XEXP (x, 1)) != CONST_INT
 		  || INTVAL (XEXP (x, 1)) >= 0)
 		fprintf (file, "+");
@@ -3418,6 +3418,16 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
 
   if (TARGET_DUMPISIZE)
     fprintf (asm_out_file, "\n! at %04x\n", INSN_ADDRESSES (INSN_UID (insn)));
+
+  /* Output a nop if necessary to prevent a hazard.  Don't try this for
+     epilogue delay slots.  */
+  if (PREV_INSN (insn)
+      && (NEXT_INSN (PREV_INSN (insn)) == insn
+	  || (NEXT_INSN (PREV_INSN (insn))
+	      && GET_CODE (NEXT_INSN (PREV_INSN (insn))) == INSN
+	      && GET_CODE (PATTERN (NEXT_INSN (PREV_INSN (insn)))) == SEQUENCE))
+      && arc_hazard (prev_real_insn (insn), insn))
+    fprintf (asm_out_file, arc_size_opt_level >= 1 ? "\tnop_s\n" : "\tnop\n" );
 
   /* Update compare/branch separation marker.  */
   record_cc_ref (insn);
@@ -5336,49 +5346,48 @@ arc_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
 		     HOST_WIDE_INT vcall_offset,
 		     tree function)
 {
-    int mi_delta = delta;
-    const char *const mi_op = mi_delta < 0 ? "sub" : "add";
-    int shift = 0;
-    int this_regno = (aggregate_value_p (TREE_TYPE (TREE_TYPE (function)), function)
-		      ? 1 : 0);
-    const char *fname;
-    if (mi_delta < 0) 
-	mi_delta = - mi_delta; 
+  int mi_delta = delta;
+  const char *const mi_op = mi_delta < 0 ? "sub" : "add";
+  int shift = 0;
+  int this_regno
+    = aggregate_value_p (TREE_TYPE (TREE_TYPE (function)), function) ? 1 : 0;
+  const char *fname;
+
+  if (mi_delta < 0) 
+    mi_delta = - mi_delta; 
     
-    /* Add DELTA.  When possible use a plain add, otherwise load it into
-       a register first. */
+  /* Add DELTA.  When possible use a plain add, otherwise load it into
+     a register first. */
     
-    while (mi_delta != 0)
+  while (mi_delta != 0)
     {
-	if ((mi_delta & (3 << shift)) == 0)
-	    shift += 2;
-	else
+      if ((mi_delta & (3 << shift)) == 0)
+	shift += 2;
+      else
 	{
-	    asm_fprintf (file, "\t%s\t%s, %s, %d\n",
-			 mi_op, reg_names[this_regno], reg_names[this_regno],
-			 mi_delta & (0xff << shift));
-	    mi_delta &= ~(0xff << shift);
-	    shift += 8;
+	  asm_fprintf (file, "\t%s\t%s, %s, %d\n",
+		       mi_op, reg_names[this_regno], reg_names[this_regno],
+		       mi_delta & (0xff << shift));
+	  mi_delta &= ~(0xff << shift);
+	  shift += 8;
 	}
     }
     
-   /* If needed, add *(*THIS + VCALL_OFFSET) to THIS.  */
-    if (vcall_offset != 0)
+  /* If needed, add *(*THIS + VCALL_OFFSET) to THIS.  */
+  if (vcall_offset != 0)
     {
-	
-   /*      ld  r12,[this]           --> temp = *this
-	   add r12,r12,vcall_offset --> temp = *(*this + vcall_offset)
-	   ld r12,[r12]           
-	   add this,this,r12        --> this+ = *(*this + vcall_offset)
-   */
-	asm_fprintf (file, "\tld\t%s, [%s]\n",
-		     ARC_TEMP_SCRATCH_REG, reg_names[this_regno]);
-	asm_fprintf (file, "\tadd\t%s, %s, %ld\n",
-		     ARC_TEMP_SCRATCH_REG, ARC_TEMP_SCRATCH_REG, vcall_offset);
-	asm_fprintf (file, "\tld\t%s, [%s]\n",
-		     ARC_TEMP_SCRATCH_REG, ARC_TEMP_SCRATCH_REG);
-	asm_fprintf (file, "\tadd\t%s, %s, %s\n",
-		     reg_names[this_regno], reg_names[this_regno], ARC_TEMP_SCRATCH_REG);
+      /* ld  r12,[this]           --> temp = *this
+	 add r12,r12,vcall_offset --> temp = *(*this + vcall_offset)
+	 ld r12,[r12]           
+	 add this,this,r12        --> this+ = *(*this + vcall_offset) */
+      asm_fprintf (file, "\tld\t%s, [%s]\n",
+		   ARC_TEMP_SCRATCH_REG, reg_names[this_regno]);
+      asm_fprintf (file, "\tadd\t%s, %s, %ld\n",
+		   ARC_TEMP_SCRATCH_REG, ARC_TEMP_SCRATCH_REG, vcall_offset);
+      asm_fprintf (file, "\tld\t%s, [%s]\n",
+		   ARC_TEMP_SCRATCH_REG, ARC_TEMP_SCRATCH_REG);
+      asm_fprintf (file, "\tadd\t%s, %s, %s\n", reg_names[this_regno],
+		   reg_names[this_regno], ARC_TEMP_SCRATCH_REG);
     }
     
   fname = XSTR (XEXP (DECL_RTL (function), 0), 0);
@@ -5541,6 +5550,7 @@ arc_reorg (void)
 	{
 	  rtx num = GEN_INT (CODE_LABEL_NUMBER (JUMP_LABEL (insn)));
 	  rtx lp, prev = prev_nonnote_insn (JUMP_LABEL (insn));
+	  rtx next = NULL_RTX;
 	  rtx op0 = XEXP (XVECEXP (PATTERN (insn), 0, 1), 0);
 
 	  for (lp = prev;
@@ -5548,8 +5558,39 @@ arc_reorg (void)
 		&& recog_memoized (lp) != CODE_FOR_doloop_begin_i);
 	       lp = prev_nonnote_insn (lp))
 	    ;
-	  if (prev && NONJUMP_INSN_P (lp)
-	      && !dead_or_set_regno_p (lp, LP_COUNT))
+	  if (!lp || !NONJUMP_INSN_P (lp)
+	      || dead_or_set_regno_p (lp, LP_COUNT))
+	    {
+	      for (prev = next = insn, lp = NULL_RTX ; prev || next;)
+		{
+		  if (prev)
+		    {
+		      if (NONJUMP_INSN_P (prev)
+			  && recog_memoized (prev) == CODE_FOR_doloop_begin_i
+			  && (INTVAL (XEXP (XVECEXP (PATTERN (prev), 0, 5), 0))
+			      == INSN_UID (insn)))
+			{
+			  lp = prev;
+			  break;
+			}
+		      prev = prev_nonnote_insn (prev);
+		    }
+		  if (next)
+		    {
+		      if (NONJUMP_INSN_P (next)
+			  && recog_memoized (next) == CODE_FOR_doloop_begin_i
+			  && (INTVAL (XEXP (XVECEXP (PATTERN (next), 0, 5), 0))
+			      == INSN_UID (insn)))
+			{
+			  lp = next;
+			  break;
+			}
+		      next = next_nonnote_insn (next);
+		    }
+		}
+	      prev = NULL_RTX;
+	    }
+	  if (lp && !dead_or_set_regno_p (lp, LP_COUNT))
 	    {
 	      rtx begin_cnt = XEXP (XVECEXP (PATTERN (lp), 0 ,3), 0);
 
@@ -5606,10 +5647,38 @@ arc_reorg (void)
 		}
 	      XEXP (XVECEXP (PATTERN (insn), 0, 4), 0) = num;
 	      XEXP (XVECEXP (PATTERN (lp), 0, 4), 0) = num;
-	      if (prev != lp)
+	      if (next == lp)
+		XEXP (XVECEXP (PATTERN (lp), 0, 6), 0) = const2_rtx;
+	      else if (!prev)
+		XEXP (XVECEXP (PATTERN (lp), 0, 6), 0) = const1_rtx;
+	      else if (prev != lp)
 		{
 		  remove_insn (lp);
 		  add_insn_after (lp, prev);
+		}
+	      if (!prev)
+		{
+		  rtx label
+		    = XEXP (XEXP (SET_SRC (XVECEXP (PATTERN (insn), 0, 0)), 1),
+			    0);
+
+		  XEXP (XVECEXP (PATTERN (lp), 0, 7), 0)
+		    = gen_rtx_LABEL_REF (Pmode, label);
+		  REG_NOTES (lp)
+		    = gen_rtx_INSN_LIST (REG_LABEL, label, REG_NOTES (lp));
+		  LABEL_NUSES (label)++;
+		}
+	      /* We can avoid tedious loop start / end setting for empty loops
+		 be merely setting the loop count to its final value.  */
+	      if (next_active_insn (lp) == insn)
+		{
+		  PATTERN (lp)
+		    = gen_rtx_SET (VOIDmode,
+				   XEXP (XVECEXP (PATTERN (lp), 0, 3), 0),
+				   const0_rtx);
+		  INSN_CODE (lp) = -1;
+		  delete_insn (insn);
+		  insn = lp;
 		}
 	    }
 	  else
@@ -6858,7 +6927,8 @@ arc_secondary_reload (bool in_p, rtx x, enum reg_class class,
   if (class == DOUBLE_REGS && (GET_CODE (x) == MEM))
     return GENERAL_REGS;
   /* The loop counter register can be stored, but not loaded directly.  */
-  if (class == LPCOUNT_REG && in_p)
+  if ((class == LPCOUNT_REG || class == WRITABLE_CORE_REGS)
+      && in_p && GET_CODE (x) == MEM)
     return GENERAL_REGS;
   return NO_REGS;
 }
@@ -7177,4 +7247,135 @@ arc_delegitimize_address (rtx x)
       && XINT (XEXP (XEXP (x, 0), 0), 1) == ARC_UNSPEC_GOT)
     return XVECEXP (XEXP (XEXP (x, 0), 0), 0, 0);
   return x;
+}
+
+/* Called by arc600_corereg_hazard via for_each_rtx.
+   If a hazard is found, return a conservative estimate of the required
+   length adjustment to accomodate a nop.  */
+static int
+arc600_corereg_hazard_1 (rtx *xp, void *data)
+{
+  rtx x = *xp;
+  rtx dest;
+  rtx pat = data;
+
+  switch (GET_CODE (x))
+    {
+    case SET: case POST_INC: case POST_DEC: case PRE_INC: case PRE_DEC:
+      break;
+    default:
+    /* This is also fine for PRE/POST_MODIFY, because they contain a SET.  */
+      return 0;
+    }
+  dest = XEXP (x, 0);
+  if (REG_P (dest) && REGNO (dest) > 32 && REGNO (dest) < 62
+      && (refers_to_regno_p
+	   (REGNO (dest),
+	   REGNO (dest) + (GET_MODE_SIZE (GET_MODE (dest)) + 3) / 4U, pat, 0)))
+    return 4;
+  return 0;
+}
+
+/* return length adjustment for INSN.
+   For ARC600:
+   A write to a core reg greater or equal to 32 must not be immediately
+   followed by a use.  Anticipate the length requirement to insert a nop
+   between PRED and SUCC to prevent a hazard.  */
+static int
+arc600_corereg_hazard (rtx pred, rtx succ)
+{
+  if (!TARGET_ARC600)
+    return 0;
+  /* If SUCC is a doloop_end_i with a preceding label, we must output a nop
+     in front of SUCC anyway, so there will be separation between PRED and
+     SUCC.  */
+  if (recog_memoized (succ) == CODE_FOR_doloop_end_i
+      && LABEL_P (prev_nonnote_insn (succ)))
+    return 0;
+  if (recog_memoized (succ) == CODE_FOR_doloop_begin_i)
+    return 0;
+  if (GET_CODE (PATTERN (pred)) == SEQUENCE)
+    pred = XVECEXP (PATTERN (pred), 0, 1);
+  if (GET_CODE (PATTERN (succ)) == SEQUENCE)
+    succ = XVECEXP (PATTERN (succ), 0, 0);
+  return for_each_rtx (&PATTERN (pred), arc600_corereg_hazard_1,
+		       PATTERN (succ));
+}
+
+/* For ARC600:
+   A write to a core reg greater or equal to 32 must not be immediately
+   followed by a use.  Anticipate the length requirement to insert a nop
+   between PRED and SUCC to prevent a hazard.  */
+int
+arc_hazard (rtx pred, rtx succ)
+{
+  if (!TARGET_ARC600)
+    return 0;
+  if (!pred || !INSN_P (pred) || !succ || !INSN_P (succ))
+    return 0;
+  if (recog_memoized (succ) == CODE_FOR_doloop_end_i
+      && (JUMP_P (pred) || GET_CODE (PATTERN (pred)) == SEQUENCE))
+    return 4;
+  return arc600_corereg_hazard (pred, succ);
+}
+
+/* Return length adjustment for INSN.  */
+int
+arc_insn_length_adjustment (rtx insn)
+{
+  if (!INSN_P (insn))
+    return 0;
+  if (recog_memoized (insn) == CODE_FOR_doloop_end_i)
+    {
+      rtx prev = prev_nonnote_insn (insn);
+
+      return ((LABEL_P (prev)
+	       || (TARGET_ARC600
+		   && (JUMP_P (prev) || GET_CODE (PATTERN (prev)) == SEQUENCE)))
+	      ? 4 : 0);
+    }
+  if (TARGET_ARC600)
+    {
+      rtx succ = next_real_insn (insn);
+
+      if (!succ || !INSN_P (succ))
+	return 0;
+      return arc600_corereg_hazard (insn, succ);
+    }
+  return 0;
+}
+/* For ARC600: If a write to a core reg >=32 appears in a delay slot
+  (other than of a forward brcc), it creates a hazard when there is a read
+  of the same register at the branch target.  We can't know what is at the
+  branch target of calls, and for branches, we don't really know before the
+  end of delay slot scheduling, either.  Not only can individual instruction
+  be hoisted out into a delay slot, a basic block can also be emptied this
+  way, and branch and/or fall through targets be redirected.  Hence we don't
+  want such writes in a delay slot.  */
+/* Called by arc_write_ext_corereg via for_each_rtx.  */
+static int
+write_ext_corereg_1 (rtx *xp, void *data ATTRIBUTE_UNUSED)
+{
+  rtx x = *xp;
+  rtx dest;
+
+  switch (GET_CODE (x))
+    {
+    case SET: case POST_INC: case POST_DEC: case PRE_INC: case PRE_DEC:
+      break;
+    default:
+    /* This is also fine for PRE/POST_MODIFY, because they contain a SET.  */
+      return 0;
+    }
+  dest = XEXP (x, 0);
+  if (REG_P (dest) && REGNO (dest) > 32 && REGNO (dest) < 62)
+    return 1;
+  return 0;
+}
+
+/* Return nonzreo iff INSN writes to an extension core register.  */
+int
+arc_write_ext_corereg (rtx insn)
+{
+  return for_each_rtx (&PATTERN (insn), write_ext_corereg_1, 0);
 }

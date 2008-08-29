@@ -5462,13 +5462,13 @@
 ; operand 1 is the number of loop iterations or 0 if it is unknown
 ; operand 2 is the maximum number of loop iterations
 ; operand 3 is the number of levels of enclosed loops
-; operand 4 is the label to jump to at the top of the loop
+; operand 4 is the loop end pattern
 (define_expand "doloop_begin"
   [(use (match_operand 0 "register_operand" ""))
    (use (match_operand:QI 1 "const_int_operand" ""))
    (use (match_operand:QI 2 "const_int_operand" ""))
    (use (match_operand:QI 3 "const_int_operand" ""))
-   (use (label_ref (match_operand 4 "" "")))]
+   (use (match_operand 4 "" ""))]
   ""
   "if (INTVAL (operands[3]) > 1 || ! TARGET_RPTB)
      FAIL;

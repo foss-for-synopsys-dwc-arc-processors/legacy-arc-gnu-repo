@@ -350,10 +350,21 @@
    (set_attr "cond" "clob") ])
 
 ;; Delay slots.
+;; The first two cond clauses and the default are necessary for correctness;
+;; the remaining cond clause is mainly an optimization, as otherwise nops
+;; would be inserted; however, if we didn't do this optimization, we would
+;; have to be more conservative in our length calculations.
 
 (define_attr "in_delay_slot" "false,true"
   (cond [(eq_attr "type" "uncond_branch,branch,call,sfunc,call_no_delay_slot, 
                           brcc, brcc_no_delay_slot,loop")
+	 (const_string "false")
+	 (ne (symbol_ref "arc_write_ext_corereg (insn)") (const_int 0))
+	 (const_string "false")
+	 (gt (symbol_ref "arc_hazard (prev_active_insn (insn),
+				      next_active_insn (insn))")
+	     (symbol_ref "(arc_hazard (prev_active_insn (insn), insn)
+			   + arc_hazard (insn, next_active_insn (insn)))"))
 	 (const_string "false")
 	 ]
 
@@ -4294,18 +4305,20 @@
 ; operand 1 is the number of loop iterations or 0 if it is unknown
 ; operand 2 is the maximum number of loop iterations
 ; operand 3 is the number of levels of enclosed loops
-; operand 4 is the label to jump to at the top of the loop
+; operand 4 is the loop end pattern
 (define_expand "doloop_begin"
   [(use (match_operand 0 "register_operand" ""))
    (use (match_operand:QI 1 "const_int_operand" ""))
    (use (match_operand:QI 2 "const_int_operand" ""))
-   (use (match_operand:QI 3 "const_int_operand" ""))]
-;   (use (label_ref (match_operand 4 "" "")))]
+   (use (match_operand:QI 3 "const_int_operand" ""))
+   (use (match_operand 4 "" ""))]
   ""
 {
   if (INTVAL (operands[3]) > 1)
     FAIL;
-  emit_insn (gen_doloop_begin_i (operands[0], const0_rtx/*, operands[4]*/));
+  emit_insn (gen_doloop_begin_i (operands[0], const0_rtx,
+				 GEN_INT (INSN_UID (operands[4])),
+				 const0_rtx, const0_rtx));
   DONE;
 })
 
@@ -4327,37 +4340,78 @@
   [(unspec:SI [(pc)] UNSPEC_LP)
    (clobber (reg:SI LP_START))
    (clobber (reg:SI LP_END))
-   (use (match_operand:SI 0 "register_operand" "l,????*X"))
-   (use (match_operand 1 "const_int_operand" "n,X"))]
-;   (use (label_ref (match_operand 2 "" "")))]
+   (use (match_operand:SI 0 "register_operand" "l,l,????*X"))
+   (use (match_operand 1 "const_int_operand" "n,n,X"))
+   (use (match_operand 2 "const_int_operand" "n,n,X"))
+   (use (match_operand 3 "const_int_operand" "C_0,n,X"))
+   (use (match_operand 4 "const_int_operand" "C_0,X,X"))]
   ""
 {
   rtx scan;
-  int size;
+  int len, size = 0;
+  int n_insns = 0;
+  rtx loop_start = operands[4];
 
+  if (CONST_INT_P (loop_start))
+    loop_start = NULL_RTX;
   /* Size implications of the alignment will be taken care off by the
      alignemnt inserted at the loop start.  */
   if (LOOP_ALIGN (0) && INTVAL (operands[1]))
     asm_fprintf (asm_out_file, "\t.p2align %d\\n", LOOP_ALIGN (0));
   if (!INTVAL (operands[1]))
     return "; LITTLE LOST LOOP";
+  if (loop_start && flag_pic)
+    /* ??? Can do better for when a scratch register
+       is known.  But that would require extra testing.  */
+    return ".p2align 2\;push_s r0\;add r0,pcl,%4-.+2\;sr r0,[2]; LP_START\;add r0,pcl,.L__GCC__LP%1-.+2\;sr r0,[3]; LP_END\;pop_s r0";
+  size = INTVAL (operands[3]) < 2 ? 0 : 2048;
   for (size = 0, scan = insn; scan && size < 2048; scan = NEXT_INSN (scan))
     {
       if (!INSN_P (scan))
 	continue;
       if (recog_memoized (scan) == CODE_FOR_doloop_end_i)
 	break;
-      size += get_attr_length (scan);
+      len = get_attr_length (scan);
+      size += len;
+      n_insns += (len > 4 ? 2 : (len ? 1 : 0));
     }
-  if (size >= 2048)
-    /* ??? Can do better for non-pic code, or when at least a scratch
-       register is known.  But that would require extra testing.  */
-    return ".p2align 2\;push_s r0\;add r0,pcl,24\;sr r0,[2]; LP_START\;add r0,pcl,.L__GCC__LP%1-.+2\;sr r0,[3]; LP_END\;pop_s r0";
   if (LOOP_ALIGN (0))
     asm_fprintf (asm_out_file, "\t.p2align %d\\n", LOOP_ALIGN (0));
+  gcc_assert (n_insns >  1 + !!TARGET_ARC600 || INTVAL (operands[3]) == 2);
+  /* Due to the nominal size of doloop_begin_i, one insn inside the loop
+     results in n_insns == 3 for ARC600.  */
+  if (size >= 2048 || (TARGET_ARC600 && n_insns == 3) || loop_start)
+    {
+      if (flag_pic)
+	/* ??? Can do better for when a scratch register
+	   is known.  But that would require extra testing.  */
+	return ".p2align 2\;push_s r0\;add r0,pcl,24\;sr r0,[2]; LP_START\;add r0,pcl,.L__GCC__LP%1-.+2\;sr r0,[3]; LP_END\;pop_s r0";
+      output_asm_insn ((size < 2048
+			? "lp .L__GCC__LP%1" : "sr .L__GCC__LP%1,[3]; LP_END"),
+		       operands);
+      output_asm_insn (loop_start
+		       ? "sr %4,[2]; LP_START" : "sr 0f,[2]; LP_START",
+		       operands);
+      return TARGET_ARC600 ? "nop_s\;nop_s\;0:" : "0:";
+    }
+  else if (TARGET_ARC600 && n_insns <= 4)
+    {
+      /* At least four instructions are needed between the setting of LP_COUNT
+	 and the loop end.*/
+      rtx prev = prev_nonnote_insn (insn);
+
+      if (!INSN_P (prev) || dead_or_set_regno_p (prev, LP_COUNT))
+	output_asm_insn ("nop", operands);
+    }
   return "lp .L__GCC__LP%1";
 }
-  [(set_attr "type" "loop")]
+  [(set_attr "type" "loop")
+   (set_attr_alternative "length"
+     [(if_then_else (ne (symbol_ref "TARGET_ARC600") (const_int 0))
+		    (const_int 16) (const_int 4))
+      (if_then_else (ne (symbol_ref "flag_pic") (const_int 0))
+		    (const_int 28) (const_int 16))
+      (const_int 0)])]
   ;; ??? strictly speaking, we should branch shorten this insn, but then
   ;; we'd need a proper label first.  We could say it is always 24 bytes in
   ;; length, but that would be very pessimistic; also, when the loop insn
@@ -4372,18 +4426,26 @@
 ; operand 2 is the maximum number of loop iterations
 ; operand 3 is the number of levels of enclosed loops
 ; operand 4 is the label to jump to at the top of the loop
-; Use this for the ARC700.  For ARCtangent-A5 and ARC600, this is unsafe
+; operand 5 is nonzero if the loop is entered at its top.
+; Use this for the ARC600 and ARC700.  For ARCtangent-A5, this is unsafe
 ; without further checking for nearby branches etc., and without proper
 ; annotation of shift patterns that clobber lp_count
+; ??? ARC600 might want to check if the loop has few iteration and only a
+; single insn - loop setup is expensive then.
 (define_expand "doloop_end"
   [(use (match_operand 0 "register_operand" ""))
    (use (match_operand:QI 1 "const_int_operand" ""))
    (use (match_operand:QI 2 "const_int_operand" ""))
    (use (match_operand:QI 3 "const_int_operand" ""))
-   (use (label_ref (match_operand 4 "" "")))]
-  "TARGET_ARC700 && arc_experimental_mask & 1"
+   (use (label_ref (match_operand 4 "" "")))
+   (use (match_operand:QI 5 "const_int_operand" ""))]
+  "(TARGET_ARC600 || TARGET_ARC700) && arc_experimental_mask & 1"
 {
   if (INTVAL (operands[3]) > 1)
+    FAIL;
+  /* Setting up the loop witrh two sr isntructions costs 6 cycles.  */
+  if (TARGET_ARC700 && !INTVAL (operands[5])
+      && INTVAL (operands[1]) && INTVAL (operands[1]) <= (flag_pic ? 6 : 3))
     FAIL;
   /* We could do smaller bivs with biv widening, and wider bivs by having
      a high-word counter in an outer loop - but punt on this for now.  */
@@ -4407,6 +4469,8 @@
   ""
   "*
 {
+  rtx prev = prev_nonnote_insn (insn);
+
   /* If there is an immediately preceding label, we must output a nop,
      lest a branch to that label will fall out of the loop.
      ??? We could try to avoid this by claiming to have a delay slot if there
@@ -4414,9 +4478,15 @@
      present.
      Or we could have some optimization that changes the source edge to update
      the loop count and jump to the loop start instead.  */
-  if (LABEL_P (prev_nonnote_insn (insn)))
-    output_asm_insn (\"nop_s\", operands);
-  return \"\\n.L__GCC__LP%2: ; loop end\";
+  /* For ARC600, we must also prevent jumps inside the loop and jumps where
+     the loop counter value is live at the target from being directly at the
+     loop end.  Being sure that the loop counter is dead at the target is
+     too much hair - we can't rely on data flow information at this point -
+     so insert a nop for all branches.
+     The ARC600 also can't read the loop counter in the last insn of a loop.  */
+  if (LABEL_P (prev))
+    output_asm_insn (arc_size_opt_level < 1 ? \"nop\" : \"nop_s\", operands);
+  return \"\\n.L__GCC__LP%2: ; loop end, start is %1\";
 }"
   "&& memory_operand (operands[0], SImode)"
   [(pc)]

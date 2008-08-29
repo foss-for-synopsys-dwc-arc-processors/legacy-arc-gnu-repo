@@ -125,3 +125,7 @@ extern enum reg_class arc_secondary_reload (bool, rtx, enum reg_class,
 					    struct secondary_reload_info *);
 extern int arc_register_move_cost (enum machine_mode, enum reg_class,
 				   enum reg_class);
+extern int arc_insn_length_adjustment (rtx);
+extern int arc_corereg_hazard (rtx, rtx);
+extern int arc_hazard (rtx, rtx);
+extern int arc_write_ext_corereg (rtx);
