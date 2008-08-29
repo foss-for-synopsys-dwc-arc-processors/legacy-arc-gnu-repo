@@ -23,29 +23,33 @@ __fixdfsi:
 #define __fixdfsi __fixdfsi_asm
 #endif /* DEBUG */
 
+/*      If the fraction has to be shifted left by a positive non-zero amount,
+        we have to combine bits from DBL0L and DBL0H.  If we shift right,
+        or shift by zero, we only want to have the bits from DBL0H in r0.  */
+
 	.global __fixdfsi
 	FUNC(__fixdfsi)
 	.balign 4
 __fixdfsi:
 	bbit0 DBL0H,30,.Lret0or1
-	lsr r2,DBL0H,20
+	asr r2,DBL0H,20
 	bmsk_s DBL0H,DBL0H,19
-	bset_s DBL0H,DBL0H,20
 	sub_s r2,r2,19; 0x3ff+20-0x400
-	asl.f 0,r2,21
-	neg r3,r2
+	neg_s r3,r2
+	asr.f 0,r3,11
+	bset_s DBL0H,DBL0H,20
 #ifdef __LITTLE_ENDIAN__
-	mov.pl DBL0L,DBL0H
+	mov.cs DBL0L,DBL0H
 	asl DBL0H,DBL0H,r2
 #else
-	asl.mi DBL0H,DBL0H,r2
-	lsr.pl DBL0H,DBL0H,r3
+	asl.cc DBL0H,DBL0H,r2
+	lsr.cs DBL0H,DBL0H,r3
 #endif
-	lsr DBL0L,DBL0L,r3
+	lsr_s DBL0L,DBL0L,r3
 
-	add.mi r0,r0,r1
+	add.cc r0,r0,r1
 	j_s.d [blink]
-	neg.cs r0,r0
+	neg.pnz r0,r0
 .Lret0or1:
 	add.f r0,DBL0H,0x100000
 	lsr_s r0,r0,30

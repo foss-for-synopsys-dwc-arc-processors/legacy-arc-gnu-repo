@@ -1,5 +1,9 @@
 2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
 
+	* config/arc/ieee-754/fixdfsi.S: Fix shift by zero case.
+
+2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
+
 	* config/arc/arc.c (arc_final_prescan_insn): Move code after
 	declarations.
 
