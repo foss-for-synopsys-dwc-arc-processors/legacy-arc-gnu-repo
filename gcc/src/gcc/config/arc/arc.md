@@ -4343,7 +4343,7 @@
    (clobber (reg:SI LP_START))
    (clobber (reg:SI LP_END))
    (use (match_operand:SI 0 "register_operand" "l,l,????*X"))
-   (use (match_operand 1 "const_int_operand" "n,n,X"))
+   (use (match_operand 1 "const_int_operand" "n,n,C_0"))
    (use (match_operand 2 "const_int_operand" "n,n,X"))
    (use (match_operand 3 "const_int_operand" "C_0,n,X"))
    (use (match_operand 4 "const_int_operand" "C_0,X,X"))]

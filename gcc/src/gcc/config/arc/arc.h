@@ -2008,4 +2008,5 @@ enum arc_function_type {
 
 #define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '`')
 
+#define HARD_REGNO_RENAME_OK(FROM, TO) ((FROM) != LP_COUNT)
 #endif /* GCC_ARC_H */

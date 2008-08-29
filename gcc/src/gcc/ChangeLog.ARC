@@ -1,5 +1,12 @@
 2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
 
+	* config/arc/arc.h (HARD_REGNO_RENAME_OK): Prohibit renaming from
+	LP_COUNT.
+	* config/arc/arc.md (doloop_begin_i): Change alternative 2 of
+	operand 1 to C_0.
+
+2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
 	* config/arc/arc.h (CONDITIONAL_REGISTER_USAGE): If any of the
 	registers in the range 32..59 has been made non-fixed, include
 	them in WRITABLE_CORE_REGS.
