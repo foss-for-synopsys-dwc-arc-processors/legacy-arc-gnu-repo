@@ -20,7 +20,7 @@
 #ifndef _BITS_WCHAR_H
 #define _BITS_WCHAR_H	1
 
-#define __WCHAR_MIN	(-2147483647 - 1)
-#define __WCHAR_MAX	(2147483647)
+#define __WCHAR_MIN	(-32767 - 1)
+#define __WCHAR_MAX	(32767)
 
 #endif	/* bits/wchar.h */
