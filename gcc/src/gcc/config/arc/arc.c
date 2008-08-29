@@ -3420,12 +3420,13 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
     fprintf (asm_out_file, "\n! at %04x\n", INSN_ADDRESSES (INSN_UID (insn)));
 
   /* Output a nop if necessary to prevent a hazard.  Don't try this for
-     epilogue delay slots.  */
+     epilogue delay slots.
+     Also don't do this for any other delay slots: inserting a nop would
+     alter semantics, and the only time we would find a hazard is for a
+     call function result - and in that case, the hazard is spurious to
+     start with.  */
   if (PREV_INSN (insn)
-      && (NEXT_INSN (PREV_INSN (insn)) == insn
-	  || (NEXT_INSN (PREV_INSN (insn))
-	      && GET_CODE (NEXT_INSN (PREV_INSN (insn))) == INSN
-	      && GET_CODE (PATTERN (NEXT_INSN (PREV_INSN (insn)))) == SEQUENCE))
+      && (NEXT_INSN (PREV_INSN (insn)) == insn || JUMP_P (insn))
       && arc_hazard (prev_real_insn (insn), insn))
     fprintf (asm_out_file, arc_size_opt_level >= 1 ? "\tnop_s\n" : "\tnop\n" );
 
