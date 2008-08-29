@@ -626,6 +626,12 @@ if (GET_MODE_CLASS (MODE) == MODE_INT		\
   for (regno = 0; regno < FIRST_PSEUDO_REGISTER; regno++) \
     if (!call_used_regs[regno])				\
       CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], regno); \
+  for (regno = 32; regno < 60; regno++)			\
+    if (!fixed_regs[regno])				\
+      SET_HARD_REG_BIT (reg_class_contents[WRITABLE_CORE_REGS], regno); \
+  if (TARGET_ARC700) \
+    for (regno = 32; regno <= 60; regno++)			\
+      CLEAR_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], regno); \
 }
 
 /* If defined, an initializer for a vector of integers, containing the
@@ -718,13 +724,14 @@ enum reg_class
    AC16_BASE_REGS,  		/* 'e' */
    SIBCALL_REGS,		/* "Rsc" */
    GENERAL_REGS,		/* 'r' */
-   CORE_REGS,			/* 'c' */
+   WRITABLE_CORE_REGS,		/* 'w' */
+   CHEAP_CORE_REGS,		/* 'c' */
+   ALL_CORE_REGS,		/* 'Rac' */
    ALL_REGS,
    LIM_REG_CLASSES
 };
 
 #define N_REG_CLASSES (int) LIM_REG_CLASSES
-#define WRITABLE_CORE_REGS CORE_REGS /* FIXME */
 
 /* Give names of register classes as strings for dump file.   */
 #define REG_CLASS_NAMES	  \
@@ -743,7 +750,9 @@ enum reg_class
   "AC16_BASE_REGS",       \
   "SIBCALL_REGS",	  \
   "GENERAL_REGS",      	  \
-  "CORE_REGS",		  \
+  "WRITABLE_CORE_REGS",   \
+  "CHEAP_CORE_REGS",	  \
+  "ALL_CORE_REGS",	  \
   "ALL_REGS"          	  \
 } 
 
@@ -767,7 +776,9 @@ enum reg_class
   {0x1000f00f, 0x00000000, 0x00000000, 0x00000000, 0x00000000},	     /* 'e', r0-r3, r12-r15, sp */	\
   {0x1c001fff, 0x10000000, 0x00000000, 0x00000000, 0x00000000},    /* "Rsc", r0-r12 and lp_count */ \
   {0x9fffffff, 0xc0000000, 0x00000000, 0x00000000, 0x00000000},      /* 'r', r0-r28, blink, ap and pcl */	\
+  {0xffffffff, 0x10000000, 0x00000000, 0x00000000, 0x00000000},      /* 'w', r0-r31, r60 */ \
   {0xffffffff, 0xdfffffff, 0x00000000, 0x00000000, 0x00000000},      /* 'c', r0-r60, ap, pcl */ \
+  {0xffffffff, 0xdfffffff, 0x00000000, 0x00000000, 0x00000000},      /* 'Rac', r0-r60, ap, pcl */ \
   {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x0003ffff}       /* All Registers */		\
 }
 
@@ -818,7 +829,8 @@ extern enum reg_class arc_regno_reg_class[];
    in some cases it is preferable to use a more restrictive class.  */
 
 #define PREFERRED_RELOAD_CLASS(X, CLASS) \
-  ((CLASS) == CORE_REGS ? GENERAL_REGS \
+  (((CLASS) == CHEAP_CORE_REGS  || (CLASS) == WRITABLE_CORE_REGS) \
+   ? GENERAL_REGS \
    : (CLASS))
 
 /* Return the maximum number of consecutive registers
@@ -1447,9 +1459,7 @@ arc_select_cc_mode (OP, X, Y)
 /* Compute extra cost of moving data between one register class
    and another.  */
 #define REGISTER_MOVE_COST(MODE, CLASS, TO_CLASS) \
-  ((TARGET_ARC600 \
-    && ((TO_CLASS) == LPCOUNT_REG || (TO_CLASS) == WRITABLE_CORE_REGS)) \
-   ? 3 : 2)
+   arc_register_move_cost ((MODE), (CLASS), (TO_CLASS))
 
 /* Compute the cost of moving data between registers and memory.  */
 /* Memory is 3 times as expensive as registers.
@@ -1997,10 +2007,5 @@ enum arc_function_type {
   (LENGTH) += arc_insn_length_adjustment (X)
 
 #define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '`')
-
-#if 0
-#define REGISTER_MOVE_COST(MODE, CLASS1, CLASS2) \
-   arc_register_move_cost ((MODE), (CLASS1), (CLASS2))
-#endif
 
 #endif /* GCC_ARC_H */

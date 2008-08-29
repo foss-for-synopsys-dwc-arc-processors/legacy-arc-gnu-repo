@@ -528,8 +528,8 @@
 ; insns it should lengthen the return insn.
 ; N.B. operand 1 of alternative 3 expands into pcl,symbol@gotpc .
 (define_insn "*movsi_insn"
-  [(set (match_operand:SI 0 "move_dest_operand" "=Rcq#q,c, c,?c,Rcq#q,c,Rcq,S,!*x,r,m,VUsc")
-	(match_operand:SI 1 "move_src_operand"  "cP,Rcq#q,cI,Cpc,?Cal,?Cal,T,Rcq,Usd,m,c,Cal"))]
+  [(set (match_operand:SI 0 "move_dest_operand" "=Rcq#q,w, w,???w,?w,Rcq#q,w,Rcq,S,!*x,r,m,???m,VUsc")
+	(match_operand:SI 1 "move_src_operand"  "cP,Rcq#q,cI,?Rac,Cpc,?Cal,?Cal,T,Rcq,Usd,m,c,?Rac,Cal"))]
   "register_operand (operands[0], SImode)
    || register_operand (operands[1], SImode)
    || (CONSTANT_P (operands[1])
@@ -541,6 +541,7 @@
    mov_s %0,%1
    mov_s %0,%1
    mov%? %0,%1
+   mov%? %0,%1
    add %0,%S1
    mov_s %0,%S1
    mov%? %0,%S1
@@ -549,11 +550,12 @@
    ld_s %0,%1
    ld%U1%V1 %0,%1
    st%U0%V0 %1,%0
+   st%U0%V0 %1,%0
    st%U0%V0 %S1,%0"
-  [(set_attr "type" "move,move,move,binary,move,move,load,store,load,load,store,store")
-   (set_attr "iscompact" "true,true,false,false,true,false,true,true,true,false,false,false")
-   (set_attr "length" "4,4,4,8,8,8,2,2,2,*,*,8")
-   (set_attr "cond" "canuse,canuse,canuse,nocond,canuse,canuse,nocond,nocond,nocond,nocond,nocond,nocond")])
+  [(set_attr "type" "move,move,move,move,binary,move,move,load,store,load,load,store,store,store")
+   (set_attr "iscompact" "true,true,false,false,false,true,false,true,true,true,false,false,false,false")
+   (set_attr "length" "4,4,4,4,8,8,8,2,2,2,*,*,*,8")
+   (set_attr "cond" "canuse,canuse,canuse,canuse,nocond,canuse,canuse,nocond,nocond,nocond,nocond,nocond,nocond,nocond")])
 
 /* Store a value to directly to memory.  The location might also be cached.
    Since the cached copy can cause a write-back at unpredictable times,

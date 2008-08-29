@@ -1,5 +1,26 @@
 2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
 
+	* config/arc/arc.h (CONDITIONAL_REGISTER_USAGE): If any of the
+	registers in the range 32..59 has been made non-fixed, include
+	them in WRITABLE_CORE_REGS.
+	(enum reg_class, REG_CLASS_NAMES): Add WRITABLE_CORE_REGS.
+	(REG_CLASS_CONTENTS): Likewise.
+	(PREFERRED_RELOAD_CLASS): Check for WRITABLE_CORE_REGS.
+
+	* config/arc/arc.c (arc_register_move_cost): Express costs of
+	writing / reading LP_COUNT register.
+	* config/arc/arc.h (CONDITIONAL_REGISTER_USAGE): Prune CHEAP_CORE_REGS.
+	(enum reg_class, REG_CLASS_NAMES, REG_CLASS_CONTENTS): Split CORE_REGS
+	into CHEAP_CORE_REGS and ALL_CORE_REGS.
+	(PREFERRED_RELOAD_CLASS): Check for CHEAP_CORE_REGS.
+	(REGISTER_MOVE_COST): Use arc_register_move_cost.
+	* config/arc/arc.md (movsi_insn): Add alternatives to read
+	ALL_CORE_REGS.
+	* config/arc/constraints.md ("c"): Now for CHEAP_CORE_REGS.
+	("Rac"): New constraint.
+
+2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
 	* config/arc/arc.c (arc_final_prescan_insn): Output a nop if necessary
 	to prevent a hazard.
 	(arc_output_mi_thunk): Formatting fixes.

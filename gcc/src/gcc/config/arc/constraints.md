@@ -23,7 +23,13 @@
 ; Most instructions accept arbitrary core registers for their inputs, even
 ; if the core register in question cannot be written to, like the multiply
 ; result registers of the ARCtangent-A5 and ARC600
-(define_register_constraint "c" "CORE_REGS"
+; First, define a class for core registers that can be read cheaply.  This
+; is most or all core registers for ARC600, but only r0-r31 for ARC700
+(define_register_constraint "c" "CHEAP_CORE_REGS"
+  "core register @code{r0}-@code{r31}, @code{ap},@code{pcl}")
+
+; All core regs - e.g. for when we must have a way to reload a register.
+(define_register_constraint "Rac" "ALL_CORE_REGS"
   "core register @code{r0}-@code{r60}, @code{ap},@code{pcl}")
 
 ; Some core registers (.e.g lp_count) aren't general registers because they

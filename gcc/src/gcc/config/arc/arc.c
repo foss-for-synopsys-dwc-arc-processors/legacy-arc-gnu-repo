@@ -6944,10 +6944,21 @@ arc_preserve_reload_p (rtx in)
 
 int
 arc_register_move_cost (enum machine_mode mode ATTRIBUTE_UNUSED,
-			enum reg_class class1 ATTRIBUTE_UNUSED,
-			enum reg_class class2 ATTRIBUTE_UNUSED)
+			enum reg_class from_class,
+			enum reg_class to_class)
 {
+  /* The ARC600 has no bypass for extension registers, hence a nop might be
+     needed to be inserted after a write so that reads are safe.  */
+  if (TARGET_ARC600
+      && (to_class == LPCOUNT_REG || to_class == WRITABLE_CORE_REGS))
+    return 3;
+  /* The ARC700 stalls for 3 cycles when *reading* from lp_count.  */
+  if (TARGET_ARC700
+      && (from_class == LPCOUNT_REG || from_class == ALL_CORE_REGS
+	  || from_class == WRITABLE_CORE_REGS))
+    return 8;
   return 2;
+
 }
 
 const char*
