@@ -2941,7 +2941,12 @@ arc_print_operand (FILE *file,rtx x,int code)
 	    }
 	}
 	break;
-    case 'B' /* Branch - now same as default.  */ :
+    case 'B' /* Branch - must not use sda references.  */ :
+      if (CONSTANT_P (x))
+	{
+          output_addr_const (file, x); 
+	  return;
+	} 
       break;
     case 'H' :
     case 'L' :
@@ -3157,8 +3162,8 @@ arc_print_operand (FILE *file,rtx x,int code)
 	    {
 	      x = XEXP (x, 0);
 	      output_addr_const (file, XEXP (x, 0));
-	      if (GET_CODE (XEXP (x, 0)) == SYMBOL_REF && SYMBOL_REF_SMALL_P (XEXP (x, 0)))
-		fprintf (file, "@sda");
+	      if (GET_CODE (XEXP (x, 0)) == SYMBOL_REF && SYMBOL_REF_SMALL_P (XEXP (x, 0))) 
+		fprintf (file, "@sda");		
 	      
 	      if (GET_CODE (XEXP (x, 1)) != CONST_INT
 		  || INTVAL (XEXP (x, 1)) >= 0)
