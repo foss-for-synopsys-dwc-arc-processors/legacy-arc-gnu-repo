@@ -19,34 +19,35 @@
 
 #include <_lfs_64.h>
 
+
 #include <string.h>
 #include <stddef.h>
 #include <sys/statfs.h>
+
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/param.h>
+#include <sys/vfs.h>
+#include <sys/syscall.h>
 
 
 libc_hidden_proto(memcpy)
 libc_hidden_proto(statfs)
 
 /* Return information about the filesystem on which FILE resides.  */
+
+
 libc_hidden_proto(statfs64)
+
 int statfs64 (const char *file, struct statfs64 *buf)
 {
-    struct statfs buf32;
+	int result;
 
-    if (statfs (file, &buf32) < 0)
-	return -1;
+	result=INLINE_SYSCALL(statfs64, 3, file,sizeof(*buf), buf);
 
-    buf->f_type = buf32.f_type;
-    buf->f_bsize = buf32.f_bsize;
-    buf->f_blocks = buf32.f_blocks;
-    buf->f_bfree = buf32.f_bfree;
-    buf->f_bavail = buf32.f_bavail;
-    buf->f_files = buf32.f_files;
-    buf->f_ffree = buf32.f_ffree;
-    buf->f_fsid = buf32.f_fsid;
-    buf->f_namelen = buf32.f_namelen;
-    memcpy (buf->f_spare, buf32.f_spare, sizeof (buf32.f_spare));
+	return result;
 
-    return 0;
 }
+
+
 libc_hidden_def(statfs64)
