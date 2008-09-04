@@ -5195,7 +5195,7 @@ static GTY(()) section *pickled_in_section;
 /* Replace in_section with something that can be restored after reading
    in a precompiled header file.  */
 void
-pickle_in_section ()
+pickle_in_section (void)
 {
   section *p;
   int i = 0;

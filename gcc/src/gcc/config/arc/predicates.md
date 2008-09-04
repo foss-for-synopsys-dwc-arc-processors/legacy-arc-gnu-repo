@@ -1,3 +1,19 @@
+(define_predicate "dest_reg_operand"
+  (match_code "reg,subreg")
+{
+  rtx op0 = op;
+
+  if (GET_CODE (op0) == SUBREG)
+    op0 = SUBREG_REG (op0);
+  if (REG_P (op0) && REGNO (op0) < FIRST_PSEUDO_REGISTER
+      && TEST_HARD_REG_BIT (reg_class_contents[ALL_CORE_REGS],
+			    REGNO (op0))
+      && !TEST_HARD_REG_BIT (reg_class_contents[WRITABLE_CORE_REGS],
+			    REGNO (op0)))
+    return 0;
+  return register_operand (op, mode);
+})
+
 ;; Returns 1 if OP is a symbol reference.
 (define_predicate "symbolic_operand"
   (match_code "symbol_ref, label_ref, const")
@@ -589,15 +605,14 @@
 
 (define_predicate "arc_double_register_operand"
   (match_code "reg")
-  {
+{
   if ((GET_MODE (op) != mode) && (mode != VOIDmode))
-  return 0;
+    return 0;
   
   return (GET_CODE (op) == REG
 		   && (REGNO (op) >= FIRST_PSEUDO_REGISTER
 			     || REGNO_REG_CLASS (REGNO (op)) == DOUBLE_REGS));
-  }
-)
+})
 
 (define_predicate "shouldbe_register_operand"
   (match_code "reg,subreg,mem")
@@ -608,33 +623,31 @@
 
 (define_predicate "vector_register_operand"
   (match_code "reg")
-  {
+{
   if ((GET_MODE (op) != mode) && (mode != VOIDmode))
   return 0;
   
   return (GET_CODE (op) == REG
-		   && (REGNO (op) >= FIRST_PSEUDO_REGISTER
-			     || REGNO_REG_CLASS (REGNO (op)) == SIMD_VR_REGS));
-  }
-)
+	  && (REGNO (op) >= FIRST_PSEUDO_REGISTER
+	      || REGNO_REG_CLASS (REGNO (op)) == SIMD_VR_REGS));
+})
 
 (define_predicate "vector_register_or_memory_operand"
   ( ior (match_code "reg")
 	(match_code "mem"))
-  {
+{
   if ((GET_MODE (op) != mode) && (mode != VOIDmode))
     return 0;
 
   if ((GET_CODE (op) == MEM) 
       && (mode == V8HImode)
-     && GET_CODE (XEXP (op,0)) == REG)
+      && GET_CODE (XEXP (op,0)) == REG)
     return 1;
   
   return (GET_CODE (op) == REG
-		   && (REGNO (op) >= FIRST_PSEUDO_REGISTER
-			     || REGNO_REG_CLASS (REGNO (op)) == SIMD_VR_REGS));
-  }
-)
+	  && (REGNO (op) >= FIRST_PSEUDO_REGISTER
+	      || REGNO_REG_CLASS (REGNO (op)) == SIMD_VR_REGS));
+})
 
 (define_predicate "arc_dpfp_operator"
   (match_code "plus, mult,minus")
@@ -642,12 +655,27 @@
 
 (define_predicate "arc_simd_dma_register_operand"
   (match_code "reg")
-  {
+{
   if ((GET_MODE (op) != mode) && (mode != VOIDmode))
-  return 0;
+    return 0;
   
   return (GET_CODE (op) == REG
-		   && (REGNO (op) >= FIRST_PSEUDO_REGISTER
-			     || REGNO_REG_CLASS (REGNO (op)) == SIMD_DMA_CONFIG_REGS));
-  }
-)
+	  && (REGNO (op) >= FIRST_PSEUDO_REGISTER
+	      || REGNO_REG_CLASS (REGNO (op)) == SIMD_DMA_CONFIG_REGS));
+})
+
+(define_predicate "acc1_operand"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == (TARGET_BIG_ENDIAN ? 56 : 57)")))
+  
+(define_predicate "acc2_operand"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == (TARGET_BIG_ENDIAN ? 57 : 56)")))
+  
+(define_predicate "mlo_operand"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == (TARGET_BIG_ENDIAN ? 59 : 58)")))
+  
+(define_predicate "mhi_operand"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == (TARGET_BIG_ENDIAN ? 58 : 59)")))

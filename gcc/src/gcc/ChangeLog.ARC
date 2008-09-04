@@ -1,3 +1,137 @@
+2008-09-02  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.h (ASM_SPEC): For -mmmul32x16, pass -mdsp.
+
+	* config/arc/lib1funcs.asm (__mulsi3): Fix invalid insn issues.
+
+	* config/arc/arc.md (*call_via_label): Replace %^%Pn with %Pn.
+	(call_prof, *call_value_via_label, call_value_prof): Likewise.
+	(*sibcall_insn, *sibcall_value_insn, sibcall_prof): Likewise.
+	(sibcall_value_prof): Likewise.
+
+	* config/arc/arc.md (doloop_begin_i): When n_insns is 0, output
+	three nops for ARC600.
+
+	* config/arc/predicates.md (arc_double_register_operand): Fix
+	indentation.
+	(vector_register_operand, vector_register_or_memory_operand): Likewise.
+	(arc_dpfp_operator): Likewise.
+	(acc1_operand, acc2_operand, mlo_operand, mhi_operand): New predicate.
+	* config/arc/arc.c (arc_init): For ARC600 with TARGET_MUL64_SET,
+	default multcost to 4.
+	(rname56, rname57, rname58, rname59): New character arrays.
+	(arc_init_regno_reg_class): Rename to:
+	(arc_conditional_register_usage).  Add code from
+	arc.h:CONDITIONAL_REGISTER_USAGE.  Establish special multiply result
+	register names, and use register numbers that work well with
+	the target endianness.
+	For ARC700, disable use of lp_count for SFmode.
+	(gen_acc1, gen-acc2, gen_mlo, gen_mhi): New functions.
+	* config/arc/arc-protos.h (arc_init_regno_reg_class): Don't declare.
+	(arc_conditional_register_usage): Declare.
+	(gen_acc1, gen-acc2, gen_mlo, gen_mhi): Likewise.
+	* config/arc/arc.h (CONDITIONAL_REGISTER_USAGE): Use
+	arc_conditional_register_usage.
+	(rname56, rname57, rname58, rname59): Declare.
+	(REGISTER_NAMES): Use them.
+	(DBX_REGISTER_NUMBER): Translate internal numbers for multiply
+	result registers into true hardware register numbers.
+	* config/arc/arc.md
+
+	* testsuite/gcc.c-torture/execute/ieee/denorm-rand.c (main):
+	Reduce iteration counts to 1000.
+	* varasm.c (pickle_in_section): Make defintion a declaration.
+	* config/arc/arc.c (arc_print_operand): Add 'o' to output
+	symbol without '@'.
+	(write_profile_sections): Use it.
+
+	* config/arc/arc.c (arc_final_prescan_insn): Call
+	extract_constrain_insn_cached after calling arc_hazard.
+	(arc_reorg): Check second parameter of compare before feeding it
+	to cbranchsi4_scratch.
+	* config/arc/arc.md (*unary_comparison_result_used): Use higher
+	operand numbers for match_operator than for ordinary operands.
+	Use match_dup for duplicated expression in match_operator.
+	(*commutative_binary_comparison_result_used): Likewise.
+	(*noncommutative_binary_comparison_result_used): Likewise.
+	(mulsi3): Generate expansion for TARGET_MUL64_SET.
+	(mulsi3): Refer to multiply result registers with special generator
+	/ recognizer functions to account for the endian-dependent numbers.
+	(umul_600, smul_600, mac_600, mulsi_600, mulsidi3): Likewise.
+	(umulsidi3): Likewise.
+	(mulsi_600): Type multi.
+	(*split_mulsi3_600): Delete.
+	(mulsidi_600, umulsidi_600): New patterns.
+	(mulsidi3, umulsidi3): Result is nonimmediate_operand.
+	Add TARGET_MUL64_SET code.
+	(mac64_600): Fix semantics description to be consistent with
+	PARALLEL semantics.
+	(umulsidi3_700): Operand 2 is register_operand.
+	* config/arc/arc600.md (mul64_600): New cpu_unit.
+	(load_DI_600, load_600): Fix attribute test.
+	(mul_600_fast, mul_600_slow): New reservations.
+	* config/arc/arc.h (TARGET_OPTFPE): True for TARGET_ARC600
+	&& TARGET_NORM_SET && TARGET_MULMAC_32BY16_SET.
+
+	* config/arc/arc.md (doloop_begin_i): Look inside SEQUENCEs.
+	(doloop_end_i) Change alternative 2 of operand 2 to C_0.
+	* config/arc/arc.h (HARD_REGNO_RENAME_OK): Delete.
+
+	* config/arc/predicates.md (dest_reg_operand): New predicate.
+
+2008-09-02  Muhammad Khurram Riaz <khurram.riaz@arc.com>
+
+	* config/arc/arc.c (arc600_corereg_hazard): mul/mac and mul64 set the accum registers 
+	and are not a hazard.
+	* config/arc/arc.md :
+	(*unary_comparison_result_used): added for flag setting instructions(unary) that also use result.
+	(*addsi_compare): added for add.f ; needed by combiner.
+	(*commutative_binary_comparison_result_used): added for flag setting instructions(binary,commutative) 
+	that also use result.
+	(*noncommutative_binary_comparison_result_used): added for flag setting instructions(binary,commutative) 
+	that also use result.
+
+2008-09-01  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/ieee-754/fixdfsi.S: Fix negative case.
+
+2008-08-30  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c: Give up on zero overhead loop if loop setup
+	precedes loop end with no label in-between.
+
+2008-08-30  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_final_prescan_insn): Don't try to eliminate
+	'insns' of TYPE_LOOP_END.
+	* config/arc/arc.md (attr type): Replace loop with loop_start and
+	loop_end.
+	(attr in_delay_slot): Update.
+	(movqi_insn, movhi_insn): Add alternatives to read ALL_CORE_REGS.
+	(doloop_begin_i): Better estimate insn fetches with n_insns.
+	Allow zero n_insns if there is a code_label.
+	Don't emit nops for ARC600 with loop_top if n_insn is at least 3.
+	Change type to loop_setup.
+	(doloop_end_i): Set type to loop_end.
+
+2008-08-30  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.md (doloop_begin_i): Start insn counting with label
+	rather than label_ref.  Check that jump sucessor insns exists before
+	calling recog_memoized on it.
+
+2008-08-30  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.md (doloop_begin_i): Do separate calculation of
+	minimum insns from loop setup to loop end.
+	* config/arc/arc.c (arc_reorg): Fix setting of insn after deletion.
+
+2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_reorg): Use the loop top label to check for
+	empty loops.  When deleting an empty loop, put the set of the loop
+	count before the loop end.
+
 2008-08-29  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.h (HARD_REGNO_RENAME_OK): Prohibit renaming from
@@ -86,6 +220,22 @@
 	* config/arc/arc.c (arc_preserve_reload_p): New function.
 	(TARGET_PRESERVE_RELOAD_P): Redefine.
 	* doc/tm.texi (TARGET_PRESERVE_RELOAD_P): Document.
+
+2008-08-08  Muhammad Khurram Riaz <khurram.riaz@arc.com>
+
+	* config/arc/predicates.md (move_dest_operand): r56 r57 cannot be destination
+	operand of move.
+	* config/arc/arc.c (arc_init): error for -mmul32x16 used for !ARC600.
+	* config/arc/arc.h (ASM_SPEC): mmul32x16 passed.
+	* config/arc/arc.md (mulsi3):  added Arc600 dsp mul/mac also modified for mul64
+	(mulsidi3): added Arc600 mul/mac dsp instructions
+	* config/arc/arc600.md: scheduling info for new dsp mul/mac intructions.
+	* config/arc/arc.opt: new option -mmul32x16
+
+2008-08-08  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.md (doloop_begin_i): Count asm insns only as a
+	single insn.
 
 2008-08-01  J"orn Rennecke  <joern.rennecke@arc.com>
 

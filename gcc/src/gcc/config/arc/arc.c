@@ -512,6 +512,13 @@ void arc_init (void)
       case TUNE_ARC700_4_2_XMAC: /* ??? Should that be COSTS_N_INSNS (3); ?  */
 	arc_multcost = COSTS_N_INSNS (6);
 	break;
+      case TUNE_ARC600:
+	if (TARGET_MUL64_SET)
+	  {
+	    arc_multcost = COSTS_N_INSNS (4);
+	    break;
+	  }
+	/* Fall through.  */
       default:
 	arc_multcost = COSTS_N_INSNS (30);
 	break;
@@ -894,6 +901,106 @@ arc_init_reg_tables (void)
 	  break;
 	}
     }
+}
+
+/* Core registers 56..59 are used for multiply extension options.
+   The dsp option uses r56 and r57, these are then named acc1 and acc2.
+   acc1 is the highpart, and acc2 the lowpart, so which register gets which
+   number depends on endianness.
+   The mul64 multiplier options use r57 for mlo, r58 for mmid and r59 for mhi.
+   Because mlo / mhi form a 64 bit value, we use different gcc internal
+   register numbers to make them form a register pair as the gcc internals
+   know it.  mmid gets number 57, if still available, and mlo / mhi get
+   number 58 and 59, depending on endianness.  We use DBX_REGISTER_NUMBER
+   to map this back.  */
+  char rname56[5] = "r56";
+  char rname57[5] = "r57";
+  char rname58[5] = "r58";
+  char rname59[5] = "r59";
+
+void
+arc_conditional_register_usage (void)
+{
+  int regno;
+  int i;
+  int fix_start = 60, fix_end = 55;
+
+  if (TARGET_MUL64_SET)
+    {
+      fix_start = 57;
+      fix_end = 59;
+
+      /* We don't provide a name for mmed.  In rtl / assembly resource lists,
+	 you are supposed to refer to it as mlo & mhi, e.g
+	 (zero_extract:SI (reg:DI 58) (const_int 32) (16)) .
+	 In an actual asm instruction, you are of course use mmed.
+	 The point of avoiding having a separate register for mmed is that
+	 this way, we don't have to carry clobbers of that reg around in every
+	 isntruction that modifies mlo and/or mhi.  */
+      strcpy (rname57, "");
+      strcpy (rname58, TARGET_BIG_ENDIAN ? "mhi" : "mlo");
+      strcpy (rname59, TARGET_BIG_ENDIAN ? "mlo" : "mhi");
+    }
+  if (TARGET_MULMAC_32BY16_SET)
+    {
+      fix_start = 56;
+      fix_end = fix_end > 57 ? fix_end : 57;
+      strcpy (rname56, TARGET_BIG_ENDIAN ? "acc1" : "acc2");
+      strcpy (rname57, TARGET_BIG_ENDIAN ? "acc2" : "acc1");
+    }
+  for (regno = fix_start; regno <= fix_end; regno++)
+    {
+      if (!fixed_regs[regno])
+	warning (0, "multiply option implies r%d is fixed", regno);
+      fixed_regs [regno] = call_used_regs[regno] = 1;
+    }
+  if (TARGET_MIXED_CODE)
+    {
+      reg_alloc_order[2] = 12;
+      reg_alloc_order[3] = 13;
+      reg_alloc_order[4] = 14;
+      reg_alloc_order[5] = 15;
+      reg_alloc_order[6] = 1;
+      reg_alloc_order[7] = 0;
+      reg_alloc_order[8] = 4;
+      reg_alloc_order[9] = 5;
+      reg_alloc_order[10] = 6;
+      reg_alloc_order[11] = 7;
+      reg_alloc_order[12] = 8;
+      reg_alloc_order[13] = 9;
+      reg_alloc_order[14] = 10;
+      reg_alloc_order[15] = 11;
+    }
+    if (TARGET_SIMD_SET)
+    {
+      int i;
+      for (i=64; i<88; i++)
+	reg_alloc_order [i] = i;
+    }
+  /* For Arctangent-A5 / ARC600, lp_count may not be read in an instruction
+     following immediately after another one setting it to a new value.
+     There was some discussion on how to enforce scheduling constraints for
+     processors with missing interlocks on the gcc mailing list:
+     http://gcc.gnu.org/ml/gcc/2008-05/msg00021.html .
+     However, we can't actually use this approach, because for ARC the
+     delay slot scheduling pass is active, which runs after
+     machine_dependent_reorg.  */
+  if (TARGET_ARC600)
+    CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], LP_COUNT);
+  else if (!TARGET_ARC700)
+    fixed_regs[LP_COUNT] = 1;
+  for (regno = 0; regno < FIRST_PSEUDO_REGISTER; regno++)
+    if (!call_used_regs[regno])
+      CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], regno);
+  for (regno = 32; regno < 60; regno++)
+    if (!fixed_regs[regno])
+      SET_HARD_REG_BIT (reg_class_contents[WRITABLE_CORE_REGS], regno);
+  if (TARGET_ARC700)
+    {
+      for (regno = 32; regno <= 60; regno++)
+	CLEAR_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], regno);
+      arc_hard_regno_mode_ok[60] = 1 << (int) S_MODE;
+    }
 
   for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
     {
@@ -912,7 +1019,7 @@ arc_init_reg_tables (void)
 
     /* ARCOMPACT16_REGS is empty, if mixed code has not bee activated */
       if (!mixed_code_enabled)
-      { 
+      {
 	CLEAR_HARD_REG_SET(reg_class_contents [ARCOMPACT16_REGS]);
 	CLEAR_HARD_REG_SET(reg_class_contents [AC16_BASE_REGS]);
       }
@@ -936,7 +1043,7 @@ arc_init_reg_tables (void)
       }
     else
       {
-	/* Disable all DOUBLE_REGISTER settings, 
+	/* Disable all DOUBLE_REGISTER settings,
 	   if not generating DPFP code */
 	arc_regno_reg_class[40] = ALL_REGS;
 	arc_regno_reg_class[41] = ALL_REGS;
@@ -967,7 +1074,7 @@ arc_init_reg_tables (void)
       }
 
     /* pc : r63 */
-    arc_regno_reg_class[PROGRAM_COUNTER_REGNO] = GENERAL_REGS; 
+    arc_regno_reg_class[PROGRAM_COUNTER_REGNO] = GENERAL_REGS;
 }
 
 /* ARC specific attribute support.
@@ -2768,6 +2875,34 @@ static int output_scaled = 0;
 /* Print operand X (an rtx) in assembler syntax to file FILE.
    CODE is a letter or dot (`z' in `%z0') or 0 if no letter was specified.
    For `%' followed by punctuation, CODE is the punctuation and X is null.  */
+/* In final.c:output_asm_insn:
+    'l' : label
+    'a' : address
+    'c' : constant address if CONSTANT_ADDRESS_P
+    'n' : negative
+   Here:
+    'Z':
+    'z':
+    'M'
+    '#'
+    '*'
+    '?'
+    '!'
+    'd'
+    'D'
+    'R'
+    'S'
+    'B': Branch comparison operand - suppress sda reference
+    'H'
+    'L': Least significant word
+    'A': Most significant word
+    'U'
+    'V'
+    'P'
+    'F'
+    '^'
+    'O': Operator
+    'o': original symbol - no @ prepending.  */
 
 void
 arc_print_operand (FILE *file,rtx x,int code)
@@ -3092,6 +3227,13 @@ arc_print_operand (FILE *file,rtx x,int code)
 	default: break;
 	}
       output_operand_lossage ("invalid operand to %%O code"); return;
+    case 'o':
+      if (GET_CODE (x) == SYMBOL_REF)
+	{
+	  assemble_name (file, XSTR (x, 0));    
+	  return;
+	}
+      break;
     default :
       /* Unknown flag.  */
       output_operand_lossage ("invalid operand output code");
@@ -3325,9 +3467,9 @@ write_profile_sections (rtx dest ATTRIBUTE_UNUSED, rtx x, void *data)
       output_asm_insn (".section\t.__arc_profile_desc, \"a\"\n"
 		       "\t.long\t%1\n"
 		       "\t.section\t.__arc_profile_counters, \"aw\"\n"
-		       "\t.type\t%2, @object\n"
-		       "\t.size\t%2, 4\n"
-		       "%2:\t.zero 4",
+		       "\t.type\t%o2, @object\n"
+		       "\t.size\t%o2, 4\n"
+		       "%o2:\t.zero 4",
 		       &XVECEXP (src, 0, 0));
       *srcp = count;
     }
@@ -3429,6 +3571,7 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
       && (NEXT_INSN (PREV_INSN (insn)) == insn || JUMP_P (insn))
       && arc_hazard (prev_real_insn (insn), insn))
     fprintf (asm_out_file, arc_size_opt_level >= 1 ? "\tnop_s\n" : "\tnop\n" );
+  extract_constrain_insn_cached (insn);
 
   /* Update compare/branch separation marker.  */
   record_cc_ref (insn);
@@ -3494,9 +3637,11 @@ arc_final_prescan_insn (rtx insn,rtx *opvec ATTRIBUTE_UNUSED,
   if (GET_CODE (insn) != JUMP_INSN)
     return;
 
-  if ((jump_insn_type = get_attr_type(insn)) == TYPE_BRCC 
-      || jump_insn_type == TYPE_BRCC_NO_DELAY_SLOT)
-      return;
+  jump_insn_type = get_attr_type (insn);
+  if (jump_insn_type == TYPE_BRCC
+      || jump_insn_type == TYPE_BRCC_NO_DELAY_SLOT
+      || jump_insn_type == TYPE_LOOP_END)
+    return;
 
   /* This jump might be paralleled with a clobber of the condition codes,
      the jump should always come first.  */
@@ -4108,7 +4253,6 @@ arc_rtx_costs (rtx x, int code, int outer_code ATTRIBUTE_UNUSED, int *total)
 	  return true;
 	}
       return false;
-
     default:
      return false;
     }
@@ -5549,10 +5693,13 @@ arc_reorg (void)
       if (GET_CODE (insn) == JUMP_INSN
 	  && recog_memoized (insn) == CODE_FOR_doloop_end_i)
 	{
-	  rtx num = GEN_INT (CODE_LABEL_NUMBER (JUMP_LABEL (insn)));
-	  rtx lp, prev = prev_nonnote_insn (JUMP_LABEL (insn));
+	  rtx top_label
+	    = XEXP (XEXP (SET_SRC (XVECEXP (PATTERN (insn), 0, 0)), 1), 0);
+	  rtx num = GEN_INT (CODE_LABEL_NUMBER (top_label));
+	  rtx lp, prev = prev_nonnote_insn (top_label);
 	  rtx next = NULL_RTX;
 	  rtx op0 = XEXP (XVECEXP (PATTERN (insn), 0, 1), 0);
+	  int seen_label = 0;
 
 	  for (lp = prev;
 	       (lp && NONJUMP_INSN_P (lp)
@@ -5574,6 +5721,8 @@ arc_reorg (void)
 			  lp = prev;
 			  break;
 			}
+		      else if (LABEL_P (prev))
+			seen_label = 1;
 		      prev = prev_nonnote_insn (prev);
 		    }
 		  if (next)
@@ -5594,19 +5743,21 @@ arc_reorg (void)
 	  if (lp && !dead_or_set_regno_p (lp, LP_COUNT))
 	    {
 	      rtx begin_cnt = XEXP (XVECEXP (PATTERN (lp), 0 ,3), 0);
-
 	      if (INTVAL (XEXP (XVECEXP (PATTERN (lp), 0, 4), 0)))
 		/* The loop end insn has been duplicated.  That can happen
 		   when there is a conditional block at the very end of
 		   the loop.  */
 		goto failure;
-	      if (true_regnum (op0) != LP_COUNT || !REG_P (begin_cnt))
+	      /* If Register allocation failed to allocate to the right
+		 register, There is no point into teaching reload to
+		 fix this up with reloads, as that would cost more
+		 than using an ordinary core register with the
+		 doloop_fallback pattern.  */
+	      if ((true_regnum (op0) != LP_COUNT || !REG_P (begin_cnt))
+	      /* Likewise, if the loop setup is evidently inside the loop,
+		 we loose.  */
+		  || (!prev && lp != next && !seen_label))
 		{
-		  /* Register allocation failed to allocate to the right
-		     register.  There is no point into teaching reload to
-		     fix this up with reloads, as that would cost more
-		     than using an ordinary core register with the
-		     doloop_fallback pattern.  */
 		  remove_insn (lp);
 		  goto failure;
 		}
@@ -5659,27 +5810,38 @@ arc_reorg (void)
 		}
 	      if (!prev)
 		{
-		  rtx label
-		    = XEXP (XEXP (SET_SRC (XVECEXP (PATTERN (insn), 0, 0)), 1),
-			    0);
-
 		  XEXP (XVECEXP (PATTERN (lp), 0, 7), 0)
-		    = gen_rtx_LABEL_REF (Pmode, label);
+		    = gen_rtx_LABEL_REF (Pmode, top_label);
 		  REG_NOTES (lp)
-		    = gen_rtx_INSN_LIST (REG_LABEL, label, REG_NOTES (lp));
-		  LABEL_NUSES (label)++;
+		    = gen_rtx_INSN_LIST (REG_LABEL, top_label, REG_NOTES (lp));
+		  LABEL_NUSES (top_label)++;
 		}
 	      /* We can avoid tedious loop start / end setting for empty loops
 		 be merely setting the loop count to its final value.  */
-	      if (next_active_insn (lp) == insn)
+	      if (next_active_insn (top_label) == insn)
 		{
-		  PATTERN (lp)
+		  rtx lc_set
 		    = gen_rtx_SET (VOIDmode,
 				   XEXP (XVECEXP (PATTERN (lp), 0, 3), 0),
 				   const0_rtx);
-		  INSN_CODE (lp) = -1;
+
+		  lc_set = emit_insn_before (lc_set, insn);
+		  delete_insn (lp);
 		  delete_insn (insn);
-		  insn = lp;
+		  insn = lc_set;
+		}
+	      /* If the loop is non-empty with zero length, we can't make it
+		 a zero-overhead loop.  That can happen for empty asms.  */
+	      else
+		{
+		  rtx scan;
+
+		  for (scan = top_label;
+		       (scan && scan != insn
+			&& (!NONJUMP_INSN_P (scan) || !get_attr_length (scan)));
+		       scan = NEXT_INSN (scan));
+		  if (scan == insn)
+		    goto failure;
 		}
 	    }
 	  else
@@ -5812,7 +5974,8 @@ arc_reorg (void)
  		  /* ok this is the set cc. copy args here */
  		  operator = XEXP (pc_target, 0);
  		  
-		  if (!register_operand (XEXP ( SET_SRC (pat), 0), VOIDmode))
+		  if (!register_operand (XEXP ( SET_SRC (pat), 0), VOIDmode)
+		      || !general_operand (XEXP ( SET_SRC (pat), 1), VOIDmode))
 		    continue;
 
  		  /* None of the two cmp operands should be set between the 
@@ -6966,7 +7129,7 @@ const char*
 arc_output_addsi (rtx *operands, const char *cond)
 {
   char format[32];
-  
+
   int cond_p = *cond;
   int match = operands_match_p (operands[0], operands[1]);
   int intval = (REG_P (operands[2]) ? 1
@@ -7049,7 +7212,7 @@ arc_output_addsi (rtx *operands, const char *cond)
     }
   /* Try to emit a 16 bit opcode with long immediate.  */
   if (short_p && match)
-    return "add_s %0,%1,%S2"; 
+    return "add_s %0,%1,%S2";
 
   /* We have to use a 32 bit opcode with a long immediate.  */
   sprintf (format, intval < 0 ? "sub%s %%0,%%1,%%n2" : "add%s %%0,%%1,%%S2",
@@ -7223,8 +7386,8 @@ prepare_extend_operands (rtx *operands, enum rtx_code code,
       emit_insn (gen_rtx_SET (omode, operands[0], operands[1]));
       set_unique_reg_note (get_last_insn (), REG_EQUAL, operands[1]);
 
-      /* Take care of the REG_EQUAL note that will be attached to mark the 
-	 output reg equal to the initial extension after this code is 
+      /* Take care of the REG_EQUAL note that will be attached to mark the
+	 output reg equal to the initial extension after this code is
 	 executed. */
       emit_move_insn (operands[0], operands[0]);
       return 1;
@@ -7251,16 +7414,6 @@ arc_output_libcall (const char *fname)
   return buf;
 }
 
-static rtx
-arc_delegitimize_address (rtx x)
-{
-  if (GET_CODE (x) == MEM && GET_CODE (XEXP (x, 0)) == CONST
-      && GET_CODE (XEXP (XEXP (x, 0), 0)) == UNSPEC
-      && XINT (XEXP (XEXP (x, 0), 0), 1) == ARC_UNSPEC_GOT)
-    return XVECEXP (XEXP (XEXP (x, 0), 0), 0, 0);
-  return x;
-}
-
 /* Called by arc600_corereg_hazard via for_each_rtx.
    If a hazard is found, return a conservative estimate of the required
    length adjustment to accomodate a nop.  */
@@ -7285,6 +7438,7 @@ arc600_corereg_hazard_1 (rtx *xp, void *data)
 	   (REGNO (dest),
 	   REGNO (dest) + (GET_MODE_SIZE (GET_MODE (dest)) + 3) / 4U, pat, 0)))
     return 4;
+
   return 0;
 }
 
@@ -7310,6 +7464,15 @@ arc600_corereg_hazard (rtx pred, rtx succ)
     pred = XVECEXP (PATTERN (pred), 0, 1);
   if (GET_CODE (PATTERN (succ)) == SEQUENCE)
     succ = XVECEXP (PATTERN (succ), 0, 0);
+  if (recog_memoized (pred) == CODE_FOR_mulsi_600
+      || recog_memoized (pred) == CODE_FOR_umul_600
+      || recog_memoized (pred) == CODE_FOR_smul_600
+      || recog_memoized (pred) == CODE_FOR_mac_600
+      || recog_memoized (pred) == CODE_FOR_mul64_600
+      || recog_memoized (pred) == CODE_FOR_mac64_600
+      || recog_memoized (pred) == CODE_FOR_umul64_600
+      || recog_memoized (pred) == CODE_FOR_umac64_600)
+    return 0;
   return for_each_rtx (&PATTERN (pred), arc600_corereg_hazard_1,
 		       PATTERN (succ));
 }
@@ -7390,4 +7553,38 @@ int
 arc_write_ext_corereg (rtx insn)
 {
   return for_each_rtx (&PATTERN (insn), write_ext_corereg_1, 0);
+}
+
+static rtx
+arc_delegitimize_address (rtx x)
+{
+  if (GET_CODE (x) == MEM && GET_CODE (XEXP (x, 0)) == CONST
+      && GET_CODE (XEXP (XEXP (x, 0), 0)) == UNSPEC
+      && XINT (XEXP (XEXP (x, 0), 0), 1) == ARC_UNSPEC_GOT)
+    return XVECEXP (XEXP (XEXP (x, 0), 0), 0, 0);
+  return x;
+}
+
+rtx
+gen_acc1 (void)
+{
+  return gen_rtx_REG (SImode, TARGET_BIG_ENDIAN ? 56: 57);
+}
+
+rtx
+gen_acc2 (void)
+{
+  return gen_rtx_REG (SImode, TARGET_BIG_ENDIAN ? 57: 56);
+}
+
+rtx
+gen_mlo (void)
+{
+  return gen_rtx_REG (SImode, TARGET_BIG_ENDIAN ? 59: 58);
+}
+
+rtx
+gen_mhi (void)
+{
+  return gen_rtx_REG (SImode, TARGET_BIG_ENDIAN ? 58: 59);
 }

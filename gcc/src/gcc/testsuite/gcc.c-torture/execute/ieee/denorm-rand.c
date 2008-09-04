@@ -73,7 +73,7 @@ main ()
   /* First, check that a quotient that can be computed exactly is properly
      rounded, and try variantions on the fraction to do some simple
      round-to-nearest checks for inexact results.  */
-  for (i = 0; i < 10000; i++)
+  for (i = 0; i < 1000; i++)
     {
       unsigned long long x, y;
       int xlen, ylen;
@@ -133,7 +133,7 @@ main ()
   /* Now generate a set of 53 bit random numbers, calculate a fractional
      approximation which is likely to be hard to distinguish from the
      exact result, and check for proper rounding.  */
-  for (i = 0; i < 10000; i++)
+  for (i = 0; i < 1000; i++)
     {
       unsigned long long x, y, x0, y0, x1, y1, x2, y2, x3, tmp;
       int rest_sign;

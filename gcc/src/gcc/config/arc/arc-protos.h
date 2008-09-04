@@ -129,3 +129,8 @@ extern int arc_insn_length_adjustment (rtx);
 extern int arc_corereg_hazard (rtx, rtx);
 extern int arc_hazard (rtx, rtx);
 extern int arc_write_ext_corereg (rtx);
+extern void arc_conditional_register_usage (void);
+extern rtx gen_acc1 (void);
+extern rtx gen_acc2 (void);
+extern rtx gen_mlo (void);
+extern rtx gen_mhi (void);

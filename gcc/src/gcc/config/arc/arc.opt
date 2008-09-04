@@ -213,3 +213,7 @@ Enable the use of pre/post modify with register displacement.
 mdynamic
 Target RejectNegative
 Use dynamic libraries for linking
+
+mmul32x16
+Target Report Mask(MULMAC_32BY16_SET)
+Generate 32x16 multiply and mac instructions

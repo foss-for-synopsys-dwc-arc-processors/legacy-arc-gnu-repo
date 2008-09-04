@@ -130,8 +130,9 @@ Boston, MA 02111-1307, USA.  */
 #ifndef USE_UCLIBC
 
 #define ASM_SPEC  "\
-%{v} %{EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} %{mA7} %{mARC700} \
-%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
+%{v} %{mbig-endian|EB:-EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} \
+%{mA7} %{mARC700} \
+%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
 %{msimd} %{mmixed-code|!mA4:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}}" 
 #else
 
@@ -244,6 +245,9 @@ extern int target_flags;
 /* Non-zero means the cpu supports norm instruction.  This flag is set by
  * default for A7, and only for pre A7 cores when -mnorm is given.  */
 #define TARGET_NORM (TARGET_ARC700 || TARGET_NORM_SET)
+/* Indicate if an optimized floating point emulation library is available.  */
+#define TARGET_OPTFPE \
+ (TARGET_ARC700)
 
 /* Non-zero means the cpu supports swap instruction.  This flag is set by
  * default for A7, and only for pre A7 cores when -mswap is given.  */
@@ -584,55 +588,7 @@ if (GET_MODE_CLASS (MODE) == MODE_INT		\
 
 /* Macro to conditionally modify fixed_regs/call_used_regs.  */
 
-#define CONDITIONAL_REGISTER_USAGE                     \
-{                                                      \
-  int regno;						\
-							\
-  if (TARGET_MIXED_CODE)                               \
-    {                                                  \
-      reg_alloc_order[2] = 12;                         \
-      reg_alloc_order[3] = 13;                         \
-      reg_alloc_order[4] = 14;                         \
-      reg_alloc_order[5] = 15;                         \
-      reg_alloc_order[6] = 1;                          \
-      reg_alloc_order[7] = 0;                          \
-      reg_alloc_order[8] = 4;                          \
-      reg_alloc_order[9] = 5;                          \
-      reg_alloc_order[10] = 6;                         \
-      reg_alloc_order[11] = 7;                         \
-      reg_alloc_order[12] = 8;                         \
-      reg_alloc_order[13] = 9;                         \
-      reg_alloc_order[14] = 10;                        \
-      reg_alloc_order[15] = 11;                        \
-    }                                                  \
-    if (TARGET_SIMD_SET)                               \
-    {                                                  \
-      int i;					       \
-      for (i=64; i<88; i++)			       \
-	reg_alloc_order [i] = i;		       \
-    }						       \
-  /* For Arctangent-A5 / ARC600, lp_count may not be read in an instruction \
-     following immediately after another one setting it to a new value. \
-     There was some discussion on how to enforce scheduling constraints for \
-     processors with missing interlocks on the gcc mailing list: \
-     http://gcc.gnu.org/ml/gcc/2008-05/msg00021.html . \
-     However, we can't actually use this approach, beccause for ARC the \
-     delay slot scheduling pass is active, which runs after \
-     machine_dependent_reorg.  */                     \
-  if (TARGET_ARC600)                                  \
-    CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], LP_COUNT); \
-  else if (!TARGET_ARC700)                            \
-    fixed_regs[LP_COUNT] = 1;				\
-  for (regno = 0; regno < FIRST_PSEUDO_REGISTER; regno++) \
-    if (!call_used_regs[regno])				\
-      CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], regno); \
-  for (regno = 32; regno < 60; regno++)			\
-    if (!fixed_regs[regno])				\
-      SET_HARD_REG_BIT (reg_class_contents[WRITABLE_CORE_REGS], regno); \
-  if (TARGET_ARC700) \
-    for (regno = 32; regno <= 60; regno++)			\
-      CLEAR_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], regno); \
-}
+#define CONDITIONAL_REGISTER_USAGE arc_conditional_register_usage ();
 
 /* If defined, an initializer for a vector of integers, containing the
    numbers of hard registers in the order in which GNU CC should
@@ -1710,6 +1666,7 @@ do {							\
 #endif
 #define SET_ASM_OP "\t.set\t"
 
+extern char rname56[], rname57[], rname58[], rname59[];
 /* How to refer to registers in assembler output.
    This sequence is indexed by compiler's hard-register-number (see above).  */
 #define REGISTER_NAMES								\
@@ -1720,7 +1677,7 @@ do {							\
   "r32",  "r33",  "r34",  "r35",      "r36",    "r37",    "r38",   "r39",	\
    "d1",   "d1",   "d2",   "d2",      "r44",    "r45",    "r46",   "r47",	\
   "r48",  "r49",  "r50",  "r51",      "r52",    "r53",    "r54",   "r55",	\
-  "r56",  "r57",  "r58",  "r59", "lp_count",     "cc",     "ap",   "pcl",	\
+  rname56,rname57,rname58,rname59,"lp_count",    "cc",     "ap",   "pcl",	\
   "vr0",  "vr1",  "vr2",  "vr3",      "vr4",    "vr5",    "vr6",   "vr7",       \
   "vr8",  "vr9", "vr10", "vr11",     "vr12",   "vr13",   "vr14",  "vr15",	\
  "vr16", "vr17", "vr18", "vr19",     "vr20",   "vr21",   "vr22",  "vr23",	\
@@ -1832,7 +1789,16 @@ arc_asm_output_aligned_decl_local (STREAM, DECL, NAME, SIZE, ALIGNMENT, 0)
 #define PREFERRED_DEBUGGING_TYPE DWARF2_DEBUG
 
 /* How to renumber registers for dbx and gdb.  */
-#define DBX_REGISTER_NUMBER(REGNO) (REGNO)
+#define DBX_REGISTER_NUMBER(REGNO) \
+  ((TARGET_MULMAC_32BY16_SET && (REGNO) >= 56 && (REGNO) <= 57) \
+   ? ((REGNO) ^ !TARGET_BIG_ENDIAN) \
+   : (TARGET_MUL64_SET && (REGNO) >= 57 && (REGNO) <= 59) \
+   ? ((REGNO) == 57 \
+      ? 58 /* MMED */ \
+      : (REGNO) & 1 ^ TARGET_BIG_ENDIAN \
+      ? 59 /* MHI */ \
+      : 57 + !!TARGET_MULMAC_32BY16_SET) /* MLO */ \
+   : (REGNO))
 
 #define DWARF_FRAME_REGNUM(REG) (REG)
 
@@ -2008,5 +1974,4 @@ enum arc_function_type {
 
 #define IS_ASM_LOGICAL_LINE_SEPARATOR(C) ((C) == '`')
 
-#define HARD_REGNO_RENAME_OK(FROM, TO) ((FROM) != LP_COUNT)
 #endif /* GCC_ARC_H */

@@ -49,7 +49,7 @@ __fixdfsi:
 
 	add.cc r0,r0,r1
 	j_s.d [blink]
-	neg.pnz r0,r0
+	neg.pl r0,r0
 .Lret0or1:
 	add.f r0,DBL0H,0x100000
 	lsr_s r0,r0,30

@@ -90,19 +90,29 @@ SYM(__mulsi3):
 .Ldone:
 	j.d [blink]
 	mov r0,r2
+	ENDFUNC(__mulsi3)
 #elif defined (__ARC700__)
-#if 0
+	HIDDEN_FUNC(__mulsi3)
+	mpyu	r0,r0,r1
+	nop_s
+	j_s	[blink]
+	ENDFUNC(__mulsi3)
+#elif defined (__ARC_NORM__)
+	FUNC(__mulsi3)
 	norm.f	r2,r0
-	mov	lp_count,32
-	rsubpl	lp_count,r2,31
+	rsub	lp_count,r2,31
+	mov.mi	lp_count,32
 	mov_s	r2,r0
 	mov_s	r0,0
 	lpnz	@.Lend		; loop is aligned
 	lsr.f	r2,r2
-	addcs	r0,r0,r1
+	add.cs	r0,r0,r1
 	add_s	r1,r1,r1
-.Lend:	j [blink]		; unaligned long branch needs no delay slot
-#elif 0
+.Lend:	j_s [blink]
+	ENDFUNC(__mulsi3)
+#elif !defined (__OPTIMIZE_SIZE__)
+	/* Up to 3.5 times faster than the simpler code below, but larger.  */
+	FUNC(__mulsi3)
 	ror.f	r2,r0,4
 	mov_s	r0,0
 	add3.mi	r0,r0,r1
@@ -121,13 +131,6 @@ SYM(__mulsi3):
 	add2.cs	r0,r0,r1
 	j	[blink]
 	ENDFUNC(__mulsi3)
-#else
-	HIDDEN_FUNC(__mulsi3)
-	mpyu	r0,r0,r1
-	nop_s
-	j_s	[blink]
-	ENDFUNC(__mulsi3)
-#endif
 #else
 /********************************************************/
 	mov_s r2,0		; Accumulate result here.
