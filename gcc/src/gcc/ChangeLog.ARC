@@ -1,3 +1,8 @@
+2008-09-05  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.md (doloop_fallback): Operand 0 is "+r,!w".
+	(doloop_fallback_m): Operand 0 is "+&r".
+
 2008-09-02  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.h (ASM_SPEC): For -mmmul32x16, pass -mdsp.
