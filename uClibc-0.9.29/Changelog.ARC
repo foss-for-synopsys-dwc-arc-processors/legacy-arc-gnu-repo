@@ -1,3 +1,11 @@
+2008-08-27  Muhammad Khurram Riaz  <khurram.riaz@arc.com>
+
+	* arc_config: Locale support enables
+	* libc/string/arc/strcmp.S: features.h included
+	* extra/locale/Makefile.in: header UCLIBC_CTYPE_HEADER path corrected
+	* libc/sysdeps/linux/arc/bits/wchar.h: DELETED 
+
+
 2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* ldso/ldso/powerpc/dl-sysdep.h (ELF_RESOLVE_TDEP): Define.

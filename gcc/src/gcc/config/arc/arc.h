@@ -465,8 +465,8 @@ if (GET_MODE_CLASS (MODE) == MODE_INT		\
 
 #define SIZE_TYPE "long unsigned int"
 #define PTRDIFF_TYPE "long int"
-#define WCHAR_TYPE "short unsigned int"
-#define WCHAR_TYPE_SIZE 16
+#define WCHAR_TYPE "int"
+#define WCHAR_TYPE_SIZE 32
 
 
 /* ashwin : shifted from arc.c:102 */
