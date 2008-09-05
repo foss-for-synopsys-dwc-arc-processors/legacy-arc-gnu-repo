@@ -51,21 +51,24 @@ stamp-uclibc-gcc: stamp-uclibc-tools-install
 	  cp -rf bootstrap ${INSTALLDIR}/uclibc/arc-linux-uclibc/include && \
 	  cp -r ${LINUXDIR}/include/linux ${INSTALLDIR}/uclibc/arc-linux-uclibc/include && \
 	  cp -r ${LINUXDIR}/include/asm-arc ${INSTALLDIR}/uclibc/arc-linux-uclibc/include/asm && \
-	  cd ${TRUNKDIR}/gcc && rm -rf build && mkdir build && cd build && ../src/configure --target=arc-linux-uclibc --prefix=${INSTALLDIR}/uclibc --with-headers=${INSTALLDIR}/uclibc/arc-linux-uclibc/include --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --disable-c99 && make -j -l 8 all-gcc && make -j -l 8 install-gcc" && echo success && touch $@
+	  cd ${TRUNKDIR}/gcc && rm -rf build && mkdir build && cd build && \
+	  ../src/configure --target=arc-linux-uclibc --prefix=${INSTALLDIR}/uclibc --with-headers=${INSTALLDIR}/uclibc/arc-linux-uclibc/include --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --enable-c99 && \
+	  make -j -l 8 all-gcc && echo built successfully && \
+	  make -j -l 8 install-gcc" && echo success && touch $@
 
 # build uclibc, copy dynamic linker, and make necessary soft links.
 stamp-uclibc-libc: stamp-uclibc-gcc
 	bsub -J 'build arc-linux-uclibc libc' -n 1,8 -R "span[hosts=1]" -K -q normal -o build-uclibc-libc.log \
 	 "eval ${UCLIBC_TOOLNAMES}; \
 	  cd ${TRUNKDIR}/uClibc-0.9.29 && \
-	  sed -e "s#%LINUX%#${LINUXDIR}#" -e "s#%INSTALL%#${INSTALLDIR}#"< arc_config > .config && \
+	  sed -e "s#%LINUX%#${LINUXDIR}#" -e "s#%INSTALL%#${INSTALLDIR}/uclibc#"< arc_config > .config && \
 	  make -j -l 8 CROSS=arc-linux-uclibc- && \
 	  make -j -l 8 install && \
-	  cp lib/ld-uClibc.so* ${INSTALLDIR}/arc-linux-uclibc/lib && \
+	  cp lib/ld-uClibc.so* ${INSTALLDIR}/uclibc/arc-linux-uclibc/lib && \
 	  cd ${INSTALLDIR}/uclibc/arc-linux-uclibc/lib && \
-	  ln -s libm.so libm.so.0 && \
-	  ln -s libdl.so libdl.so.0 && \
-	  ln -s libgcc_s.so libgcc_s.so.0" && echo success && touch $@
+	  ln -fs libm.so libm.so.0 && \
+	  ln -fs libdl.so libdl.so.0 && \
+	  ln -fs libgcc_s.so libgcc_s.so.0" && echo success && touch $@
 
 # build libstdc++-v3 and copy it to its proper arc-linux installation place
 stamp-uclibc-libstdcxx: stamp-uclibc-libc
@@ -74,9 +77,9 @@ stamp-uclibc-libstdcxx: stamp-uclibc-libc
 	  cd ${TRUNKDIR}/gcc/build && \
 	  make -j -l 8 all-target-libstdc++-v3 && \
 	  make -j -l 8 install-target-libstdc++-v3 && \
-	  cp ${INSTALLDIR}/lib/libstdc++.so* ${INSTALLDIR}/arc-linux-uclibc/lib && \
-	  cp ${INSTALLDIR}/lib/libstdc++.a ${INSTALLDIR}/arc-linux-uclibc/lib && \
-	  cp -r ${INSTALLDIR}/include/c++ ${INSTALLDIR}/arc-linux-uclibc/include" && echo success && touch $@
+	  cp ${INSTALLDIR}/uclibc/lib/libstdc++.so* ${INSTALLDIR}/uclibc/arc-linux-uclibc/lib && \
+	  cp ${INSTALLDIR}/uclibc/lib/libstdc++.a ${INSTALLDIR}/uclibc/arc-linux-uclibc/lib && \
+	  cp -r ${INSTALLDIR}/uclibc/include/c++ ${INSTALLDIR}/uclibc/arc-linux-uclibc/include" && echo success && touch $@
 
 # ??? There seems to be a make file deficiency that foils parallel make.
 stamp-uclibc-insight: stamp-uclibc-opcodes
