@@ -1,4 +1,4 @@
-2008-08-27  Muhammad Khurram Riaz  <khurram.riaz@arc.com>
+2008-09-05  Muhammad Khurram Riaz  <khurram.riaz@arc.com>
 
 	* arc_config: Locale support enables
 	* libc/string/arc/strcmp.S: features.h included
