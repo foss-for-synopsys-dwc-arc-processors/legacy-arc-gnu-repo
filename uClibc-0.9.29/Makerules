@@ -170,7 +170,7 @@ define linkm.so
 	$(Q)$(LN) -sf $(1) $@
 endef
 
-CFLAGS-.os+=$(PICFLAG)
+CFLAGS-.os+=$(PICFLAG) -DSHARED
 CFLAGS-.oS+=$(PICFLAG) -DSHARED
 
 %.o:  %.c ; $(compile.c)
