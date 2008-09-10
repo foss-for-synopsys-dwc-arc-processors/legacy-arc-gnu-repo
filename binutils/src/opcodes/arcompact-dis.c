@@ -281,6 +281,7 @@ struct arcDisState arcAnalyzeInstr (bfd_vma, disassemble_info*);
 
 static char comment_prefix[] = "\t; ";
 short int enable_simd = 0;
+short int enable_insn_stream = 0;
 
 static const char *
 core_reg_name(struct arcDisState *state, int val)
@@ -598,7 +599,7 @@ write_instr_name_(struct arcDisState *state,
 enum
 {
   op_BC = 0, op_BLC = 1, op_LD  = 2, op_ST = 3, op_MAJOR_4  = 4,
-  op_MAJOR_5 = 5, op_SIMD=6,      op_LD_ADD = 12, op_ADD_SUB_SHIFT  = 13,
+  op_MAJOR_5 = 5, op_SIMD=9,      op_LD_ADD = 12, op_ADD_SUB_SHIFT  = 13,
   op_ADD_MOV_CMP = 14, op_S = 15, op_LD_S = 16, op_LDB_S = 17,
   op_LDW_S = 18, op_LDWX_S  = 19, op_ST_S = 20, op_STB_S = 21,
   op_STW_S = 22, op_Su5     = 23, op_SP   = 24, op_GP    = 25, op_Pcl = 26,
@@ -689,7 +690,6 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
   state->ea_reg2 = no_reg;
   state->_offset = 0;
 
-  state->instructionLen = info->bytes_per_line;
 
   /* ARCtangent-A5 basecase instruction and little-endian mode */
   if ((info->endian == BFD_ENDIAN_LITTLE) && (state->instructionLen == 4))
@@ -3681,10 +3681,25 @@ _instName
 static void
 parse_disassembler_options (char *options)
 {
-  if (!strncasecmp (options, "simd",4))
+  const char *p; 
+  for (p = options; p != NULL; )
     {
-      enable_simd = 1;
+	  if (CONST_STRNEQ (p, "simd"))
+	    {
+	      enable_simd = 1;
+	    }
+	  if (CONST_STRNEQ (p, "insn-stream"))
+	    {
+		  enable_insn_stream = 1;
+	    }
+	  
+	  p = strchr (p, ',');
+	  
+	  if (p != NULL)
+		p++;
+	  
     }
+	
 }
 
 /* ARCompact_decodeInstr - Decode an ARCompact instruction returning the
@@ -3725,9 +3740,9 @@ ARCompact_decodeInstr (address, info)
       return -1;
     }
 
-  if ((buffer[lowbyte] & 0xf8) > 0x38)
+  if (((buffer[lowbyte] & 0xf8) > 0x38) && ((buffer[lowbyte] & 0xf8) != 0x48))
   {
-    info->bytes_per_line = 2;
+    s.instructionLen = 2;
     s.words[0] = (buffer[lowbyte] << 8) | buffer[highbyte];
     status = (*info->read_memory_func) (address + 2, buffer, 4, info);
     if (info->endian == BFD_ENDIAN_LITTLE)
@@ -3737,7 +3752,7 @@ ARCompact_decodeInstr (address, info)
   }
   else
   {
-    info->bytes_per_line = 4;
+    s.instructionLen = 4;
     status = (*info->read_memory_func) (address + 2, &buffer[2], 2, info);
     if (status != 0)
     {
@@ -3767,16 +3782,17 @@ ARCompact_decodeInstr (address, info)
   /* disassemble */
   bytes = dsmOneArcInst(address, (void *)&s, info);
 
+  
+  if (enable_insn_stream)
+    {
+      /* Show instruction stream from MSB to LSB*/
+      (*func) (stream, "%08x ", s.words[0]);
+      (*func) (stream, "    ");
+    }
+
   /* display the disassembly instruction */
-
-  if (s.instructionLen == 2)
-    (*func) (stream, "        ");
-
-  (*func) (stream, "%08x ", s.words[0]);
-  (*func) (stream, "    ");
-
   (*func) (stream, "%-10s ", s.instrBuffer);
-
+  
   if (__TRANSLATION_REQUIRED(s))
     {
       bfd_vma addr;
@@ -3797,6 +3813,10 @@ ARCompact_decodeInstr (address, info)
     }
   else
     (*func) (stream, "%s",s.operandBuffer);
+
+  /* We print max bytes for instruction */
+  info->bytes_per_line = 8;
+  
   return s.instructionLen;
 
 }
@@ -3835,9 +3855,9 @@ arcAnalyzeInstr
       return s;
     }
 
-  if ((buffer[lowbyte] & 0xf8) > 0x38)
+  if (((buffer[lowbyte] & 0xf8) > 0x38) && ((buffer[lowbyte] & 0xf8) != 0x48))
   {
-    info->bytes_per_line = 2;
+    s.instructionLen = 2;
     s.words[0] = (buffer[lowbyte] << 8) | buffer[highbyte];
     status = (*info->read_memory_func) (address + 2, buffer, 4, info);
     if (info->endian == BFD_ENDIAN_LITTLE)
@@ -3847,7 +3867,7 @@ arcAnalyzeInstr
   }
   else
   {
-    info->bytes_per_line = 4;
+    s.instructionLen = 4;
     status = (*info->read_memory_func) (address + 2, &buffer[2], 2, info);
     if (status != 0)
     {
@@ -3877,6 +3897,23 @@ arcAnalyzeInstr
 
   /* disassemble */
   bytes = dsmOneArcInst(address, (void *)&s, info);
-
+  /* We print max bytes for instruction */
+  info->bytes_per_line = 8;
   return s;
 }
+
+
+void
+print_arc_disassembler_options (FILE *stream)
+{
+  fprintf (stream, "\n\
+ ARC specific disassembler options:\n\
+ use with the -M switch, each option seperated by comma :\n\n");
+
+  fprintf (stream, "  insn-stream    Shows the instruction's bytes stream from most\n");
+  fprintf (stream, "                 significant byte to least significant byte (excluding LIMM).\n");
+  fprintf (stream, "                 This options is useful to view the actual encoding of instruction.\n");
+  
+  fprintf (stream, "  simd           Enable SIMD instructions disassembly.\n\n");
+}
+

@@ -289,6 +289,7 @@ extern void print_i386_disassembler_options (FILE *);
 extern void print_mips_disassembler_options (FILE *);
 extern void print_ppc_disassembler_options (FILE *);
 extern void print_arm_disassembler_options (FILE *);
+extern void print_arc_disassembler_options (FILE *);
 extern void parse_arm_disassembler_option (char *);
 extern int  get_arm_regname_num_options (void);
 extern int  set_arm_regname_option (int);
