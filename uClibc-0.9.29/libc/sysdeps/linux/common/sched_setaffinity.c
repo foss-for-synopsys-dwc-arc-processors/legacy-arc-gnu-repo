@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-#ifdef INTERNAL_SYSCALL /* remove this when all archs has this #defined */
+#if defined (__NR_sched_setaffinity) && defined (__NR_sched_getaffinity)
 
 #include <string.h>
 #include <unistd.h>
@@ -34,19 +34,25 @@
 libc_hidden_proto(getpid)
 
 #define __NR___syscall_sched_setaffinity __NR_sched_setaffinity
+#define __NR___syscall_sched_getaffinity __NR_sched_getaffinity
 static inline _syscall3(int, __syscall_sched_setaffinity, __kernel_pid_t, pid,
 			size_t, cpusetsize, cpu_set_t *, cpuset);
 
+static inline _syscall3(int, __syscall_sched_getaffinity, __kernel_pid_t, pid,
+			size_t, cpusetsize, cpu_set_t *, cpuset);
+
 static size_t __kernel_cpumask_size;
+
 
 int sched_setaffinity(pid_t pid, size_t cpusetsize, const cpu_set_t *cpuset)
 {
 	size_t cnt;
 	if (unlikely (__kernel_cpumask_size == 0)) {
-		INTERNAL_SYSCALL_DECL (err);
 		int res;
 		size_t psize = 128;
 		void *p = alloca (psize);
+#ifdef INTERNAL_SYSCALL
+		INTERNAL_SYSCALL_DECL (err);
 
 		while (res = INTERNAL_SYSCALL (sched_getaffinity, err, 3, getpid (),
 					       psize, p),
@@ -57,9 +63,21 @@ int sched_setaffinity(pid_t pid, size_t cpusetsize, const cpu_set_t *cpuset)
 		if (res == 0 || INTERNAL_SYSCALL_ERROR_P (res, err)) {
 			__set_errno (INTERNAL_SYSCALL_ERRNO (res, err));
 			return -1;
-		}
+#else
+        while (1)
+	    {
+            pid_t pid = getpid();
+		    res = __syscall_sched_getaffinity(pid,psize,p);
+            if (res != -1)
+				break;           
+            if (errno != EINVAL)
+			    return -1;
+			p = extend_alloca (p, psize, 2 * psize);
+            psize <<= 1;
+        }
 
-		__kernel_cpumask_size = res;
+#endif
+		__kernel_cpumask_size = psize;
 	}
 
 	/* We now know the size of the kernel cpumask_t.  Make sure the user

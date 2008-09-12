@@ -23,13 +23,14 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-#ifdef INTERNAL_SYSCALL /* remove this when all archs has this #defined */
+#ifdef __NR_sched_getaffinity
 
 #include <string.h>
 #include <sys/param.h>
 #include <sys/types.h>
 
 libc_hidden_proto(memset)
+
 
 #define __NR___syscall_sched_getaffinity __NR_sched_getaffinity
 static inline _syscall3(int, __syscall_sched_getaffinity, __kernel_pid_t, pid,
