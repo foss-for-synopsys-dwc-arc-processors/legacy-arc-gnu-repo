@@ -1629,14 +1629,10 @@
   else if (TARGET_MULMAC_32BY16_SET)
     {
       if (immediate_operand (operands[2], SImode)
-	  && INTVAL (operands[2]) >= -32768
-	  && INTVAL (operands[2]) <= 32767)
+	  && INTVAL (operands[2]) >= 0
+	  && INTVAL (operands[2]) <= 63)
         {
-          if (INTVAL (operands[2]) < 0)
-            emit_insn (gen_smul_600 (operands[1], operands[2],
-				     gen_acc2 (), gen_acc1 ()));
-          else
-            emit_insn (gen_umul_600 (operands[1], operands[2],
+	  emit_insn (gen_umul_600 (operands[1], operands[2],
 				     gen_acc2 (), gen_acc1 ()));
 	  emit_move_insn (operands[0], gen_acc2 ());
 	  DONE;
@@ -1666,19 +1662,6 @@
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
-
-(define_insn "smul_600"
-  [(set (match_operand:SI 2 "acc2_operand" "")
-	(mult:SI (match_operand:SI 0 "register_operand"  "c")
-		 (sign_extract:SI (match_operand:SI 1 "immediate_operand"  "J")
-				  (const_int 16)
-				  (const_int 0))))
-   (clobber (match_operand:SI 3 "acc1_operand" ""))]
-  "TARGET_MULMAC_32BY16_SET"
-  "mullw%? 0, %1, %0"
-  [(set_attr "length" "8")
-   (set_attr "type" "mulmac_600")
-   (set_attr "cond" "canuse")])
 
 (define_insn "mac_600"
   [(set (match_operand:SI 2 "acc2_operand" "")

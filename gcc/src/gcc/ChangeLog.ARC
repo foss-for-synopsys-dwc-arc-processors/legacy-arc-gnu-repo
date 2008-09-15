@@ -1,3 +1,8 @@
+2008-09-15  Muhammad Khurram Riaz <khurram.riaz@arc.com>
+
+	* config/arc/arc.md : Bug fix in mul/mac instructions
+	* config/arc/arc.c : Bug fix in mul/mac instructions
+
 2008-09-05  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.md (doloop_fallback): Operand 0 is "+r,!w".

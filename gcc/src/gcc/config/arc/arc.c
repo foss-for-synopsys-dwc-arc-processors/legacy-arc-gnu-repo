@@ -7466,7 +7466,6 @@ arc600_corereg_hazard (rtx pred, rtx succ)
     succ = XVECEXP (PATTERN (succ), 0, 0);
   if (recog_memoized (pred) == CODE_FOR_mulsi_600
       || recog_memoized (pred) == CODE_FOR_umul_600
-      || recog_memoized (pred) == CODE_FOR_smul_600
       || recog_memoized (pred) == CODE_FOR_mac_600
       || recog_memoized (pred) == CODE_FOR_mul64_600
       || recog_memoized (pred) == CODE_FOR_mac64_600

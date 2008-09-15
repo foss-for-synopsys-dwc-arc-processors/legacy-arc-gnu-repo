@@ -221,6 +221,11 @@
 
         .extCoreRegister acc1,  56, w|r, can_shortcut
         .extCoreRegister acc2,  57, w|r, can_shortcut
+.ifndef __Xmult32
+        .extCoreRegister r56,  56, w|r, can_shortcut
+        .extCoreRegister r57,  57, w|r, can_shortcut
+.endif
+
 .endif
 
 ;; 2 New condition codes
