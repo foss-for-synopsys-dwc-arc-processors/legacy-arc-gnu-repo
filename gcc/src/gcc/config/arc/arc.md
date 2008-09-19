@@ -1630,7 +1630,7 @@
     {
       if (immediate_operand (operands[2], SImode)
 	  && INTVAL (operands[2]) >= 0
-	  && INTVAL (operands[2]) <= 63)
+	  && INTVAL (operands[2]) <= 65535)
         {
 	  emit_insn (gen_umul_600 (operands[1], operands[2],
 				     gen_acc2 (), gen_acc1 ()));
@@ -1658,7 +1658,7 @@
   "@
    mululw 0, %0, %1
    mululw 0, %0, %1
-   mululw%? 0, %1, %0"
+   mululw%? 0, %0, %1"
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
@@ -1678,7 +1678,7 @@
   "@
    machlw 0, %0, %1
    machlw 0, %0, %1
-   machlw%? 0, %1, %0"
+   machlw%? 0, %0, %1"
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
@@ -1799,7 +1799,7 @@
   "@
    mullw 0, %0, %1
    mullw 0, %0, %1
-   mullw%? 0, %1, %0"
+   mullw%? 0, %0, %1"
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
@@ -1829,7 +1829,7 @@
   "@
    machlw %0, %1, %2
    machlw %0, %1, %2
-   machlw%? %0, %2, %1"
+   machlw%? %0, %1, %2"
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
@@ -1940,7 +1940,7 @@
   "@
    mululw 0, %0, %1
    mululw 0, %0, %1
-   mululw%? 0, %1, %0"
+   mululw%? 0, %0, %1"
   [(set_attr "length" "4,4,8")
    (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
    (set_attr "cond" "nocond, nocond, canuse")])
@@ -1969,7 +1969,7 @@
   "@
    machulw %0, %1, %2
    machulw %0, %1, %2
-   machulw%? %0, %2, %1"
+   machulw%? %0, %1, %2"
  [(set_attr "length" "4,4,8")
   (set_attr "type" "mulmac_600, mulmac_600, mulmac_600")
   (set_attr "cond" "nocond, nocond, canuse")])

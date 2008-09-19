@@ -1,3 +1,15 @@
+2008-09-19  Muhammad Khurram Riaz <khurram.riaz@arc.com>
+
+	* config/arc/arc.md : 
+	(mulsi3): for MULMAC32x16 unsigned range can be upto 65536, and 
+	mululw in enough (alongwith mov from acc2) to get the result (no
+	need for use mac instruction) ; note that single mul instruction can not 
+	be used with immediates less then 0 because 
+	mululw 0,reg,limm ( and also mullw ) treats lower 16bits of imm operand 
+	as unsigned, So in this case mac instruction is also required.
+	(umul_600) : limm can be the last operand in dsp-mul instructions
+	(mac_600, mul64_600, mac64_600, umul64_600, umac64_600) : Likewise
+
 2008-09-15  Muhammad Khurram Riaz <khurram.riaz@arc.com>
 
 	* config/arc/arc.md : Bug fix in mul/mac instructions
