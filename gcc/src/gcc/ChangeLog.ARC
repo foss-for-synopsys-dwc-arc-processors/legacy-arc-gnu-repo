@@ -1,7 +1,7 @@
 2008-09-19  Muhammad Khurram Riaz <khurram.riaz@arc.com>
 
 	* config/arc/arc.md : 
-	(mulsi3): for MULMAC32x16 unsigned range can be upto 65536, and 
+	(mulsi3): for MULMAC32x16 unsigned range can be upto 65535, and 
 	mululw in enough (alongwith mov from acc2) to get the result (no
 	need for use mac instruction) ; note that single mul instruction can not 
 	be used with immediates less then 0 because 
