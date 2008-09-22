@@ -139,13 +139,13 @@ Boston, MA 02111-1307, USA.  */
 #ifndef TARGET_CPU_arc700
 #define ASM_SPEC  "\
 %{v} %{mbig-endian:-EB} %{EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} %{mA7} %{mARC700} \
-%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
+%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
 %{msimd} %{mmixed-code:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}}" 
 #else
 
 #define ASM_SPEC  "\
 %{v} %{mbig-endian:-EB} %{EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} %{mA7} %{mARC700} \
-%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
+%{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
 %{msimd} %{mmixed-code:%{-mA7}}" 
 
 #endif
