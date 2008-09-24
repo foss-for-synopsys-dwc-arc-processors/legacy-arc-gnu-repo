@@ -396,6 +396,12 @@
 	 a readonly register */
       if (REGNO (op) == PROGRAM_COUNTER_REGNO)
 	return 0;
+      else if (TARGET_MULMAC_32BY16_SET
+	       && (REGNO (op) == 56 || REGNO(op) == 57))
+	return 0;
+      else if (TARGET_MUL64_SET
+	       && (REGNO (op) == 57 || REGNO(op) == 58 || REGNO(op) == 59 ))
+	return 0;
       else
 	return register_operand (op, mode);
     case SUBREG :
