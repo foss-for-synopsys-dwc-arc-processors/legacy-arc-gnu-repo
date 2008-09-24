@@ -1,3 +1,9 @@
+2008-09-24  Muhammad Khurram Riaz <khurram.riaz@arc.com>
+
+	* config/arc/predicates.md: (move_dest_operand) for MUL64 target
+	r57-r59 cannot be destination, the manual says they are read only.
+	similarly r56-r57 for target MUL32x16.
+
 2008-09-19  Muhammad Khurram Riaz <khurram.riaz@arc.com>
 
 	* config/arc/arc.md : 
