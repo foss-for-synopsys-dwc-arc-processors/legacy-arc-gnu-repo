@@ -21,6 +21,11 @@
 	* config/arc/arc.md : Bug fix in mul/mac instructions
 	* config/arc/arc.c : Bug fix in mul/mac instructions
 
+2008-09-12  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.c (arc_compute_millicode_save_restore_regs): Only
+	consider save sequences starting with r13.
+
 2008-09-05  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.md (doloop_fallback): Operand 0 is "+r,!w".

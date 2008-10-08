@@ -1620,7 +1620,14 @@ arc_compute_millicode_save_restore_regs(unsigned int gmask,  short *start_call, 
 	      else
 		*end_call = last_call;
 	    }
-	  if (*start_call != -1)
+	  /* We only have thunks for save sequences starting with r13.
+	     If we have later start, that would indicate a register allocation
+	     wart, since we only use millicode thunks when optimizing for size,
+	     and we should prefer to use registers suitable for 16 bit opcodes
+	     when optimizing for size.  The only exception is a save
+	     sequence of r14-15, but then, we don't really want a thunk either,
+	     because push_s / pop_s are just as short.  */
+	  if (*start_call == 13)
 	    return 1;
     }
   return 0;
