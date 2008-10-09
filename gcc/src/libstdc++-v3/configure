@@ -3961,9 +3961,9 @@ if test "${enable_shared+set}" = set; then
   p=${PACKAGE-default}
 case $enableval in
 yes) enable_shared=yes ;;
-no) enable_shared=yes ;;
+no) enable_shared=no ;;
 *)
-  enable_shared=yes
+  enable_shared=no
   # Look at the argument we got.  We use all the common list separators.
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:,"
   for pkg in $enableval; do
@@ -3983,9 +3983,9 @@ if test "${enable_static+set}" = set; then
   p=${PACKAGE-default}
 case $enableval in
 yes) enable_static=yes ;;
-no) enable_static=yes ;;
+no) enable_static=no ;;
 *)
-  enable_static=yes
+  enable_static=no
   # Look at the argument we got.  We use all the common list separators.
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:,"
   for pkg in $enableval; do
@@ -110252,6 +110252,9 @@ echo "${ECHO_T}$gxx_include_dir" >&6
   WARN_FLAGS='-Wall -Wextra -Wwrite-strings -Wcast-qual'
 
 
+echo "irf-mark 1"
+echo "enable_shared= "
+echo $enable_shared
 
 if test "$enable_shared" = yes; then
   LIBSUPCXX_PICFLAGS="-prefer-pic"

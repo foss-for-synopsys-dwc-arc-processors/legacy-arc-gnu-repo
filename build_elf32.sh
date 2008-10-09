@@ -13,7 +13,7 @@ INSTALLDIR=$1
 
 #build binutils
 cd binutils/build
-../src/configure --prefix=$INSTALLDIR --target=arc-elf32 --disable-werror > ../../log.txt 2>> ../../log.txt
+../src/configure --prefix=$INSTALLDIR --target=arc-elf32 --disable-werror  > ../../log.txt 2>> ../../log.txt
 make  >> ../../log.txt 2>> ../../log.txt
 make install  >> ../../log.txt 2>> ../../log.txt
 cd ../..
@@ -28,10 +28,15 @@ export RANLIB_FOR_TARGET=arc-elf32-ranlib
 
 #build gcc
 cd gcc/build
-../src/configure --target=arc-elf32 --prefix=$INSTALLDIR --with-headers --enable-multilib --with-newlib --enable-languages=c,c++  >> ../../log.txt 2>> ../../log.txt
+../src/configure --target=arc-elf32 --prefix=$INSTALLDIR --with-headers --enable-multilib --with-newlib --enable-languages=c,c++ --disable-shared  >> ../../log.txt 2>> ../../log.txt
 make  >> ../../log.txt 2>> ../../log.txt
 make install  >> ../../log.txt 2>> ../../log.txt
 cd ../..
+
+# Copy include/libs
+cp -r $INSTALLDIR/include/c++ $INSTALLDIR/arc-elf32/include/
+cp $INSTALLDIR/lib/libs*.a $INSTALLDIR/arc-elf32/lib/
+cp $INSTALLDIR/lib/arc700/libs*.a $INSTALLDIR/arc-elf32/lib/arc700/
 
 #build insight
 cd insight/build
