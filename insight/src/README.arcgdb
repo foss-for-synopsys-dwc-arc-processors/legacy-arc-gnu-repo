@@ -1,0 +1,40 @@
+
+You can build ARC GDB in two possible ways: one for debugging linux
+applications and one for debugging programs directly on the CPU using JTAG.
+
+arc-linux-uclibc-gdb
+--------------------
+
+You'll need to build GDB as well as gdbserver.
+
+For building GDB, do
+   $ ./configure --target=arc-linux-uclibc --prefix=/install/path --disable-werror
+   $ make 
+   $ make install
+
+(Where /install/path is a path where you want to install GDB.)
+
+For building gdbserver:
+
+You'll need the arc-linux-uclibc-gcc toolchain.  It should be in
+your path.
+
+   $ source ./build-gdbserver.sh
+   $ ./gdb/gdbserver/configure --host=i386-redhat-linux-gnu --target=arc-linux-uclibc --prefix=/install/path --disable-werror
+   $ make
+   $ make install
+
+You'll find a gdbserver in your install path.  Copy it to an NFS share
+that is accessible from the board.
+
+Please use script at <SOURCE-DIR>/insight/src/build-gdbserver.sh for reference.
+
+arc-elf32-gdb
+-------------
+
+Do
+   $ ./configure --target=arc-elf32 --prefix=/install/path --disable-werror
+   $ make 
+   $ make install
+
+(Where /install/path is a path where you want to install GDB.)
