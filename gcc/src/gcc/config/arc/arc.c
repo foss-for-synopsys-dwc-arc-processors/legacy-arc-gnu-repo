@@ -568,6 +568,10 @@ void arc_init (void)
   if (TARGET_NOMPY_SET && !TARGET_ARC700)
       error ("-mno-mpy supported only for ARC700");
 
+  /* mul/mac instructions only for ARC600 */
+  if (TARGET_MULMAC_32BY16_SET && !TARGET_ARC600)
+      error ("-mmul32x16 supported only for ARC600");
+
   /* Sanity checks for usage of the FPX switches */
   /* FPX-1. No fast and compact together */
   if ((TARGET_DPFP_FAST_SET && TARGET_DPFP_COMPACT_SET)
