@@ -2147,7 +2147,7 @@
   ""
   "add%z2%? %0,%3,%1"
   [(set_attr "type" "shift")
-   (set_attr "length" "4")
+   (set_attr "length" "4,4,4,8")
    (set_attr "cond" "canuse,canuse,nocond,nocond")
    (set_attr "iscompact" "true,false,false,false")])
 

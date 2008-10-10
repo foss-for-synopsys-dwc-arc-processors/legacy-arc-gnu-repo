@@ -1,3 +1,7 @@
+2008-10-10  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* config/arc/arc.md (*add_n): Fix length of c/c/Cal alternative.
+
 2008-09-24  Muhammad Khurram Riaz <khurram.riaz@arc.com>
 
 	* config/arc/predicates.md: (move_dest_operand) for MUL64 target
