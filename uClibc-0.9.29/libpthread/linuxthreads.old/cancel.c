@@ -38,7 +38,7 @@ extern void __rpc_thread_destroy(void);
 #endif
 
 extern int pthread_once(pthread_once_t * once_control, void (*init_routine)(void));
-static void *reference = (void *)pthread_once;
+void * __arc_force_reference = (void *)pthread_once;
 
 int pthread_setcancelstate(int state, int * oldstate)
 {
