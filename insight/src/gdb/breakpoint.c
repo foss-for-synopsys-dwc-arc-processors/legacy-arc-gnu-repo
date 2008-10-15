@@ -5967,6 +5967,7 @@ watch_range_command_1 (unsigned int address, unsigned int bytes, int accessflag,
   struct symtab_and_line sal;
   int i, other_type_used, target_resources_ok;
   enum bptype bp_type;
+  enum target_hw_bp_type wp_type;
   char exp[50];
 
   (void) sprintf(exp, "0x%08X:%u", address, bytes);
@@ -5974,14 +5975,25 @@ watch_range_command_1 (unsigned int address, unsigned int bytes, int accessflag,
   init_sal (&sal);  /* initialize to zeroes */
 
   if (accessflag == hw_read)
-    bp_type = bp_read_watchpoint;
+    {
+      bp_type = bp_read_watchpoint;
+      wp_type = hw_read;
+    }
   else if (accessflag == hw_access)
-    bp_type = bp_access_watchpoint;
+    {
+      bp_type = bp_access_watchpoint;
+      wp_type = hw_access;
+    }
   else if (accessflag == hw_write)
-    bp_type = bp_hardware_watchpoint;
+    {
+      bp_type = bp_hardware_watchpoint;
+      wp_type = hw_write;
+    }
   else
-    bp_type = bp_hardware_breakpoint;
-
+    {
+      bp_type = bp_hardware_breakpoint;
+      wp_type = hw_execute;
+    }
 
   i = hw_watchpoint_used_count (bp_type, &other_type_used);
   target_resources_ok = 
@@ -6006,6 +6018,8 @@ watch_range_command_1 (unsigned int address, unsigned int bytes, int accessflag,
   b->loc->address = (CORE_ADDR) address;
   b->loc->requested_address = b->loc->address;
   b->loc->length = bytes;
+
+  b->loc->watchpoint_type = wp_type;
 
   memset (&b->watchpoint_frame, 0, sizeof (b->watchpoint_frame));
 
