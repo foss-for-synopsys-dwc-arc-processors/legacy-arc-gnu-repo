@@ -111,9 +111,9 @@ cd ../..
 #-------------------------------------------------------------------------------------------------------------
 echo "Start building gdbserver!"
 echo "..."
-cd insight/src/gdb/gdbserver/build
+cd insight/src/gdb/gdbserver
 ./build_gdbserver.sh >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 cp gdbserver $INSTALLDIR/bin
-cd ../../../../..
+cd ../../../..
 echo "Finish building gdbserver!"
 #-------------------------------------------------------------------------------------------------------------
