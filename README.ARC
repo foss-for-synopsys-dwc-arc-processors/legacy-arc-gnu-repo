@@ -14,7 +14,7 @@ ARC series of processors:
 
 i)   Binutils 2.17, including assembler, linker and other utilities
 ii)  GCC 4.2, including C/C++ compilers and libraries (newlib)
-iii) GDB 6.6 source level debugger with hardware (JTAG) debug support, CGEN-based simulator and insight (GDB front-end).
+iii) GDB 6.8 source level debugger with hardware (JTAG) debug support, CGEN-based simulator and insight (GDB front-end).
 iv)  uClibc 0.9.29, user-mode runtime library
 
 Relevant pdf manuals are also available at <untar location>/docs.
