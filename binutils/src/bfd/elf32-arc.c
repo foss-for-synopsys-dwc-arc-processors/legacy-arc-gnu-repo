@@ -2714,50 +2714,60 @@ elf_arc_adjust_dynamic_symbol (struct bfd_link_info *info,
 	    return FALSE;
 	}
 
-      s = bfd_get_section_by_name (dynobj, ".plt");
-      BFD_ASSERT (s != NULL);
-
-      /* If this is the first .plt entry, make room for the special
-	 first entry.  */
-      if (s->size == 0)
+      if (info->shared
+          || WILL_CALL_FINISH_DYNAMIC_SYMBOL (1, 0, h))
 	{
-	  s->size += 2 *PLT_ENTRY_SIZE;
-	  BFD_DEBUG_PIC (fprintf (stderr, "first plt entry at %d\n", s->size));
+	  s = bfd_get_section_by_name (dynobj, ".plt");
+	  BFD_ASSERT (s != NULL);
+
+	  /* If this is the first .plt entry, make room for the special
+	     first entry.  */
+	  if (s->size == 0)
+	    {
+	      s->size += 2 *PLT_ENTRY_SIZE;
+	      BFD_DEBUG_PIC (fprintf (stderr, "first plt entry at %d\n", s->size));
+	    }
+	  else
+	    {
+	      BFD_DEBUG_PIC (fprintf (stderr, "Next plt entry at %d\n", (int)s->size));
+	    }
+  
+	  /* If this symbol is not defined in a regular file, and we are
+	     not generating a shared library, then set the symbol to this
+	     location in the .plt.  This is required to make function
+	     pointers compare as equal between the normal executable and
+	     the shared library.  */
+	  if (!info->shared && !h->def_regular)
+	    {
+	      h->root.u.def.section = s;
+	      h->root.u.def.value = s->size;
+	    }
+
+	  h->plt.offset = s->size;
+
+	  /* Make room for this entry.  */
+	  s->size += PLT_ENTRY_SIZE;
+
+	  /* We also need to make an entry in the .got.plt section, which
+	     will be placed in the .got section by the linker script.  */
+
+	  s = bfd_get_section_by_name (dynobj, ".got.plt");
+	  BFD_ASSERT (s != NULL);
+	  s->size += 4;
+
+	  /* We also need to make an entry in the .rela.plt section.  */
+	  s = bfd_get_section_by_name (dynobj, ".rela.plt");
+	  BFD_ASSERT (s != NULL);
+	  s->size += sizeof (Elf32_External_Rela);
+
+	  return TRUE;
 	}
       else
-	{
-	  BFD_DEBUG_PIC (fprintf (stderr, "Next plt entry at %d\n", (int)s->size));
+ 	{
+	  h->plt.offset = (bfd_vma) -1;
+	  h->needs_plt = 0;
+	  return TRUE;
 	}
-  
-      /* If this symbol is not defined in a regular file, and we are
-	 not generating a shared library, then set the symbol to this
-	 location in the .plt.  This is required to make function
-	 pointers compare as equal between the normal executable and
-	 the shared library.  */
-      if (!info->shared && !h->def_regular)
-	{
-	  h->root.u.def.section = s;
-	  h->root.u.def.value = s->size;
-	}
-
-      h->plt.offset = s->size;
-
-      /* Make room for this entry.  */
-      s->size += PLT_ENTRY_SIZE;
-
-      /* We also need to make an entry in the .got.plt section, which
-	 will be placed in the .got section by the linker script.  */
-
-      s = bfd_get_section_by_name (dynobj, ".got.plt");
-      BFD_ASSERT (s != NULL);
-      s->size += 4;
-
-      /* We also need to make an entry in the .rela.plt section.  */
-      s = bfd_get_section_by_name (dynobj, ".rela.plt");
-      BFD_ASSERT (s != NULL);
-      s->size += sizeof (Elf32_External_Rela);
-
-      return TRUE;
     }
 
   /* If this is a weak symbol, and there is a real definition, the
