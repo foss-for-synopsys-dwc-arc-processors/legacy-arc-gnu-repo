@@ -5704,6 +5704,21 @@ arc_reorg (void)
       htab_delete (htab);
     }
 
+  /* Workaround for -mlong-calls with -fPIC (PART 1)
+     Instead of generating direct pc-relative call to functions, force them
+     to go into GOT and later reference with @gotoff in arc_output_libcall */
+
+    for (insn = get_insns (); insn; insn = NEXT_INSN (insn))
+    {
+ 	enum attr_type insn_type;
+	
+	if (active_insn_p(insn) && NONJUMP_INSN_P(insn) && get_attr_type (insn) == TYPE_SFUNC)
+	{
+		current_function_uses_pic_offset_table = 1;	
+	}
+
+    }
+
   /* Link up loop ends with their loop start.  */
   {
     for (insn = get_insns (); insn; insn = NEXT_INSN (insn))
@@ -7422,7 +7437,7 @@ arc_output_libcall (const char *fname)
   if (TARGET_LONG_CALLS_SET)
     {
       if (flag_pic)
-	sprintf (buf, "add r12,pcl,@%s-(.&2)\n\tjl%%* r12", fname);
+	sprintf (buf, "add r12,gp,@%s@gotoff\n\tjl%%* [r12]", fname);
       else
 	sprintf (buf, "jl%%? @%s", fname);
     }
