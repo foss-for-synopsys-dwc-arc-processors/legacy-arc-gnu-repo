@@ -229,8 +229,7 @@ STATIC void *__JCR_LIST__[]
 extern void *__dso_handle __attribute__ ((__section__ (TARGET_LIBGCC_SDATA_SECTION)));
 #endif
 #ifdef HAVE_GAS_HIDDEN
-// extern void *__dso_handle __attribute__ ((__visibility__ ("hidden")));
-// ARC workaround to avoid dynamic C++ libs problem to appear.
+extern void *__dso_handle __attribute__ ((__visibility__ ("hidden")));
 #endif
 #ifdef CRTSTUFFS_O
 void *__dso_handle = &__dso_handle;
