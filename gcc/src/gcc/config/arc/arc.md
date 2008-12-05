@@ -4470,15 +4470,19 @@
   " !optimize_size"
   "
   {
+    rtx callee = XEXP (operands[0], 0);
+
     if (operands[2] == NULL_RTX)
       operands[2] = const0_rtx;
-    if (current_function_profile && arc_profile_call (XEXP (operands[0], 0)))
+    if (current_function_profile && arc_profile_call (callee))
       {
 	emit_insn (gen_sibcall_prof
 		    (gen_rtx_SYMBOL_REF (Pmode, \"_mcount_call\"),
 		     operands[1], operands[2]));
 	DONE;
       }
+    if (GET_CODE (callee) != REG && arc_is_longcall_p (callee, 1))
+      XEXP (operands[0], 0) = force_reg (Pmode, callee);
   }"
 )
 
@@ -4491,6 +4495,8 @@
   " !optimize_size"
   "
   {
+    rtx callee = XEXP (operands[1], 0);
+
     if (operands[3] == NULL_RTX)
       operands[3] = const0_rtx;
     if (current_function_profile && arc_profile_call (XEXP (operands[1], 0)))
@@ -4500,6 +4506,8 @@
 		     operands[2], operands[3]));
 	DONE;
       }
+    if (GET_CODE (callee) != REG && arc_is_longcall_p (callee, 1))
+      XEXP (operands[1], 0) = force_reg (Pmode, callee);
   }"
 )
 
