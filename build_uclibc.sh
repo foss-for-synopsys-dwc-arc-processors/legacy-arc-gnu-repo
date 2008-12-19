@@ -72,7 +72,7 @@ cd gcc/build
 rm -r -f *
 echo "Start building GCC!"
 echo "..."
-../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --with-headers --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --disable-c99 >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
+../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --with-headers=$INSTALLDIR/arc-linux-uclibc/include --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --disable-c99 >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 
 if make all-gcc >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt; then
 echo "Finish building GCC!"
@@ -106,11 +106,11 @@ make install >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 
 #copy the dynamic linker and make soft links
 cp lib/ld-uClibc-0.9.29.so $INSTALLDIR/arc-linux-uclibc/lib
-pushd .
+pushd . > /dev/zero 2> /dev/zero
 cd $INSTALLDIR/arc-linux-uclibc/lib
 ln -s ld-uClibc-0.9.29.so ld-uClibc.so
 ln -s ld-uClibc-0.9.29.so ld-uClibc.so.0
-popd
+popd > /dev/zero 2> /dev/zero
 cd ..
 
 #-------------------------------------------------------------------------------------------------------------
@@ -135,15 +135,19 @@ cp $INSTALLDIR/lib/libstdc++.so.6.0.9 $INSTALLDIR/arc-linux-uclibc/lib
 cp $INSTALLDIR/lib/libstdc++.a $INSTALLDIR/arc-linux-uclibc/lib
 mv $INSTALLDIR/include/c++ $INSTALLDIR/arc-linux-uclibc/include/c++
 
+# Sync. sys-include and include dirs
+rm -rf $INSTALLDIR/arc-linux-uclibc/sys-include > /dev/zero 2> /dev/zero
+cp -rf $INSTALLDIR/arc-linux-uclibc/include $INSTALLDIR/arc-linux-uclibc/sys-include > /dev/zero 2> /dev/zero
+
 # Make necessary soft links
-pushd .
+pushd . > /dev/zero 2> /dev/zero
 cd $INSTALLDIR/arc-linux-uclibc/lib
 ln -s libstdc++.so.6.0.9 libstdc++.so.6
 ln -s libstdc++.so.6.0.9 libstdc++.so
 ln -s libm.so libm.so.0
 ln -s libdl.so libdl.so.0
 ln -s libgcc_s.so libgcc_s.so.0
-popd
+popd > /dev/zero 2> /dev/zero
 #-------------------------------------------------------------------------------------------------------------
 
 echo "# build insight/gdb" >> uclibc_log.txt
