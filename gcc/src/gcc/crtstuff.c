@@ -229,7 +229,7 @@ STATIC void *__JCR_LIST__[]
 extern void *__dso_handle __attribute__ ((__section__ (TARGET_LIBGCC_SDATA_SECTION)));
 #endif
 #ifdef HAVE_GAS_HIDDEN
-extern void *__dso_handle __attribute__ ((__visibility__ ("hidden")));
+//extern void *__dso_handle __attribute__ ((__visibility__ ("hidden")));
 #endif
 #ifdef CRTSTUFFS_O
 void *__dso_handle = &__dso_handle;
