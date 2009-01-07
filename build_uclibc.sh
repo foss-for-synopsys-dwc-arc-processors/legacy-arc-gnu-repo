@@ -89,7 +89,7 @@ cd ../..
 echo "#configure and build uClibc" >> uclibc_log.txt
 echo "Start building uClibc!"
 echo "..."
-cd uClibc-0.9.29
+cd uClibc-0.9.30
  # Preparing a known working uclibc configuration.
  sed -e "s#%LINUX%#$LINUXDIR#" -e "s#%INSTALL%#$INSTALLDIR#"< arc_config > .config
 
