@@ -80,7 +80,7 @@ endif
 XWARNINGS      := $(subst ",, $(strip $(WARNINGS))) -Wstrict-prototypes
 XARCH_CFLAGS   := $(subst ",, $(strip $(ARCH_CFLAGS))) $(CPU_CFLAGS)
 XCOMMON_CFLAGS := -D_GNU_SOURCE -I$(top_builddir)test
-CFLAGS         := $(XWARNINGS) $(OPTIMIZATION) $(XCOMMON_CFLAGS) $(XARCH_CFLAGS) -nostdinc -I$(top_builddir)$(LOCAL_INSTALL_PATH)/usr/include
+CFLAGS         := $(XWARNINGS) $(OPTIMIZATION) $(XCOMMON_CFLAGS) $(XARCH_CFLAGS) -I$(top_builddir)$(LOCAL_INSTALL_PATH)/usr/include
 
 CC_IPREFIX:=$(shell $(CC) --print-file-name=include)
 CFLAGS += -I$(dir $(CC_IPREFIX))/include-fixed -I$(CC_IPREFIX)
@@ -123,7 +123,8 @@ endif
 # Filter output
 MAKEFLAGS += --no-print-directory
 ifneq ($(findstring s,$(MAKEFLAGS)),)
-DISP := sil
+#DISP := sil
+DISP := true
 Q    := @
 SCAT := -@true
 else
@@ -145,8 +146,10 @@ pur_showlink  = echo "  "TEST_LINK $(notdir $(CURDIR))/ $@
 pur_showtest  = echo "  "TEST_EXEC $(notdir $(CURDIR))/ $(patsubst %.exe,%,$@)
 sil_showclean =
 sil_showdiff  = true
-sil_showlink  = true
-sil_showtest  = true
+#sil_showlink  = true
+#sil_showlink  = false
+#sil_showtest  = true
+sil_showtest  = false
 ver_showclean =
 ver_showdiff  = true echo
 ver_showlink  = true echo
