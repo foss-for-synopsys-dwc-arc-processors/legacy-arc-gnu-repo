@@ -1,10 +1,10 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2008 Free Software Foundation, Inc.
 
    Contributed by ARC International (www.arc.com)
 
-   Authors:
+   Author:
       Richard Stuckey <richard.stuckey@arc.com>
 
    This file is part of GDB.
@@ -37,25 +37,16 @@
 /* system header files */
 #include <stdio.h>
 
-/* gdb header files */
-
 /* ARC header files */
 #include "arc-jtag-ops.h"
+#include "arc-aux-registers.h"
 
-
-/* -------------------------------------------------------------------------- */
-/*                               local types                                  */
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /*                               local data                                   */
 /* -------------------------------------------------------------------------- */
 
-#define AP_BUILD_REG    0x76         // Actionpoints build register
-#define PC_REG          0x6
-#define DEBUG_REG       0x5
-#define AMV0_REG        0x220
-#define AMV1_REG        0x223
+#define AMV1_REG        (ARC_HW_AMV0_REGNUM + 3)
 
 
 static unsigned int num_actionpoints = 8;
@@ -67,14 +58,6 @@ static unsigned int num_actionpoints = 8;
 
 JTAG_Operations arc_jtag_ops;
 
-
-/* -------------------------------------------------------------------------- */
-/*                               local macros                                 */
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-/*                               local functions                              */
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /*                               main operations                              */
@@ -106,9 +89,9 @@ jtag_write_core_reg(ARC_RegisterNumber regnum, ARC_RegisterContents contents)
 static JTAG_OperationStatus
 jtag_read_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
 {
-    if (regnum == PC_REG)
+    if (regnum == ARC_HW_PC_REGNUM)
         *contents = 0x00001008;
-    else if (regnum == AP_BUILD_REG)
+    else if (regnum == ARC_HW_AP_BUILD_REGNUM)
     {
         if (num_actionpoints == 2)
             *contents = 0x00000004;
@@ -117,7 +100,7 @@ jtag_read_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
         else
             *contents = 0x00000204;
     }
-    else if (regnum == DEBUG_REG)
+    else if (regnum == ARC_HW_DEBUG_REGNUM)
     {
         /* fake trigger of AP 1 */
         *contents = DEBUG_ACTIONPOINT_HALT |
@@ -126,6 +109,14 @@ jtag_read_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
     else if (regnum == AMV1_REG)
     {
         *contents = 0x4008;
+    }
+    else if (regnum == ARC_HW_IDENTITY_REGNUM)
+    {
+        *contents = 0x31;
+    }
+    else if (regnum == ARC_HW_STATUS32_REGNUM)
+    {
+        *contents = STATUS32_HALT;
     }
     else
         *contents = 0;
@@ -140,7 +131,7 @@ jtag_read_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
 static JTAG_OperationStatus
 jtag_write_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents contents)
 {
-//  printf("AUX: regnum = %d, contents = 0x%08X\n", regnum, contents);
+//  printf(_("AUX: regnum = %d, contents = 0x%08X\n"), regnum, contents);
     return JTAG_SUCCESS;
 }
 
@@ -200,7 +191,7 @@ jtag_write_pattern(ARC_Address addr, ARC_Word pattern, unsigned int bytes)
 static Boolean
 jtag_open(void)
 {
-    arc_jtag_ops.jtag_status = JTAG_OPENED;
+    arc_jtag_ops.status = JTAG_OPENED;
     return TRUE;
 }
 
@@ -209,15 +200,14 @@ jtag_open(void)
 static void
 jtag_close(void)
 {
-    arc_jtag_ops.jtag_status = JTAG_CLOSED;
+    arc_jtag_ops.status = JTAG_CLOSED;
 }
 
 
-/* wait for the target to halt */
+/* reset the target JTAG controller */
 static void
-jtag_wait(void)
+jtag_reset(void)
 {
-    printf("*** target has halted!\n");
 }
 
 
@@ -228,39 +218,40 @@ jtag_reset_board(void)
 }
 
 
+static void jtag_check_open(void)
+{
+    if (arc_jtag_ops.status == JTAG_CLOSED)
+        error(_("JTAG connection is closed. "
+                "Use command 'target " ARC_TARGET_NAME "' first."));
+}
+
+
 /* -------------------------------------------------------------------------- */
 /*                               externally visible functions                 */
 /* -------------------------------------------------------------------------- */
-
-/* return the processor variant that is connected */
-ARC_ProcessorVersion arc_get_architecture(void)
-{
-   return ARC700;
-}
-
 
 /* initialize the arc_jtag_ops global variable */
 void
 _initialize_arc_jtag_ops(void)
 {
-    arc_jtag_ops.name                     = NULL;
-    arc_jtag_ops.jtag_status              = JTAG_CLOSED;
-    arc_jtag_ops.jtag_state_machine_debug = FALSE;
-    arc_jtag_ops.jtag_retry_count         = 50;
+    arc_jtag_ops.status              = JTAG_CLOSED;
+    arc_jtag_ops.state_machine_debug = FALSE;
+    arc_jtag_ops.retry_count         = 50;
 
-    arc_jtag_ops.jtag_open                 = jtag_open;
-    arc_jtag_ops.jtag_close                = jtag_close;
-    arc_jtag_ops.jtag_memory_read_word     = jtag_read_word;
-    arc_jtag_ops.jtag_memory_write_word    = jtag_write_word;
-    arc_jtag_ops.jtag_memory_read_chunk    = jtag_read_chunk;
-    arc_jtag_ops.jtag_memory_write_chunk   = jtag_write_chunk;
-    arc_jtag_ops.jtag_memory_write_pattern = jtag_write_pattern;
-    arc_jtag_ops.jtag_read_aux_reg         = jtag_read_aux_reg;
-    arc_jtag_ops.jtag_write_aux_reg        = jtag_write_aux_reg;
-    arc_jtag_ops.jtag_read_core_reg        = jtag_read_core_reg;
-    arc_jtag_ops.jtag_write_core_reg       = jtag_write_core_reg;
-    arc_jtag_ops.jtag_wait                 = jtag_wait;
-    arc_jtag_ops.jtag_reset_board          = jtag_reset_board;
+    arc_jtag_ops.open                 = jtag_open;
+    arc_jtag_ops.close                = jtag_close;
+    arc_jtag_ops.check_open           = jtag_check_open;
+    arc_jtag_ops.reset_board          = jtag_reset_board;
+    arc_jtag_ops.reset                = jtag_reset;
+    arc_jtag_ops.memory_read_word     = jtag_read_word;
+    arc_jtag_ops.memory_write_word    = jtag_write_word;
+    arc_jtag_ops.memory_read_chunk    = jtag_read_chunk;
+    arc_jtag_ops.memory_write_chunk   = jtag_write_chunk;
+    arc_jtag_ops.memory_write_pattern = jtag_write_pattern;
+    arc_jtag_ops.read_aux_reg         = jtag_read_aux_reg;
+    arc_jtag_ops.write_aux_reg        = jtag_write_aux_reg;
+    arc_jtag_ops.read_core_reg        = jtag_read_core_reg;
+    arc_jtag_ops.write_core_reg       = jtag_write_core_reg;
 }
 
 /******************************************************************************/

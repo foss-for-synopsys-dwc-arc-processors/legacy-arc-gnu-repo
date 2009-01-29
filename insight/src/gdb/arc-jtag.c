@@ -1,12 +1,13 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Contributed by Codito Technologies Pvt. Ltd. (www.codito.com)
 
    Authors:
-      Sameer Dhavale <sameer.dhavale@codito.com>
+      Sameer Dhavale       <sameer.dhavale@codito.com>
       Ramana Radhakrishnan <ramana.radhakrishnan@codito.com>
+      Richard Stuckey      <richard.stuckey@arc.com>
 
    This file is part of GDB.
 
@@ -44,78 +45,80 @@
 /* system header files */
 #include <assert.h>
 #include <signal.h>
+#include <byteswap.h>
 
 /* gdb header files */
 #include "defs.h"
 #include "inferior.h"
 #include "gdbcore.h"
 #include "regcache.h"
+#include "symtab.h"
 #include "breakpoint.h"
 #include "exceptions.h"
 #include "gdbcmd.h"
+#include "objfiles.h"
+#include "libiberty.h"
 
 /* ARC header files */
-#include "arc-jtag.h"
-#include "arc-jtag-ops.h"
-#include "arc-jtag-actionpoints.h"
-
 #include "config/arc/tm-embed.h"
+#include "arc-board.h"
+#include "arc-gpio.h"
+#include "arc-jtag.h"
 #include "arc-tdep.h"
 #include "arc-support.h"
+#include "arc-jtag-tdep.h"
 #include "arc-jtag-ops.h"
-
-/* -------------------------------------------------------------------------- */
-/*                               local types                                  */
-/* -------------------------------------------------------------------------- */
-
-typedef enum
-{
-    RO,    // read-only
-    RW,    // read/write
-    WO,    // write-only
-    UU     // unused
-} RegisterMode;
-
-
-typedef struct arc_reg_info
-{
-    const char*              name;
-    ARC_HardwareRegisters    hw_regno;
-    enum arc700_jtag_regnums gdb_regno;
-    RegisterMode             mode;
-} RegisterInfo;
+#include "arc-jtag-actionpoints.h"
+#include "arc-aux-registers.h"
+#include "arc-architecture.h"
+#include "arc-jtag-fileio.h"
 
 
 /* -------------------------------------------------------------------------- */
 /*                               local data                                   */
 /* -------------------------------------------------------------------------- */
 
-#define INVALID_REGISTER_NUMBER    (ARC_RegisterNumber) 0xFFFFFFFFU
+#define ARC_CONFIGURATION_COMMAND      "arc-configuration"
+#define ARC_RESET_BOARD_COMMAND        "arc-reset-board"
+#define ARC_LIST_ACTIONPOINTS_COMMAND  "arc-list-actionpoints"
+#define ARC_FSM_DEBUG_COMMAND          "arcjtag-debug-statemachine"
+#define ARC_JTAG_RETRY_COMMAND         "arcjtag-retry-count"
 
-#define ARC_NR_CORE_REGS           64
+#define ARC_CONFIGURATION_COMMAND_USAGE      "Usage: info " ARC_CONFIGURATION_COMMAND     "\n"
+#define ARC_RESET_BOARD_COMMAND_USAGE        "Usage: "      ARC_RESET_BOARD_COMMAND       "\n"
+#define ARC_LIST_ACTIONPOINTS_COMMAND_USAGE  "Usage: "      ARC_LIST_ACTIONPOINTS_COMMAND "\n"
 
 
-#undef RAUX
-#undef RBCR
-#define RBCR(name, hwregno, desc, gdbregno, mask, mode, version) { #name, hwregno, gdbregno, mode },
-static const RegisterInfo arc_bcr_reg_info[] =
-{
-   #include "arc-regnums-defs.h"
-};
+#define INVALID_REGISTER_NUMBER        (ARC_RegisterNumber) 0xFFFFFFFFU
 
-#undef RAUX
-#undef RBCR
-#define RAUX(name, hwregno, desc, gdbregno, mask, mode, version) { #name, hwregno, gdbregno, mode },
-static const RegisterInfo arc_aux_reg_map[] =
-{
-    #include "arc-regnums-defs.h"
-};
+#define MINIMUM_INSTRUCTION_SIZE       2
+#define MOV_SP_INSTRUCTION             0x3f80240a
 
 
 static struct target_ops arc_debug_ops;
 
-/* For the ^C signal handler.  */
-static void (*ofunc) (int);
+/* For the Ctrl-C signal handler.  */
+static void (*old_signal_handler) (int);
+
+static ARC_RegisterNumber lp_start_regnum;
+static ARC_RegisterNumber lp_end_regnum;
+static ARC_RegisterNumber identity_regnum;
+static ARC_RegisterNumber debug_regnum;
+static ARC_RegisterNumber pc_regnum;
+static ARC_RegisterNumber status32_regnum;
+
+static ARC_RegisterNumber icache_ivic_regnum;
+static ARC_RegisterNumber icache_control_regnum;
+static ARC_RegisterNumber dcache_ivdc_regnum;
+static ARC_RegisterNumber dcache_control_regnum;
+
+static CORE_ADDR stack_pointer_setup_code_operand_address;
+
+/* this flag is used by the Ctrl-C interrupt mechanism: it is set by an
+ * interrupt handler and tested by non-interrupt code, so must be declared
+ * as volatile to avoid possible optimisation problems
+ */
+static volatile Boolean interrupt_processor;
 
 
 /* -------------------------------------------------------------------------- */
@@ -130,241 +133,848 @@ extern struct breakpoint *breakpoint_chain;
 /*                               local macros                                 */
 /* -------------------------------------------------------------------------- */
 
-#define IS_CORE_REGISTER(regno)     (regno < ARC_NR_CORE_REGS)
+#define TARGET_ENDIAN(word)   ((target_is_big_endian) ? __bswap_32(word) : (word))
+
+#define IS_ARC700       (arc_get_architecture(identity_regnum) == ARC700)
+#define IS_ARC600       (arc_get_architecture(identity_regnum) == ARC600)
+
+
+#define MK_OPERAND(x)    (ARC_Word) ((((x) & 0xffff0000) >> 16) | \
+                                     (((x) & 0x0000ffff) << 16)) 
+
+
+/* -------------------------------------------------------------------------- */
+/*                               forward declarations                         */
+/* -------------------------------------------------------------------------- */
+
+static void interrupted_twice (int signo);
+static void restore_stack_top_address (void);
 
 
 /* -------------------------------------------------------------------------- */
 /*                               local functions                              */
 /* -------------------------------------------------------------------------- */
 
-static void arc_debug_interrupt_twice (int signo);
+/* -------------------------------------------------------------------------- */
+/* 1)                functions for reading/writing registers                  */
+/* -------------------------------------------------------------------------- */
 
-
-/* Determine whether the given register is read-only. */
-static Boolean
-is_read_only(int regno)
+static void core_warning(char*              format,
+                         ARC_RegisterNumber hw_regno,
+                         int                gdb_regno)
 {
-    unsigned int i;
-
-    /* the core registers are all read/write */
-    if (0 <= regno && regno <= 31)
-        return FALSE;
-
-    /* the extension core registers do not exist, so they are not writeable;
-     * R61 is reserved, R62 is not a real register, and R63 (PCL) is read-only
-     */
-    if ((32 <= regno && regno <= 59) || (61 <= regno && regno <= 63))
-        return TRUE;
-
-    /* the build configuration registers are read-only */
-    if (ARC_BCR_1_REGNUM <= regno && regno <= ARC_BCR_1F_REGNUM)
-        return TRUE;
-
-    /* check whether it is an auxiliary register */
-    for (i = 0; i < ELEMENTS_IN_ARRAY(arc_aux_reg_map); i++)
-    {
-        if (arc_aux_reg_map[i].gdb_regno == regno)
-            return (arc_aux_reg_map[i].mode == RO);
-    }
-
-    /* if we can not identify it, assume it is R/O */
-    return TRUE;
+    warning(format,
+            IS_EXTENSION_CORE_REGISTER(hw_regno) ? "extension " : "",
+            gdbarch_register_name(current_gdbarch, gdb_regno));
 }
 
 
-/* Read core register. Return True on success. */
-static Boolean
-read_core_register (ARC_RegisterNumber hwregno, ARC_RegisterContents* contents)
+static void aux_warning(char*              format,
+                        ARC_RegisterNumber hw_regno)
 {
-    if (arc_jtag_ops.jtag_read_core_reg(hwregno, contents) == JTAG_SUCCESS)
-        return TRUE;
-
-    warning("Failure reading core register 0x%x", hwregno);
-    return FALSE;
-}
-
-
-/* Write core register. Return True on success. */
-static Boolean
-write_core_register (ARC_RegisterNumber hwregno, ARC_RegisterContents contents)
-{
-    if (arc_jtag_ops.jtag_write_core_reg(hwregno, contents) == JTAG_SUCCESS)
-        return TRUE;
-
-    warning("Failure writing 0x%x to core register 0x%x", contents, hwregno);
-    return FALSE;
+    warning(format, arc_aux_register_name_of(hw_regno), hw_regno);
 }
 
 
 static void
-debug_fetch_register (ARC_RegisterNumber hw_regno, int gdb_regno)
+debug_fetch_one_register (struct regcache*   regcache,
+                          ARC_RegisterNumber hw_regno,
+                          int                gdb_regno)
 {
     ARC_RegisterContents contents;
-    Boolean              register_read;
+    Boolean              register_read = FALSE;
 
-    if (IS_CORE_REGISTER(gdb_regno))
-        register_read = read_core_register(hw_regno, &contents);
+    ENTERMSG;
+
+    gdb_assert(gdb_regno >= 0);
+
+    /* N.B. do not give a warning message if the register is write-only, as gdb
+     *      may be reading all registers, and it is best to quietly ignore the
+     *      ones that can not be read!
+     */
+    if (arc_is_core_register(gdb_regno))
+    {
+        if (arc_core_register_access(hw_regno) != WRITE_ONLY)
+            register_read = arc_read_jtag_core_register(hw_regno, &contents, TRUE);
+    }
     else
-        register_read = arc_read_aux_register (hw_regno, &contents);
+    {
+        ARC_AuxRegisterDefinition* def = arc_find_aux_register_by_hw_number(hw_regno);
+
+        if (arc_aux_register_access(def) != WRITE_ONLY)
+            register_read = arc_read_jtag_aux_register (hw_regno, &contents, TRUE);
+    }
 
     if (register_read)
-    {
-        DEBUG("Read value 0x%x from register %d\n", contents, hw_regno);
+        regcache_raw_supply (regcache, (int) gdb_regno, &contents);
 
-        regcache_raw_supply (get_current_regcache(), gdb_regno, &contents);
+    LEAVEMSG;
+}
+
+
+/* this function is passed to the arc_all_aux_registers iterator */
+static void
+debug_fetch_reg (ARC_AuxRegisterDefinition* def, void* data)
+{
+    debug_fetch_one_register((struct regcache*) data,
+                             arc_aux_hw_register_number (def),
+                             arc_aux_gdb_register_number(def));
+}
+
+
+static void
+debug_store_one_register (struct regcache*   regcache,
+                          ARC_RegisterNumber hw_regno,
+                          int                gdb_regno)
+{
+    ARC_RegisterContents contents;
+
+    ENTERMSG;
+
+    gdb_assert(gdb_regno >= 0);
+
+    regcache_raw_collect(regcache, gdb_regno, &contents);
+
+    if (arc_is_core_register(gdb_regno))
+    {
+        if (arc_core_register_access(hw_regno) == READ_ONLY)
+            core_warning(_("%score register %s is read-only"), hw_regno, gdb_regno);
+        else
+            (void) arc_write_jtag_core_register(hw_regno, contents, TRUE);
+    }
+    else
+    {
+        ARC_AuxRegisterDefinition* def = arc_find_aux_register_by_hw_number(hw_regno);
+
+        if (arc_aux_register_access(def) == READ_ONLY)
+            aux_warning(_("auxiliary register %s (0x%x) is read-only"), hw_regno);
+        else
+            (void) arc_write_jtag_aux_register (hw_regno, contents, TRUE);
     }
 
     LEAVEMSG;
 }
 
 
+/* this function is passed to the arc_all_aux_registers iterator */
 static void
-debug_fetch_reg (const RegisterInfo* info)
+debug_store_reg (ARC_AuxRegisterDefinition* def, void* data)
 {
-    debug_fetch_register ((ARC_RegisterNumber) info->hw_regno, info->gdb_regno);
+    debug_store_one_register ((struct regcache*) data,
+                              arc_aux_hw_register_number (def),
+                              arc_aux_gdb_register_number(def));
 }
 
 
-static void
-debug_store_register (ARC_RegisterNumber hw_regno, int gdb_regno)
+static ARC_RegisterNumber get_hw_regnum_mapping (int gdb_regno)
 {
-    ARC_RegisterContents contents;
-    Boolean              register_written;
+    ARC_AuxRegisterDefinition* def;
 
-    regcache_raw_collect(get_current_regcache(), gdb_regno, &contents);
+    if (arc_is_core_register(gdb_regno))
+        return arc_core_register_number(gdb_regno);
 
-    if (IS_CORE_REGISTER(gdb_regno))
-        register_written = write_core_register(hw_regno, contents);
-    else
-        register_written = arc_write_aux_register (hw_regno, contents);
+    def = arc_find_aux_register_by_gdb_number(gdb_regno);
 
-    if (register_written)
-    {
-        DEBUG("Written value 0x%08X to register %d\n", contents, hw_regno);
-    }
-}
-
-
-static void
-debug_store_reg (const RegisterInfo* info)
-{
-    if (!is_read_only(info->gdb_regno))
-        debug_store_register ((ARC_RegisterNumber) info->hw_regno, info->gdb_regno);
-}
-
-
-static ARC_RegisterNumber
-get_hw_regnum_mapping (int gdb_regno)
-{
-    if (IS_CORE_REGISTER(gdb_regno))
-        return (ARC_RegisterNumber) gdb_regno;
-
-    if (gdb_regno < ARC_NR_REGS)
-    {
-        unsigned int i;
-
-        if (ARC_STATUS_REGNUM <= gdb_regno && gdb_regno <= ARC_AUX_IRQ_PENDING_REGNUM)
-            return (ARC_RegisterNumber) arc_aux_reg_map[gdb_regno - ARC_STATUS_REGNUM].hw_regno;
-
-        for (i = 0; i < ELEMENTS_IN_ARRAY(arc_bcr_reg_info); i++)
-        {
-            if (gdb_regno == arc_bcr_reg_info[i].gdb_regno)
-                return (ARC_RegisterNumber) arc_bcr_reg_info[i].hw_regno;
-        }
-    }
+    if (def)
+        return arc_aux_hw_register_number(def);
 
     /* not found */
     return INVALID_REGISTER_NUMBER;
 }
 
 
-/* Set UB bit in the DEBUG register. It allows brk_s to work in user mode.  */
-static void
+/* Set UB bit in the DEBUG register. It allows brk_s instruction to work in User mode.  */
+static Boolean
 set_debug_user_bit (ARC_RegisterContents extra_bits)
 {
+    /* the DEBUG User bit exists only in the ARC700 */
     if (IS_ARC700)
+        extra_bits |= DEBUG_USER;
+
+    if (extra_bits != 0)
     {
         ARC_RegisterContents debug;
 
-        if (arc_read_aux_register (ARC_HW_DEBUG_REGNUM, &debug))
+        if (arc_read_jtag_aux_register(debug_regnum, &debug, TRUE))
         {
             /* set UB = 1 */
-            ARC_RegisterContents new_debug = debug | DEBUG_USER | extra_bits;
+            ARC_RegisterContents new_debug = debug | extra_bits;
 
             /* do the write only if it will change the register contents */
             if (new_debug != debug)
-                if (!arc_write_aux_register(ARC_HW_DEBUG_REGNUM, new_debug))
-                    warning("Can not set DEBUG register to 0x%08X\n", new_debug);
+                return arc_write_jtag_aux_register(debug_regnum, new_debug, TRUE);
         }
         else
-            warning("Can not set User bit in DEBUG register\n");
-    }
-}
-
-
-static void
-invalidateCaches (void)
-{
-    if (arc_jtag_ops.jtag_write_aux_reg (ARC_HW_ICACHE_IVIC, 1) == JTAG_WRITE_FAILURE)
-        warning("Failure writing 0x1 to auxiliary register 0x%x: Icache invalidate", ARC_HW_ICACHE_IVIC);
-
-    if (arc_jtag_ops.jtag_write_aux_reg (ARC_HW_DCACHE_IVIC, 1) == JTAG_WRITE_FAILURE)
-        warning("Failure writing 0x1 to auxiliary register 0x%x: Dcache invalidate", ARC_HW_DCACHE_IVIC);
-}
-
-
-static void
-disableCaches (void)
-{
-    /* Disabling Icache */
-    if (arc_jtag_ops.jtag_write_aux_reg(ARC_HW_ICACHE_CONTROL, 1) == JTAG_WRITE_FAILURE)
-        warning("Failure writing 0x1 to auxiliary register 0x%x: Icache control", ARC_HW_ICACHE_CONTROL);
-
-    /* Disabling Dcache */
-    if (arc_jtag_ops.jtag_write_aux_reg(ARC_HW_DCACHE_CONTROL, 1) == JTAG_WRITE_FAILURE)
-        warning("Failure writing 0x1 to auxiliary register 0x%x: Dcache control", ARC_HW_DCACHE_CONTROL);
-}
-
-
-static void
-update_architecture(void)
-{
-    struct gdbarch_tdep* tdep    = gdbarch_tdep (current_gdbarch);
-    ARC_ProcessorVersion version = arc_get_architecture();
-
-    tdep->processor_variant_info->processor_version = version;
-
-    switch (version)
-    {
-        case UNSUPPORTED:
-            break;
-        case ARCompact:
-            break;
-        case ARC600:
-            set_gdbarch_decr_pc_after_break (current_gdbarch, 2);
-            break;
-        case ARC700:
-            set_gdbarch_decr_pc_after_break (current_gdbarch, 0);
-            break;
-        case A5:
-             warning ("A5 debugging is unsupported and may be unreliable.");
-            break;
-        case A4:
-            /* N.B. this will not return */
-            error ("A4 debugging is unsupported.");
-            break;
+            return FALSE;
     }
 
-    /* we do not know whether the target processor supports actionpoints until
-     * after we have connected to it, as we have to read the AP_BUILD auxiliary
-     * register to find that out!
-     */
-    (void) arc_init_actionpoint_ops(&arc_debug_ops);
+    return TRUE;
 }
 
 
 /* -------------------------------------------------------------------------- */
-/*               local functions called from outside this module              */
+/* 2)               functions for processor cache management                  */
+/* -------------------------------------------------------------------------- */
+
+static void
+invalidate_caches (void)
+{
+    /* N.B. when invalidating the data caches, we must first set the DC_CTRL.IM
+     *      bit to 1 to ensure that any "dirty" lines in the cache get flushed
+     *      to main memory
+     */
+    (void) arc_write_jtag_aux_register(dcache_control_regnum, DC_CTRL_IM, TRUE);
+    (void) arc_write_jtag_aux_register(icache_ivic_regnum,    IC_IVIC_IV, TRUE);
+    (void) arc_write_jtag_aux_register(dcache_ivdc_regnum,    DC_IVDC_IV, TRUE);
+}
+
+
+static void
+disable_caches (void)
+{
+    (void) arc_write_jtag_aux_register(icache_control_regnum, IC_CTRL_DC, TRUE);
+    (void) arc_write_jtag_aux_register(dcache_control_regnum, DC_CTRL_DC, TRUE);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 3)                   functions for JTAG interface management               */
+/* -------------------------------------------------------------------------- */
+
+static Boolean open_JTAG_interface(int from_tty)
+{
+    /* we do not yet know what processor is on the target */
+    ARC_processor = NO_ARCHITECTURE;
+
+    /* This is somewhat inelegant, but commands read from scripts in the gdb
+     * testsuite are regarded as though they were being input interactively
+     * (i.e. from_tty is 1), and interactive queries may be made (such as
+     * asking the user whether the program currently being debugged should be
+     * killed first) - and these queries hang the tests!
+     *
+     * So, if the environment variable is set, assume that the gdb test suite is
+     * being run, so that no such queries will be made.
+     *
+     * It is not possible to make this check in the top-level command handler
+     * loop, as the output from some other commands (e.g. 'file') depend on the
+     * from_tty parameter passed to them, and the gdb test scripts expect to get
+     * the interactive version of the output!
+     */
+    target_preopen(from_tty && (getenv("ARC_GDB_TEST") == NULL));
+
+    gdb_assert(arc_jtag_ops.open != NULL);
+
+    return arc_jtag_ops.open();
+}
+
+
+static void close_JTAG_interface(Boolean resume)
+{
+    /* if we have a target connected */
+    if (arc_jtag_ops.status == JTAG_OPENED)
+    {
+        /* do this while the target is halted */
+        restore_stack_top_address();
+
+        arc_set_jtag_interception(INTERCEPTION_OFF);
+
+        /* let the target continue */
+        if (resume)
+            target_resume (inferior_ptid, 0, 0);
+
+        /* and close the connection */
+        arc_jtag_ops.close();
+        current_target.to_has_execution = 0;
+
+        ARC_processor = NO_ARCHITECTURE;
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 4)                functions for starting/stopping the processor            */
+/* -------------------------------------------------------------------------- */
+
+/* start the processor by clearing the 'H' bit in the STATUS32 register*/
+static void start_processor(void)
+{
+    ARC_RegisterContents status32;
+
+    if (!arc_read_jtag_aux_register (status32_regnum, &status32,                  FALSE) ||
+        !arc_write_jtag_aux_register(status32_regnum,  status32 & ~STATUS32_HALT, FALSE))
+        warning(_("can not clear Halt bit in STATUS32 auxiliary register - can not start processor"));
+}
+
+
+/* stop the processor by setting the 'FH' bit in the DEBUG register*/
+static void stop_processor(void)
+{
+    if (!arc_write_jtag_aux_register(debug_regnum, DEBUG_FORCE_HALT, FALSE))
+        warning(_("can not set Force Halt bit in DEBUG auxiliary register - can not halt processor"));
+}
+
+
+static Boolean halt_processor_on_connection(void)
+{
+    Boolean      warn_on_read_failure = TRUE;
+    Boolean      inform_running       = TRUE;
+    Boolean      halt_attempted       = FALSE;
+    unsigned int tries                = 0;
+
+    /* try to ensure that the processor is halted
+     *
+     * N.B. unfortunately, if the gpio driver module has been installed on the
+     *      host machine, the gpio read/write operations appear to work even if
+     *      the host is NOT physically connected to the JTAG target!
+     *
+     *      There does not appear to be any way of detecting that situation -
+     *      all we can do is bale out if we have not succeded in reading the
+     *      STATUS32 register after the required number of retries!
+     */
+    do
+    {
+        ARC_RegisterContents status = 0;
+
+        /* read the status32 register here to check if the halt bit is set */
+        if (arc_read_jtag_aux_register(status32_regnum, &status, warn_on_read_failure))
+        {
+            if (status & STATUS32_HALT)
+            {
+                // success!
+                printf_filtered(_("Processor is halted.\n"));
+                return TRUE;
+            }
+
+            if (inform_running)
+            {
+                /* we inform the user that the processor is running  only once
+                 * (to avoid swamping the user!)
+                 */
+                printf_filtered(_("Processor is running. Trying to halt it...\n"));
+                inform_running = FALSE;
+            }
+
+            stop_processor();
+            halt_attempted = TRUE;
+        }
+        else
+        {
+            /* we give a warning only on the first read failure (otherwise the
+             * user can get swamped with warnings!)
+             */
+            warn_on_read_failure = FALSE;
+        }
+
+        /* just in case we actually did fail to read/write the port */
+        if (gpio_port_error)
+        {
+            warning(_("error in accessing parallel port via "
+                      GPIO_DEVICE 
+                      " - check connection to target board."));
+            return FALSE;
+        }
+    }
+    while (++tries <= arc_jtag_ops.retry_count);
+
+    if (halt_attempted)
+        printf_filtered(_("Can not halt processor!\n"));
+    else
+        printf_filtered(_("Can not connect to processor!\n"));
+
+    return FALSE;
+}
+
+
+static Boolean processor_is_halted(ARC_RegisterContents      debug,
+                                   struct target_waitstatus* status)
+{
+    /* test BH bit of DEBUG register */
+    if (debug & DEBUG_BH)
+    {
+        /* a s/w breakpoint instruction was executed */
+
+        /* if the breakpoint is on an intercepted function entrypoint */
+        switch (arc_check_interception_breakpoint(pc_regnum, &status->value.integer))
+        {
+            case INTERCEPTION_RESUME:
+                /* if the user has typed a Ctrl-C since target execution was
+                 * last started
+                 */
+                if (interrupt_processor)
+                {
+                    /* the interception is complete, so honour the interrupt
+                     * request by making it appear that the target was stopped
+                     * by a SIGINT signal; the PC has been set to the return
+                     * address of the intercepted function, so it will look to
+                     * the user as though the program was interrupted at that
+                     * point
+                     */
+                    status->kind      = TARGET_WAITKIND_STOPPED;
+                    status->value.sig = TARGET_SIGNAL_INT;
+                }
+                else
+                {
+                    DEBUG("*** resuming execution\n");
+                    start_processor();
+                    /* this is the only case in which we return FALSE */
+                    return FALSE;
+                }
+                break;
+
+            case INTERCEPTION_HALT:
+                /* some other breakpoint has triggered */
+                status->kind      = TARGET_WAITKIND_STOPPED;
+                status->value.sig = TARGET_SIGNAL_TRAP;
+                break;
+
+            case INTERCEPTION_EXIT:
+                /* the program called the 'exit' routine (its exit status has
+                 * been read by the interception mechanism and returned to us in
+                 * status->value.integer)
+                 */
+                status->kind = TARGET_WAITKIND_EXITED;
+                break;
+        }
+    }
+    /* test SH bit of DEBUG register */
+    else if (debug & DEBUG_SH)
+    {
+        /* if the DEBUG.SH ("self halt") bit is set, we stopped because of the
+         * flag instruction, which is used by programs to exit
+         */
+        ARC_RegisterContents exitcode;
+
+        status->kind = TARGET_WAITKIND_EXITED;
+
+        /* get the exit code of the program (held in R0) */
+        if (arc_read_jtag_core_register(0, &exitcode, TRUE))
+            status->value.integer = (int) exitcode;
+        else
+        {
+            warning(_("assuming exit code = 0"));
+            status->value.integer = 0;
+        }
+    }
+    else
+    {
+        /* we stopped for some other reason: if the user had tried to interrupt
+         * with a Ctrl-C, return the event as a SIGINT, otherwise as a SIGTRAP
+         * (and let gdb work out what happened)
+         */
+        status->kind      = TARGET_WAITKIND_STOPPED;
+        status->value.sig = (interrupt_processor) ? TARGET_SIGNAL_INT
+                                                  : TARGET_SIGNAL_TRAP;
+    }
+
+    return TRUE;
+}
+
+
+static void wait_for_processor_to_halt(struct target_waitstatus* status)
+{
+    ARC_RegisterContents debug;
+
+    /* wait until processor has *really* halted */
+    do
+    {
+        /* polling wait until HALT bit is set in STATUS32 register */
+        while (TRUE)
+        {
+            ARC_RegisterContents status32;
+
+            /* if the user has typed a Ctrl-C since target execution was last
+             * started, try to force the processor to halt; it does not matter
+             * if we do not succeed, as we will simply try again on the next
+             * iteration of the loop
+             */
+            if (interrupt_processor)
+                stop_processor();
+
+            /* now try to read the STATUS32 register, and check whether its H
+             * bit is set, indicating that the processor has halted; again, it
+             * does not matter if we do not succeed, as we will simply try again
+             * on the next iteration of the loop
+             */
+            if (arc_read_jtag_aux_register(status32_regnum, &status32, TRUE))
+            {
+#if 0
+                ARC_RegisterContents PC;
+
+                printf_filtered("STATUS32: %08X\n", status32);
+
+                if (arc_read_jtag_aux_register(pc_regnum, &PC, TRUE))
+                    printf_filtered("PC: %08X\n", PC);
+#endif
+
+                if (status32 & STATUS32_HALT)
+                {
+                     DEBUG("halted: STATUS32 = %08X\n", status32);
+                     break;
+                }
+            }
+        }
+
+        /* polling wait for any delayed load to complete */
+        while (TRUE)
+        {
+            if (arc_read_jtag_aux_register(debug_regnum, &debug, TRUE))
+            {
+                if (!(debug & DEBUG_LOAD_PENDING))
+                    break;
+            }
+        }
+
+        /* the processor is now halted in a reliable state */
+
+        DEBUG("wait: DEBUG = %08X\n", debug);
+
+        /* but it might need to be re-started... */
+
+    } while (!processor_is_halted(debug, status));
+
+    DEBUG("processor has halted");
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 5)            functions for setting up target program arguments            */
+/* -------------------------------------------------------------------------- */
+
+static CORE_ADDR find_label(const char* label)
+{
+    struct minimal_symbol* msymbol = lookup_minimal_symbol(label, NULL, symfile_objfile);
+    CORE_ADDR              address = 0;
+
+    if (msymbol != NULL)
+        address = SYMBOL_VALUE_ADDRESS (msymbol);
+
+    DEBUG("%s = %x\n", label, (unsigned int) address);
+
+    return address;
+}
+
+
+static Boolean write_word(CORE_ADDR* address, ARC_Word word, Boolean target_is_big_endian)
+{
+    if (arc_jtag_ops.memory_write_word((ARC_Address) *address,
+                                       TARGET_ENDIAN(word)) == BYTES_IN_WORD)
+    {
+        *address += BYTES_IN_WORD;
+       return TRUE;
+    }
+
+    return FALSE;
+}
+
+
+static Boolean find_stack_top_setup_code(CORE_ADDR stack_top)
+{
+    /* try to find the start address in the target program */
+    CORE_ADDR code_start = find_label("__start");
+
+    if (code_start != 0)
+    {
+        ARC_Address code = (ARC_Address) code_start;
+        ARC_Word    set_sp_insn[2];
+        ARC_Byte    buffer[16 * BYTES_IN_WORD];
+
+        DEBUG("setting up arguments: stack_top = %x, code_start = %x\n",
+              (unsigned int) stack_top, (unsigned int) code_start);
+
+        set_sp_insn[0] = MOV_SP_INSTRUCTION;
+        set_sp_insn[1] = MK_OPERAND(stack_top);
+
+        /* scan through the start code of the program, looking for the code that
+         * sets up the program's stack pointer; we recognize this as a 32-bit
+         * 'mov sp' instruction followed by a 32-bit operand which is the
+         * address of the stack top (which we obtained from the executable file)
+         */
+
+        while (TRUE)
+        {
+            unsigned int bytes = arc_jtag_ops.memory_read_chunk(code, buffer, (unsigned int) sizeof(buffer));
+
+            if (bytes == (unsigned int) sizeof(buffer))
+            {
+                size_t offset = 0;
+
+                while (offset <= sizeof(buffer) - sizeof(set_sp_insn))
+                {
+                    if (memcmp(buffer + offset, set_sp_insn, sizeof(set_sp_insn)) == 0)
+                    {
+                        stack_pointer_setup_code_operand_address = code + (CORE_ADDR) offset + BYTES_IN_WORD;
+
+                        DEBUG("found 'mov sp, <stacktop>' instruction operand at address 0x%x\n",
+                              (unsigned int) stack_pointer_setup_code_operand_address);
+                        return TRUE;
+                    }
+
+                    offset += MINIMUM_INSTRUCTION_SIZE;
+                }
+            }
+            else
+            {
+                warning(_("can not find read target program start code"));
+                break;
+            }
+
+            code += (ARC_Address) (sizeof(buffer) - sizeof(set_sp_insn));
+
+            /* if we haven't found it in the first 100 bytes... */
+            if (code - (ARC_Address) code_start > 100)
+            {
+                warning(_("can not find 'mov sp, <stacktop>' instruction in start code"));
+                break;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+
+static Boolean set_stack_top(CORE_ADDR old_stack_top, CORE_ADDR new_stack_top)
+{
+    ARC_Word operand = MK_OPERAND(new_stack_top);
+
+    /* if we do not yet know the address in the program code at which the
+     * program's stack pointer is set up
+     */
+    if (stack_pointer_setup_code_operand_address == 0)
+    {
+        /* try to find it */
+        if (!find_stack_top_setup_code(old_stack_top))
+            return FALSE;
+    }
+
+    /* N.B. can not use jtag_memory_write_word operation here as the operand
+     *      address might not be word-aligned!
+     */
+    return (arc_jtag_ops.memory_write_chunk
+               ((ARC_Address) stack_pointer_setup_code_operand_address,
+                (ARC_Byte*)   &operand,
+                BYTES_IN_WORD) == BYTES_IN_WORD);
+}
+
+
+/* store the program's arguments on the stack
+ *
+ * E.g. if we are passing 4 arguments to main, we must place them on the stack
+ *      in the layout:
+ *
+ *             . 
+ *             . 
+ *          stack[top + A3] <== <arg_3>
+ *             . 
+ *             . 
+ *          stack[top + A2] <== <arg_2>
+ *             . 
+ *             . 
+ *          stack[top + A1] <== <arg_1>
+ *             . 
+ *             . 
+ *          stack[top + A0] <== <arg_0>
+ *          stack[top + 24] <== 0x0           # ? NULL terminator
+ *          stack[top + 20] <== 0x0           # envp NULL terminator
+ *          stack[top + 16] <== 0x0           # argv NULL terminator
+ *          stack[top + 12] <== TOP + A3      # argv[3]
+ *          stack[top +  8] <== TOP + A2      # argv[2]
+ *          stack[top +  4] <== TOP + A1      # argv[1]
+ *          stack[top +  0] <== TOP + A0      # argv[0]
+ *
+ *          where TOP = &stack[top]
+ *            and A0 .. A3 are the offsets of the stored arguments from the stack top.
+ */
+
+static Boolean setup_arguments(char *args)
+{
+    /* try to find the top of stack in the target program */
+    const CORE_ADDR stack_top = find_label("__stack_top");
+    Boolean         done      = FALSE;
+
+    if (stack_top != 0)
+    {
+        Boolean      target_is_big_endian = (gdbarch_byte_order (current_gdbarch) == BFD_ENDIAN_BIG);
+        char**       argv = buildargv (args);
+        char**       argp;
+        size_t       string_length = 0;
+        unsigned int argc          = 0;
+        unsigned int num_pointers;
+        unsigned int total_size;
+        CORE_ADDR    new_stack_top;
+
+        if (argv == NULL)
+            nomem (0);
+
+        /* calculate space required to hold args */
+
+        for (argp = argv; *argp != NULL; argp++)
+        {
+            string_length += strlen (*argp) + 1;
+            argc++;
+        }
+
+        DEBUG("%d arguments\n", argc);
+
+        num_pointers = argc + 3;
+
+        total_size = (unsigned int) string_length + num_pointers * BYTES_IN_WORD;
+
+        /* Round up to multiple of 32.  strlen expects memory to come in chunks
+           that are at least cache-line (32 bytes) sized.  */
+        total_size +=  31;
+        total_size &= -32;
+
+        DEBUG("total size: %d\n", total_size);
+
+        new_stack_top = stack_top - total_size;
+
+        DEBUG("new stack top: 0x%08x\n", (unsigned int) new_stack_top);
+
+        /* adjust setting of top of stack in the object code */
+        if (set_stack_top(stack_top, new_stack_top))
+        {
+            CORE_ADDR    data_space = new_stack_top + num_pointers * BYTES_IN_WORD;
+            unsigned int i;
+
+            DEBUG("data space: 0x%08x\n", (unsigned int) data_space);
+
+            done = TRUE;
+
+            /* set up the R0 and R1 parameter registers */
+
+            if (!arc_write_jtag_core_register(0, (ARC_Word) argc, TRUE))
+                warning(_("can not set parameter register R0 to %d"
+                          " - main parameter 'argc' will be undefined"), argc);
+
+            if (!arc_write_jtag_core_register(1, (ARC_Word) new_stack_top, TRUE))
+                warning(_("can not set parameter register R1 to %08X"
+                          " - main parameter 'argv' will be undefined"), (unsigned int) new_stack_top);
+
+            /* write args onto top of stack */
+
+            for (i = 0; i < argc; i++)
+            {
+                char*        parameter = argv[i];
+                size_t       length    = strlen(parameter) + 1;
+                unsigned int bytes     = arc_jtag_ops.memory_write_chunk
+                                            ((ARC_Address)  data_space,
+                                             (ARC_Byte*)    parameter,
+                                             (unsigned int) length);
+
+                if (bytes == (unsigned int) length)
+                {
+                    DEBUG("written argv[%d] to 0x%08x: \"%s\"\n",
+                          i, (unsigned int) data_space, parameter);
+                }
+                else
+                    done = FALSE;
+
+                /* write pointer to argument onto stack */
+                if (!write_word(&new_stack_top, (ARC_Word) data_space, target_is_big_endian))
+                    done = FALSE;
+
+                data_space += length;
+            }
+
+            /* try to write the NULLs */
+            if (!write_word(&new_stack_top, 0, target_is_big_endian) ||
+                !write_word(&new_stack_top, 0, target_is_big_endian) ||
+                !write_word(&new_stack_top, 0, target_is_big_endian))
+                done = FALSE;
+        }
+
+        freeargv(argv);
+    }
+
+    return done;
+}
+
+
+static void restore_stack_top_address(void)
+{
+    /* if we know the address in the program start-up code at which the stack
+     * pointer is set up, it must be because we changed the stack top address
+     * in the code - so change it back to the original address as read from the
+     * excutable file.
+     *
+     * This is done so that if the user disconnects from the target, then
+     * reconnects to it in a subsequent debugging session but does NOT download
+     * the program to the target again (as it is still in target memory), the
+     * mechanism for altering the stack top will still work.
+     *
+     * Note that this has no effect if the target is allowed to resume execution
+     * (i.e. a 'detach' is being performed) as we are changing code that has
+     * already been executed.
+     *
+     * 0 is passed as the "old" stack top as it is not used in this situation.
+     */
+    if (stack_pointer_setup_code_operand_address != 0)
+        set_stack_top(0, find_label("__stack_top"));
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 6)                functions for handling Ctrl-C from the user              */
+/* -------------------------------------------------------------------------- */
+
+/* The command line interface's stop routine.  This function is installed as a
+ * a signal handler for SIGINT (it gets called when the user types Ctrl-C).
+ *
+ * The first time a user requests a stop, we set the interrupt_processor flag.
+ * If this does not work, and the user tries a second time, we ask the user if
+ * he'd like to detach from the target.
+ */
+
+static void interrupted_by_user(int signo)
+{
+    /* change the signal handler for Ctrl-C to the second level handler so that
+     * if we get the signal again whilst waiting for the program to halt, we do
+     * something more drastic
+     */
+    (void) signal (SIGINT, interrupted_twice);
+
+    /* this flag is checked in each iteration of the loop that polls the target
+     * processor to see whether it has halted (e.g. at a breakpoint); if the
+     * flag is set, an attempt will be made to force the processor to halt
+     *
+     * N.B. once the polling loop is running, this flag is set only by this
+     *      handler, and is read only by the polling loop - so there is no
+     *      mutual exclusion problem to be worried about here; this is a MUCH
+     *      cleaner and more reliable method than trying to have this handler
+     *      force the halt itself, e.g. by calling target_stop.
+     */
+    interrupt_processor = TRUE;
+}
+
+
+/* The user typed Ctrl-C twice.  */
+static void interrupted_twice(int signo)
+{
+    if (query(_("Interrupted while waiting for the program to halt.\n"
+                "Give up (and stop debugging it)?")))
+    {
+        struct gdb_exception exception = {RETURN_QUIT,
+                                          GDB_NO_ERROR,
+                                          _("Interrupted by user")};
+
+        /* put the old signal handler back.  */
+        (void) signal (signo, old_signal_handler);
+
+        target_mourn_inferior();
+        DEBUG("interrupted_twice: throwing exception\n");
+        throw_exception (exception);
+
+        /* control does not return here! */
+    }
+
+    /* change the signal handler for Ctrl-C back to the first level handler */
+    (void) signal (SIGINT, interrupted_by_user);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 7)       local functions called from outside this module (from gdb)        */
 /* -------------------------------------------------------------------------- */
 
 /* Function: arc_debug_open
@@ -378,82 +988,210 @@ update_architecture(void)
         3. Read the configuration of action points.
         4. Set up internal data structures for number of hardware
            breakpoints and watchpoints.
-        5. Set the UB bit to 1 for ARC700 and not for ARC600.
+ *
+ * The arguments may be:
+ *    noreset | <xbf file> 
  */
 
 static void
 arc_debug_open (char *args, int from_tty)
 {
-    Boolean opened;
+    /* by default, reset the board, in case it has been left in a funny state by
+     * the last connection
+     */
+    Boolean     reset_required = TRUE;
+    char*       xbf_file       = NULL;
+    FPGA_Status fpga;
 
-    ENTERARGS("%s", args);
+    ENTERARGS("\"%s\" (%d)", (args) ? args : "", from_tty);
 
-    target_preopen(from_tty);
-
-    /* N.B should these be called here? */
-    reopen_exec_file ();
-    reread_symbols ();
-
-    gdb_assert(arc_jtag_ops.jtag_open != NULL);
-
-    (void) unpush_target (&arc_debug_ops);
-
-    opened = arc_jtag_ops.jtag_open();
-
-    if (!opened)
+    if (args)
     {
-        /* N.B. error does not return! */
-        error("Can not connect to target\n");
+        if (strcmp(args, "noreset") == 0)
+            reset_required = FALSE;
+        else
+            xbf_file = args;
     }
 
-    /* Call update_architecture if opened successfully.
-     * N.B. this MUST be done before push_target is called!
+    fpga = arc_is_FPGA_configured();
+
+    switch (fpga)
+    {
+        case INACCESSIBLE:
+             /* a warning has already been given */
+            return;
+
+        case UNCONFIGURED:
+            if (xbf_file == NULL)
+            {
+                warning(_("target FPGA is not configured; XBF file must be specified"));
+                return;
+            }
+            break;
+
+        case CONFIGURED:
+            break;
+    }
+
+
+    /* find the h/w register numbers of various auxiliary registers that we need
+     * for debugging
+     *
+     * N.B. the gdb 'attach' command can attach only to an arcjtag target that
+     *      has been created (by this function) within the *same* debugging
+     *      session, i.e. the sequence of commands issued by the user is of the
+     *      form:
+     *                target arcjtag ... detach ... attach
+     *
+     *      This means that we do not need to worry about finding these numbers
+     *      again on an 'attach', as they should be the same (they should really
+     *      be the same for *any* target, anyway - we are simply being paranoid
+     *      in looking them up, rather than having their numbers hard-coded, in
+     *      any case!).
+     *
+     *      Of course, there are really pathological cases such as the user
+     *      blasting the (ARCangel) target with an XBF giving a different
+     *      processor configuration, or even physically disconnecting the target
+     *      from the host machine and connecting a different target, between
+     *      issuing the 'detach' and the 'attach' commands (and that could change
+     *      the target's actionpoint configuration, if nothing else!) - but if
+     *      the user wants to do that then that is his problem!
      */
-    update_architecture();
 
-    (void) push_target (&arc_debug_ops);
+    lp_start_regnum = arc_aux_find_register_number("LP_START", ARC_HW_LP_START_REGNUM);
+    lp_end_regnum   = arc_aux_find_register_number("LP_END",   ARC_HW_LP_END_REGNUM);
+    identity_regnum = arc_aux_find_register_number("IDENTITY", ARC_HW_IDENTITY_REGNUM);
+    debug_regnum    = arc_aux_find_register_number("DEBUG",    ARC_HW_DEBUG_REGNUM);
+    pc_regnum       = arc_aux_find_register_number("PC",       ARC_HW_PC_REGNUM);
+    status32_regnum = arc_aux_find_register_number("STATUS32", ARC_HW_STATUS32_REGNUM);
 
-    /* FIXME: Should these be in create_inferior or somewhere else? We would
-     *        not like these here when attach starts working.
-     */
-    disableCaches();
+    icache_ivic_regnum    = arc_aux_find_register_number("IC_IVIC", ARC_HW_IC_IVIC_REGNUM);
+    icache_control_regnum = arc_aux_find_register_number("IC_CTRL", ARC_HW_IC_CTRL_REGNUM);
+    dcache_ivdc_regnum    = arc_aux_find_register_number("DC_IVDC", ARC_HW_DC_IVDC_REGNUM);
+    dcache_control_regnum = arc_aux_find_register_number("DC_CTRL", ARC_HW_DC_CTRL_REGNUM);
 
-    if (!arc_write_aux_register (ARC_HW_STATUS32_REGNUM, STATUS32_HALT))
-        warning("Can not set Halt bit in STATUS32 register");
 
-    /* allow breakpoints in user mode.  */
-    set_debug_user_bit (0);
+    /* just to be sure that it is not in the target stack... */
+    (void) unpush_target (&arc_debug_ops);
 
-    if (from_tty)
-        printf_filtered ("Connected to the " ARC_TARGET_NAME " target.\n");
+    if (open_JTAG_interface(from_tty))
+    {
+        /* if a reset is required, do it now, in case it is necessary to reset
+         * the target clock sources to their defaults before trying to access
+         * the target's auxiliary registers!
+         */
+        if (reset_required)
+        {
+            arc_reset_board();
+            arc_jtag_ops.reset_board();
+        }
+
+        if (fpga == CONFIGURED)
+        {
+            /* if we are going to blast the board, don't bother halting the
+             * processor first
+             */
+            if ((xbf_file == NULL) && !halt_processor_on_connection())
+            {
+                close_JTAG_interface(FALSE);
+                return;
+            }
+        }
+
+        /* if we have been given an XBF file */
+        if (xbf_file)
+        {
+            /* try to blast the board
+             * N.B. if the blasting operation fails for any reason,
+             *      arc_blast_board calls error and does not return!
+             */
+            arc_blast_board(xbf_file, from_tty);
+        }
+
+        /* N.B. this MUST be done before push_target is called! */
+        arc_update_architecture(identity_regnum);
+
+        /* we do not know whether the target processor supports actionpoints until
+         * after we have connected to it, as we have to read the AP_BUILD
+         * configuration register to find that out.
+         */
+        (void) arc_initialize_actionpoint_ops(&arc_debug_ops);
+
+        (void) push_target (&arc_debug_ops);
+
+        /* if we blasted the board, we have already checked the architecture -
+         * so there is no need to do it again
+         */
+        if (xbf_file == NULL)
+            arc_check_architecture(current_gdbarch,
+                                   (current_objfile) ? current_objfile->obfd : NULL);
+
+        if (!reset_required)
+        {
+            /* if we have been explicitly told NOT to reset the board, it is
+             * most likely because we have connected to a target upon which a
+             * program is running and we want to debug that program - so assume
+             * we have a program ready for execution on the target
+             */
+            target_mark_running(&arc_debug_ops);
+
+            /* set to_has_execution back to 0; this stops the user getting
+             * the
+             *
+             *    A program is being debugged already.
+             *    Are you sure you want to change the file? (y or n) n
+             *
+             * message on issuing the 'file' command after the connection
+             */
+            current_target.to_has_execution = 0;
+        }
+
+        if (from_tty)
+            printf_filtered (_("Connected to the " ARC_TARGET_NAME " target.\n"));
+    }
+    else
+        error(_("Can not connect to target"));
 }
 
 
-static void arc_debug_close()
+static void arc_debug_close(int quitting)
 {
-    arc_jtag_ops.jtag_close();
+    ENTERMSG;
+    close_JTAG_interface(FALSE);
 }
 
 
 /* Function: arc_debug_attach
  * Parameters :
- * 1. char *x:
- * 2. int i:
+ * 1. char *args:
+ * 2. int from_tty:
  * Returns : void
  * Description:
  *  1. attach without resetting the board
- *  2. get all Board configuration registers of interest.
- *  if ARC700 set the UB bit to 1. (This is invalid in the ARC600).
  */
 
 static void
-arc_debug_attach (char *x, int i)
+arc_debug_attach (char *args, int from_tty)
 {
-    ENTERMSG;
+    ENTERARGS("\"%s\" (%d)", args, from_tty);
+
+    if (open_JTAG_interface(from_tty))
+    {
+        /* try to halt the processor (if it is running) */
+        if (halt_processor_on_connection())
+        {
+            arc_check_architecture(current_gdbarch, (current_objfile) ? current_objfile->obfd : NULL);
+
+            if (from_tty)
+                printf_filtered (_("Connected to the " ARC_TARGET_NAME " target.\n"));
+        }
+    }
+    else
+        error(_("Can not connect to target"));
 }
 
 
-/* Function: arc_debug_attach
+/* Function: arc_debug_detach
  * Parameters :
  * 1. char *x:
  * 2. int i:
@@ -465,9 +1203,7 @@ static void
 arc_debug_detach (char *x, int i)
 {
     ENTERMSG;
-
-    /* Let it continue. */
-    target_resume (inferior_ptid, 0, 0);
+    close_JTAG_interface(TRUE);
 }
 
 
@@ -479,13 +1215,12 @@ arc_debug_detach (char *x, int i)
  * 3. enum target_signal signal;
  * Returns : void
  * Description:
- *      1. What about Pipecleaning?
- *      2. Write 0 to the HALT bit in status32.
+ *      1. What about pipe-cleaning?
+ *      2. Write 0 to the HALT bit in STATUS32.
  *      3. Send a signal (ignore) in this case.
  *      4. if (step) use hardware single step on the ARC700.
- *          done by setting the IS bit in the debug register
- *          and clearing the halt bit in status32.
- *
+ *          done by setting the IS bit in the DEBUG register
+ *          and clearing the halt bit in STATUS32.
  */
 
 static void
@@ -493,12 +1228,23 @@ arc_debug_resume (ptid_t ptid, int step, enum target_signal signal)
 {
     ENTERARGS("%d, %d, %d", ptid.pid, step, signal);
 
-    /* Because breakpoints may have been set/removed.  */
-    invalidateCaches ();
+    if (signal != TARGET_SIGNAL_0)
+        error(_("Signals are not supported by the " ARC_TARGET_NAME " target"));
+
+    /* software breakpoints may have been set/removed, and data in main memory
+     * may have been altered, so invalidate (and flush!) the instruction and
+     * data caches before restarting!
+     *
+     * N.B. arc_debug_open disabled the caches, so what is the point of doing this?
+     *
+     *      Also, invalidating a disabled cache when DC_CTRL.IM = 1 seems to have
+     *      the effect of overwriting valid data!!!!!
+     */
+//  invalidate_caches ();
 
     /* The DEBUG User bit must be set if breakpoints are to be allowed in user
-     * mode. We set it in target_open, but the operating system might clear it.
-     * So we set it every time we resume (if stepping, we set the extra bit we
+     * mode. We could set it in target_open, but something (the user?) might clear it.
+     * So we set it every time we resume (if stepping, we set the extra bit(s) we
      * need in the DEBUG register in the same operation).
      */
 
@@ -508,136 +1254,65 @@ arc_debug_resume (ptid_t ptid, int step, enum target_signal signal)
 
         DEBUG("setting DEBUG.IS bit for single-step\n");
 
-        /* Mask for Single Stepping changes between ARC600 and ARC700. */
+        /* mask for single-stepping differs between ARC600 and ARC700. */
         if (IS_ARC700)
-            mask = 0x00000800;
+            mask = DEBUG_INSTRUCTION_STEP;
         else
             if (IS_ARC600)
-                mask = 0x00000801;
+                mask = DEBUG_INSTRUCTION_STEP | DEBUG_SINGLE_STEP;
 
-        /* Set IS bit in DEBUG register for hardware single instruction stepping. */
-        set_debug_user_bit (mask);
+        /* allow breakpoints in User mode, and set the IS bit in the DEBUG
+           register for hardware single instruction stepping. */
+        if (!set_debug_user_bit (mask))
+            error(_("Can not single-step one instruction"));
     }
     else
     {
-        ARC_RegisterContents status32;
-
-        set_debug_user_bit (0);
-
-        /* Restarting the processor by clearing the 'H' bit in the status register*/
-
-        if (!arc_read_aux_register (ARC_HW_STATUS32_REGNUM, &status32) ||
-            !arc_write_aux_register(ARC_HW_STATUS32_REGNUM,  status32 & ~STATUS32_HALT))
-            warning ("Can not clear Halt bit in STATUS32 register\n");
+        /* allow breakpoints in User mode.  */
+        (void) set_debug_user_bit (0);
+        start_processor();
     }
 
     LEAVEMSG;
 }
 
 
-/* The command line interface's stop routine.  This function is installed as
- * a signal handler for SIGINT.  The first time a user requests a stop, we
- * call target_stop to send a break or ^C.  If there is no response from the
- * target (it didn't stop when the user requested it), we ask the user if
- * he'd like to detach from the target.
- */
-static void
-arc_debug_interrupt (int signo)
-{
-    /* If we get the signal twice, do something more drastic.  */
-    (void) signal (signo, arc_debug_interrupt_twice);
-
-    target_stop ();
-}
-
-
-/* The user typed ^C twice.  */
-static void
-arc_debug_interrupt_twice (int signo)
-{
-    (void) signal (signo, ofunc);
-
-    if (query("Interrupted while waiting for the program. "
-              "Give up (and stop debugging it)?"))
-    {
-        struct gdb_exception exception = {RETURN_QUIT,
-                                          GDB_NO_ERROR,
-                                          "Interrupted by user"};
-        target_mourn_inferior();
-        DEBUG("arc_debug_interrupt_twice: throwing exception\n");
-        throw_exception (exception);
-    }
-
-    (void) signal (signo, arc_debug_interrupt);
-}
-
-
 /* Function: arc_debug_wait
  * Parameters :
  * 1. ptid_t ptid:
- * 2. struct target_waitstatus *status: Indicates status at end
-                                        of wait for F.E.
+ * 2. struct target_waitstatus *status: Indicates status at end of wait
  * Returns : ptid
  * Description:
  *        Poll status32 for the value of H bit.
  *        After H bit is set in status32.
- *        Wait till LD(load pending bit) in the DEBUG register
- *        is cleared.
+ *        Wait till LD (load pending bit) in the DEBUG register is cleared.
  *        SH bit is set if flag instruction was used to halt the processor.
- *        BH bit is set if the ARCompact processor stopped due to
- *        a brk_s instruction. Set the target_waitstatus (signal) to SIGTRAP
+ *        BH bit is set if the processor stopped due to a brk_s
+ *        instruction. Set the target_waitstatus (signal) to SIGTRAP
  *        only in such a situation.
- *
  */
 
 static ptid_t
 arc_debug_wait (ptid_t ptid, struct target_waitstatus *status)
 {
-    ARC_RegisterContents debug;
-
     ENTERMSG;
 
-    /* signal handler for Control-C.  */
-    ofunc = signal (SIGINT, arc_debug_interrupt);
+    /* this flag will be set if the user types Ctrl-C */
+    interrupt_processor = FALSE;
 
-    arc_jtag_ops.jtag_wait();
+    /* set up signal handler for Ctrl-C */
+    old_signal_handler = signal (SIGINT, interrupted_by_user);
 
-    /* put the old function back.  */
-    (void) signal (SIGINT, ofunc);
+    wait_for_processor_to_halt(status);
+
+    /* put the old signal handler back */
+    (void) signal (SIGINT, old_signal_handler);
+
+    if (status->kind == TARGET_WAITKIND_EXITED)
+        target_mark_exited (&arc_debug_ops);
 
     /* inform the actionpoints module that the target has halted */
     arc_target_halted();
-
-    /* If the DEBUG.SH ("self halt") bit is set, we stopped because of the flag
-     * instruction, which is used by programs to exit.
-     */
-    if (arc_read_aux_register (ARC_HW_DEBUG_REGNUM, &debug))
-    {
-        /* test SH bit of debug register */
-        if (debug & DEBUG_SH)
-        {
-            ARC_RegisterContents exitcode;
-
-            status->kind = TARGET_WAITKIND_EXITED;
-
-            /* Exit code of the program (in R0). */
-            if (!read_core_register(0, &exitcode))
-            {
-                warning ("Assuming exit code = 0");
-                status->value.integer = 0;
-            }
-            else
-                status->value.integer = (int) exitcode;
-        }
-        else
-        {
-            status->kind      = TARGET_WAITKIND_STOPPED;
-            status->value.sig = TARGET_SIGNAL_TRAP;
-        }
-    }
-    else
-        warning ("Can not read DEBUG register\n");
-
 
     /* Bug #1311 (ARC600): Setting a breakpoint on the last instruction of a
      * ZOL causes GDB to stop at LP_START.  Detect this condition and warn the
@@ -647,10 +1322,10 @@ arc_debug_wait (ptid_t ptid, struct target_waitstatus *status)
     {
         ARC_RegisterContents pc, lp_start, lp_end, lp_count;
 
-        if (read_core_register    (ARC_LP_COUNT_REGNUM,    &lp_count) && (lp_count != 0)  &&
-            arc_read_aux_register (ARC_HW_PC_REGNUM,       &pc)                           &&
-            arc_read_aux_register (ARC_HW_LP_START_REGNUM, &lp_start) && (pc == lp_start) &&
-            arc_read_aux_register (ARC_HW_LP_END_REGNUM,   &lp_end))
+        if (arc_read_jtag_core_register(ARC_LP_COUNT_REGNUM, &lp_count, TRUE) && (lp_count != 0)  &&
+            arc_read_jtag_aux_register (pc_regnum,           &pc,       TRUE)                     &&
+            arc_read_jtag_aux_register (lp_start_regnum,     &lp_start, TRUE) && (pc == lp_start) &&
+            arc_read_jtag_aux_register (lp_end_regnum,       &lp_end,   TRUE))
         {
             struct breakpoint *b;
 
@@ -659,14 +1334,12 @@ arc_debug_wait (ptid_t ptid, struct target_waitstatus *status)
                 /* lp_end is the address of the last instruction + the size of
                  * the last instruction.  We could use the disassembler and find
                  * out the size, but it's easier just to try both possible sizes.
-                 *
-                 * N.B. the pending flag is not present in gdb 6.8!
                  */
-                if ((b->enable_state == bp_enabled /* && !b->pending */) &&
+                if ((b->enable_state == bp_enabled) &&
                     (b->loc->address == lp_end - 4 || b->loc->address == lp_end - 2))
                 {
-                    warning ("Did you set a breakpoint on the last instruction of "
-                              "a Zero Overhead Loop? Such breakpoints do not work properly.");
+                    warning(_("did you set a breakpoint on the last instruction of a"
+                              "Zero Overhead Loop? Such breakpoints do not work properly."));
                 }
             }
         }
@@ -676,82 +1349,76 @@ arc_debug_wait (ptid_t ptid, struct target_waitstatus *status)
 }
 
 
-/* Function: arc_debug_fetch_regs.
+/* Function: arc_debug_fetch_registers.
  *
  * Parameters :
- *    1. int regnum: Register number (-1 means all registers)
+ *    1  regcache : cache to write register to
+ *    2. int gdb_regno: Register number (-1 means all registers)
  * Returns : void
  */
 static void
-arc_debug_fetch_regs (struct regcache *regcache, int regno)
+arc_debug_fetch_registers (struct regcache *regcache, int gdb_regno)
 {
-    ENTERARGS("%d", regno);
+    ENTERARGS("%d", gdb_regno);
 
     /* all registers */
-    if (regno == -1)
+    if (gdb_regno == -1)
     {
-        unsigned int i;
+        int num_core_registers = (int) arc_core_register_count(get_regcache_arch(regcache));
 
         /* core registers */
-        for (i = 0; i < ARC_NR_CORE_REGS; i++)
-            debug_fetch_register((ARC_RegisterNumber) i, (int) i);
+        for (gdb_regno = 0; gdb_regno < num_core_registers; gdb_regno++)
+            debug_fetch_one_register(regcache, (ARC_RegisterNumber) gdb_regno, gdb_regno);
 
-        /* aux registers */
-        for (i = 0; i < ELEMENTS_IN_ARRAY(arc_aux_reg_map); i++)
-            debug_fetch_reg(&arc_aux_reg_map[i]);
-
-        /* build configuration registers */
-        for (i = 0; i < ELEMENTS_IN_ARRAY(arc_bcr_reg_info); i++)
-            debug_fetch_reg(&arc_bcr_reg_info[i]);
+        /* aux registers (incl. build configuration registers) */
+        arc_all_aux_registers(debug_fetch_reg, regcache);
     }
     else
     {
-        ARC_RegisterNumber hw_regno = get_hw_regnum_mapping (regno);
+        ARC_RegisterNumber hw_regno = get_hw_regnum_mapping (gdb_regno);
 
         if (hw_regno == INVALID_REGISTER_NUMBER)
-            error("Invalid Register Number =%d",regno);
+            error(_("Invalid register number: %d"), gdb_regno);
         else
-            debug_fetch_register(hw_regno, regno);
+            debug_fetch_one_register(regcache, hw_regno, gdb_regno);
     }
 
     LEAVEMSG;
 }
 
 
-/* Function: arc_debug_store_regs.
+/* Function: arc_debug_store_registers.
  *
  * Parameters :
- *    1. int regnum: Register number (-1 means all registers)
+ *    1  regcache : cache to read register from
+ *    2. int gdb_regno: register number (-1 means all registers)
  * Returns : void
  */
 static void
-arc_debug_store_regs (struct regcache *regcache, int regno)
+arc_debug_store_registers (struct regcache *regcache, int gdb_regno)
 {
-    ENTERARGS("%d", regno);
+    ENTERARGS("%d", gdb_regno);
 
     /* all registers */
-    if (regno == -1)
+    if (gdb_regno == -1)
     {
-        unsigned int i;
+        int num_core_registers = (int) arc_core_register_count(get_regcache_arch(regcache));
 
         /* core registers */
-        for (i = 0; i < ARC_NR_CORE_REGS; i++)
-            debug_store_register((ARC_RegisterNumber) i, (int) i);
+        for (gdb_regno = 0; gdb_regno < num_core_registers; gdb_regno++)
+            debug_store_one_register(regcache, (ARC_RegisterNumber) gdb_regno, gdb_regno);
 
-        /* aux registers */
-        for (i = 0; i < ELEMENTS_IN_ARRAY(arc_aux_reg_map); i++)
-            debug_store_reg(&arc_aux_reg_map[i]);
-
-        /* build configuration registers are not writable */
+        /* aux registers (excl. build configuration registers, which are not writable) */
+        arc_all_aux_registers(debug_store_reg, regcache);
     }
     else
     {
-        ARC_RegisterNumber hw_regno = get_hw_regnum_mapping (regno);
+        ARC_RegisterNumber hw_regno = get_hw_regnum_mapping (gdb_regno);
 
         if (hw_regno == INVALID_REGISTER_NUMBER)
-            error("Invalid register number: %d", regno);
+            error(_("Invalid register number: %d"), gdb_regno);
         else
-            debug_store_register(hw_regno, regno);
+            debug_store_one_register(regcache, hw_regno, gdb_regno);
     }
 
     LEAVEMSG;
@@ -772,21 +1439,15 @@ arc_debug_prepare_to_store (struct regcache *regcache)
 }
 
 
-/* Read or write memory or auxiliary registers
+/* Read or write memory
  *
  *   if 'object' is TARGET_OBJECT_MEMORY then
  *       if 'writebuf' is NULL
  *           read 'len' bytes of data from target memory starting at address 'offset' to 'readbuf'
  *       else
  *           write 'len' bytes of data from 'writebuf' to target memory starting at address 'offset'
- *   else
- *       if 'object' is ARC_TARGET_OBJECT_AUXREGS then
- *           if 'writebuf' is non-NULL then
- *               set contents of 'len' AUX registers starting at number 'offset' from 'writebuf'
- *           else
- *               get contents of 'len' AUX registers starting at number 'offset' into 'readbuf'
  *
- *    returns number of bytes of memory, or number of registers, read/written
+ *    returns number of bytes of memory read/written
  */
 
 static LONGEST
@@ -798,21 +1459,22 @@ arc_debug_xfer_partial (struct target_ops *ops,        // unused
                         ULONGEST           offset,
                         LONGEST            len)
 {
-    ENTERARGS("offset 0x%x len %lld", (unsigned int) offset, len);
+    ENTERARGS("object %d offset 0x%x len %lld", (unsigned int) object, (unsigned int) offset, len);
 
     /* Handle memory */
     if (object == TARGET_OBJECT_MEMORY)
     {
+        unsigned int xfered;
+
         /* Get out of user mode so that we can read/write anything anywhere.  */
-        ARC_RegisterContents saved_status32 = arc_clear_status32_user_bit ();
-        unsigned int         xfered;
+        arc_change_status32(CLEAR_USER_BIT);
 
         /* No need to worry about the alignment of the address 'offset' - the
          * JTAG memory read/write operations handle that.
          */
         if (writebuf != NULL)
         {
-            xfered = arc_jtag_ops.jtag_memory_write_chunk
+            xfered = arc_jtag_ops.memory_write_chunk
                          ((ARC_Address)  offset,
                           (ARC_Byte*)    writebuf,
                           (unsigned int) len);
@@ -822,7 +1484,7 @@ arc_debug_xfer_partial (struct target_ops *ops,        // unused
         }
         else /* read data */
         {
-            xfered = arc_jtag_ops.jtag_memory_read_chunk
+            xfered = arc_jtag_ops.memory_read_chunk
                          ((ARC_Address)  offset,
                           (ARC_Byte*)    readbuf,
                           (unsigned int) len);
@@ -831,41 +1493,9 @@ arc_debug_xfer_partial (struct target_ops *ops,        // unused
                   __FUNCTION__, xfered);
         }
 
-        arc_restore_status32_user_bit (saved_status32);
+        arc_change_status32(RESTORE_USER_BIT);
 
         return (LONGEST) xfered;
-    }
-
-    /* ARC auxiliary registers: they are 32 bits wide and are in a 32 bit
-     * address space, although only part of the address space is used.
-     */
-    if (object == ARC_TARGET_OBJECT_AUXREGS)
-    {
-        ARC_RegisterNumber regno = (ARC_RegisterNumber) offset;
-        ARC_RegisterNumber limit = (ARC_RegisterNumber) (offset + len);
-        unsigned int       count = 0;
-
-        while (regno < limit)
-        {
-            if (readbuf)
-            {
-                if (!arc_read_aux_register (regno, &((ARC_RegisterContents*) readbuf)[count]))
-                    /* return number of registers read so far */
-                    break;
-            }
-            else if (writebuf)
-            {
-                if (!arc_write_aux_register (regno, ((ARC_RegisterContents*) writebuf)[count]))
-                    /* return number of registers written so far */
-                    break;
-            }
-
-            regno++;
-            count++;
-        }
-
-        /* return number of registers read/written */
-        return (LONGEST) count;
     }
 
     if (object == TARGET_OBJECT_AVAILABLE_FEATURES)
@@ -874,7 +1504,7 @@ arc_debug_xfer_partial (struct target_ops *ops,        // unused
         return -1;
     }
 
-    printf("\nRequested target_object %d not yet supported with " ARC_TARGET_NAME "\n", (int) object);
+    printf_filtered(_("\nRequested target_object %d not yet supported with " ARC_TARGET_NAME "\n"), (int) object);
     return -1;
 }
 
@@ -889,14 +1519,9 @@ arc_debug_files_info (struct target_ops *target)
 
 /* Function: arc_debug_insert_breakpoint
  * Parameters :
- * 1. CORE_ADDR addr: Address for breakpoint.
- * 2. char * contents: Contents for the breakpoint.
+ * 1. bpt: information defining breakpoint.
  * Returns : int - 0 for success.
  * Description:
- * See if you can insert a hardware breakpoint using the actionpoints
- * interface. Use brk_s if architecture is ARC700 and you need to use
- * a software breakpoint.The gdbarch breakpoint should be initialized to
- * the right value if used with target_arc_debug.
  */
 
 static int arc_debug_insert_breakpoint (struct bp_target_info* bpt)
@@ -906,22 +1531,23 @@ static int arc_debug_insert_breakpoint (struct bp_target_info* bpt)
 
     ENTERARGS("0x%08X", (unsigned int) bpt->placed_address);
 
-    breakpt_instruction = gdbarch_breakpoint_from_pc (current_gdbarch, &bpt->placed_address,
-                                             &bpt->placed_size);
+    breakpt_instruction = gdbarch_breakpoint_from_pc (current_gdbarch,
+                                                      &bpt->placed_address,
+                                                      &bpt->placed_size);
 
     /* FIXME: alignment of breakpt_instruction! */
-    DEBUG("breakpoint size = %d and breakpoint instruction 0x%x\n",
+    DEBUG("breakpoint size = %d and breakpoint instruction = 0x%x\n",
           bpt->placed_size, *(unsigned int *) breakpt_instruction);
 
     /* save the existing instruction at the given address */
-    bytes = arc_jtag_ops.jtag_memory_read_chunk
+    bytes = arc_jtag_ops.memory_read_chunk
                 ((ARC_Address)  bpt->placed_address,
                  (ARC_Byte*)    bpt->shadow_contents,
                  (unsigned int) bpt->placed_size);
 
     if (bytes == (unsigned int) bpt->placed_size)
         /* overwrite the instruction with the breakpoint instruction */
-        bytes = arc_jtag_ops.jtag_memory_write_chunk
+        bytes = arc_jtag_ops.memory_write_chunk
                     ((ARC_Address)  bpt->placed_address,
                      (ARC_Byte*)    breakpt_instruction,
                      (unsigned int) bpt->placed_size);
@@ -932,12 +1558,10 @@ static int arc_debug_insert_breakpoint (struct bp_target_info* bpt)
 
 /* Function: arc_debug_remove_breakpoint.
  * Parameters :
- * 1. CORE_ADDR addr: Address.
- * 2. char * contents : contents.
+ * 1. bpt: information defining breakpoint.
  * Returns : int - 0 for success.
  * Description:
  *  Write the old contents back for the breakpoint.
- *
  */
 
 static int arc_debug_remove_breakpoint (struct bp_target_info* bpt)
@@ -949,7 +1573,7 @@ static int arc_debug_remove_breakpoint (struct bp_target_info* bpt)
                                *(unsigned long *) bpt->shadow_contents);
 
     /* write the old code back */
-    bytes = arc_jtag_ops.jtag_memory_write_chunk
+    bytes = arc_jtag_ops.memory_write_chunk
                 ((ARC_Address)  bpt->placed_address,
                  (ARC_Byte*)    bpt->shadow_contents,
                  (unsigned int) bpt->placed_size);
@@ -962,17 +1586,14 @@ static int arc_debug_remove_breakpoint (struct bp_target_info* bpt)
  * Parameters : void.
 
  * Returns : void.
- * Description: Heavy duty arsenal.Kill the process.
- * Maybe we do a board reset and kill it. Write 1 to Halt
- * in Status32.
+ * Description: Heavy duty arsenal. Kill the process.
+ * Maybe we do a board reset and kill it. Write 1 to Halt in Status32.
  */
 
 static void
 arc_debug_kill (void)
 {
   ENTERMSG;
-
-  /* Do stuff */
 
   target_mourn_inferior ();
 }
@@ -983,22 +1604,26 @@ arc_debug_kill (void)
  * 1. char * args: Arguments.
  * 2. int from_tty: Which terminal.
  * Returns : void.
- * Description: Load the program into mmemory via the JTAG interface.
+ * Description: Load the program into memory via the JTAG interface.
  */
 
 static void
 arc_debug_load (char *args, int from_tty)
 {
-    /* Write to RAM of the ARC700 board by running through the sections .*/
+    /* Write to RAM on the board by running through the sections .*/
     asection* bss_section;
 
     ENTERARGS("%s", args);
 
     if (exec_bfd == NULL)
-    {
-        warning("Must use 'file' command before 'load' command");
-        return;
-    }
+        error(_("Must use 'file' command before 'load' command"));
+
+    arc_aux_check_pc_defined(NULL);
+
+    arc_check_architecture(current_gdbarch, exec_bfd);
+
+    /* in case anything was previously loaded */
+    arc_set_jtag_interception(INTERCEPTION_RESET);
 
     generic_load(args, from_tty);
 
@@ -1011,23 +1636,26 @@ arc_debug_load (char *args, int from_tty)
         bfd_size_type bss_size = bfd_get_section_size (bss_section);
         unsigned int  bytes;
 
-        printf_filtered("Zeroing section .bss, size 0x%0x lma 0x%0x\n",
+        printf_filtered(_("Zeroing section .bss, size 0x%0x lma 0x%0x\n"),
                         (unsigned int) bss_size, (unsigned int) bss_addr);
 
-        bytes = arc_jtag_ops.jtag_memory_zero_fill((ARC_Address)  bss_addr,
-                                                    (unsigned int) bss_size);
+        bytes = arc_jtag_ops.memory_zero_fill((ARC_Address)  bss_addr,
+                                               (unsigned int) bss_size);
         if (bytes != (unsigned int) bss_size)
-            warning ("load: error zeroing BSS section - only %u bytes zeroed\n", bytes);
+            warning(_("load: error zeroing BSS section - only %u bytes zeroed"), bytes);
     }
     else
     {
         DEBUG("%s: no BSS section\n", __FUNCTION__);
     }
 
-    clear_symtab_users();
+    /* we do not yet know the address in the program code at which the program's
+     * stack pointer is set up
+     */
+    stack_pointer_setup_code_operand_address = 0;
 
-//  /* we now have a program ready for execution on the target */
-    current_target.to_has_execution = 1;
+    /* we now have a program ready for execution on the target */
+    target_mark_running(&arc_debug_ops);
 }
 
 
@@ -1044,28 +1672,83 @@ arc_debug_load (char *args, int from_tty)
 static void
 arc_debug_create_inferior (char *exec_file, char *args, char **env, int dummy)
 {
-    ENTERARGS("%s, %s", exec_file, args);
+    Boolean set_no_args = TRUE;
+    char*   all_args    = NULL;
+
+    ENTERARGS("exec_file = \"%s\", args = \"%s\"", exec_file, args);
 
     /* If no exec file handed to us, get it from the exec-file command
        -- with a good, common error message if none is specified.  */
     if (exec_file == NULL)
         exec_file = get_exec_file (1);
 
+    /* include the exec file name as arg[0] */
+    if (exec_file != NULL || args != NULL)
+    {
+        size_t length = 10;    /* safty margin */
+
+        if (exec_file != NULL)
+            length += strlen(exec_file) + 1;
+
+        if (args != NULL)
+            length += strlen(args) + 1;
+
+        all_args = xmalloc(length);
+
+        all_args[0] = '\0';
+
+        if (exec_file != NULL)
+            (void) strcat(all_args, exec_file);
+
+        if (args != NULL)
+        {
+            (void) strcat(all_args, " ");
+            (void) strcat(all_args, args);
+        }
+    }
+
+    arc_aux_check_pc_defined(NULL);
+
     /* We don't really have a PID or anything, but GDB uses this value to check
        if the program is running. */
     inferior_ptid.pid = 42;
 
-    clear_proceed_status();
-    /* -1 means resume from current place
-       TARGET_SIGNAL_0 means "don't give it any signal"
-       Last arg should be true if you want to single step */
-
-    //proceed ((CORE_ADDR) -1, TARGET_SIGNAL_0, 0);
-    //proceed (bfd_get_start_address (exec_bfd), TARGET_SIGNAL_0, 0);
-    // COMMENTED because proceed has been extracted out in run_command in GDB 6.6.
+    DEBUG("setting PC to 0x%x\n", (unsigned int) bfd_get_start_address (exec_bfd));
 
     /* must set the PC to the start address */
     write_pc (bfd_get_start_address (exec_bfd));
+
+    target_mark_running(&arc_debug_ops);
+
+    if (all_args != NULL)
+    {
+        if (setup_arguments(all_args))
+            set_no_args = FALSE;
+        else
+            warning(_("can not set up arguments to program"));
+
+        xfree(all_args);
+    }
+
+    /* if there are no arguments to be passed to the program, or we failed to
+     * set them up, at least try to set R0 and R1 to indicate that are no
+     * arguments!
+     */
+    if (set_no_args)
+    {
+        if (!arc_write_jtag_core_register(0, 0, TRUE))
+            warning(_("can not set parameter register R0 to 0 - main parameter 'argc' will be undefined"));
+
+        if (!arc_write_jtag_core_register(1, 0, TRUE))
+            warning(_("can not set parameter register R1 to 0 - main parameter 'argv' will be undefined"));
+    }
+
+    arc_set_jtag_interception(INTERCEPTION_ON);
+
+    /* Why are the caches disabled anyway? Particularly as arc_debug_resume
+     * invalidates them before each restart?
+     */
+   disable_caches();
 }
 
 
@@ -1081,7 +1764,7 @@ arc_debug_mourn_inferior (void)
 {
     ENTERMSG;
 
-    (void) unpush_target (&arc_debug_ops);
+//  (void) unpush_target (&arc_debug_ops);
     generic_mourn_inferior ();
 }
 
@@ -1089,7 +1772,7 @@ arc_debug_mourn_inferior (void)
 /* Function: arc_debug_thread_alive
  * Parameters :ptid_t ptid.
  * Returns : 1 always.
- * Description: Checks for return values .
+ * Description:
  */
 
 static int
@@ -1100,83 +1783,80 @@ arc_debug_thread_alive (ptid_t ptid)
 }
 
 
+/* Function: arc_debug_can_run
+ * Parameters : none
+ * Returns : 1 if our target is runnable
+ * Description: Mark our target-struct as eligible for stray "run" and "attach" commands.
+ */
+
+static int arc_debug_can_run (void)
+{
+    /* if we are connected to the JTAG i/f, and a program is loaded */
+    return (arc_jtag_ops.status == JTAG_OPENED) && current_target.to_has_execution;
+}
+
+
+/* we do not support asynchronous execution of the target program (i.e. commands
+ * like 'run' or 'continue' or 'step' can not be executed in background mode
+ * by appending a '&' to them) so we do not need to implement the target stop
+ * operation (called by the 'interrupt' command); interrupting a running program
+ * is handled by the Ctrl-C mechanism
+ */
+
+#if 0
 /* Function: arc_debug_stop
  * Parameters: void
  * Returns: void.
- * Description: Stop the Processor. We stop by writing FH bit to Debug Register.
- *    write 1 to the FH bit in the Debug register after
- *    polling for the DEBUG register to have no loads pending .
+ * Description: Stop the Processor. 
  */
 static void
 arc_debug_stop (void)
 {
     ENTERMSG;
-
-    /* Stop using the FH bit in the debug register. */
-    (void) arc_write_aux_register (ARC_HW_DEBUG_REGNUM, DEBUG_FORCE_HALT);
+    interrupt_processor = TRUE;
 }
+#endif
 
 
-/* Helper routines for commands added.  */
+/* -------------------------------------------------------------------------- */
+/* 8)                   helper routines for added commands                    */
+/* -------------------------------------------------------------------------- */
 
 /* Print Processor Variant Info.  */
 static void
 arc_print_processor_variant_info (char* arg, int from_tty)
 {
-    switch (arc_get_architecture())
-    {
-        case UNSUPPORTED:
-            printf_filtered ("unsupported\n");
-            break;
-        case ARCompact:
-            printf_filtered ("ARCompact\n");
-            break;
-        case ARC600:
-            printf_filtered ("ARC600\n");
-            break;
-        case ARC700:
-            printf_filtered ("ARC700\n");
-            break;
-        case A5:
-            printf_filtered ("A5\n");
-            break;
-        case A4:
-            printf_filtered ("A4\n");
-            break;
-    }
-}
-
-
-static void
-arc_print_bcr_regs (char* arg, int from_tty)
-{
-    unsigned int i;
-
-    for (i = 0; i < ELEMENTS_IN_ARRAY(arc_bcr_reg_info); i++)
-    {
-        const RegisterInfo*   info     = &arc_bcr_reg_info[i];
-        ARC_HardwareRegisters hw_regno = info->hw_regno;
-        ARC_RegisterContents  bcr_value;
-
-        if (info->mode != UU)
-            if (arc_read_aux_register (hw_regno, &bcr_value))
-                printf_filtered("[%02x] %-16s : 0x%02x\n",
-                                hw_regno, info->name, bcr_value);
-    }
-
+    printf_filtered(_("%s\n"), arc_version_image(arc_get_architecture(identity_regnum)));
 }
 
 
 static void
 arc_debug_jtag_reset_board (char* arg, int from_tty)
 {
-    arc_jtag_ops.jtag_reset_board();
+    /* make sure the GPIO interface is open */
+    if (gpio_open())
+    {
+        printf_filtered(_("Attempting to reset target board...\n"));
 
-    /* the ARC actionpoint registers are cleared upon reset, so it is necessary
-     * to restore any actionpoints that were set
-     */
-     if (!arc_restore_actionpoints_after_reset())
-        warning ("could not restore hardware actionpoints");
+        if (arc_jtag_ops.status == JTAG_OPENED)
+        {
+            /* try to force the processor to halt */
+            stop_processor();
+        }
+
+        /* try to reset the board */
+        arc_reset_board();
+        arc_jtag_ops.reset_board();
+
+        if (arc_jtag_ops.status == JTAG_OPENED)
+        {
+            /* the ARC actionpoint registers are cleared upon reset, so it is
+             * necessary to restore any actionpoints that were set
+             */
+            if (!arc_restore_actionpoints_after_reset())
+                warning(_("can not restore hardware actionpoints"));
+        }
+    }
 }
 
 
@@ -1192,18 +1872,22 @@ arc_list_actionpoints (char* arg, int from_tty)
      */
     insert_breakpoints();
     arc_display_actionpoints();
-    remove_breakpoints();
+    (void) remove_breakpoints();
 }
 
 
-/* Function: init_arc_debug_ops
+/* -------------------------------------------------------------------------- */
+/* 9)                           initialization functions                      */
+/* -------------------------------------------------------------------------- */
+
+/* Function: initialize_arc_debug_ops
  * Parameters: void
  * Returns: void.
- * Description: Initialize the jtag operations.
+ * Description: Initialize the jtag target operations.
  */
 
 static void
-init_arc_debug_ops (void)
+initialize_arc_debug_ops (void)
 {
     ENTERMSG;
 
@@ -1218,8 +1902,8 @@ init_arc_debug_ops (void)
     arc_debug_ops.to_resume = arc_debug_resume;
     arc_debug_ops.to_wait   = arc_debug_wait;
 
-    arc_debug_ops.to_fetch_registers  = arc_debug_fetch_regs;
-    arc_debug_ops.to_store_registers  = arc_debug_store_regs;
+    arc_debug_ops.to_fetch_registers  = arc_debug_fetch_registers;
+    arc_debug_ops.to_store_registers  = arc_debug_store_registers;
     arc_debug_ops.to_prepare_to_store = arc_debug_prepare_to_store;
     arc_debug_ops.to_xfer_partial     = arc_debug_xfer_partial;
     arc_debug_ops.to_files_info       = arc_debug_files_info;
@@ -1233,16 +1917,17 @@ init_arc_debug_ops (void)
     arc_debug_ops.to_create_inferior   = arc_debug_create_inferior;
     arc_debug_ops.to_mourn_inferior    = arc_debug_mourn_inferior;
     arc_debug_ops.to_thread_alive      = arc_debug_thread_alive;
-    arc_debug_ops.to_stop              = arc_debug_stop;
+//  arc_debug_ops.to_stop              = arc_debug_stop;
+    arc_debug_ops.to_can_run           = arc_debug_can_run;
     arc_debug_ops.to_terminal_inferior = NULL;
 
     arc_debug_ops.to_stratum = process_stratum;
 
     arc_debug_ops.to_has_all_memory = 1;
     arc_debug_ops.to_has_memory     = 1;
-    arc_debug_ops.to_has_stack      = 1;
+    arc_debug_ops.to_has_stack      = 0;  /* defer setting this until the program has been loaded */
     arc_debug_ops.to_has_registers  = 1;
-//  arc_debug_ops.to_has_execution  = 1;  /* defer setting this until the program has been loaded */
+    arc_debug_ops.to_has_execution  = 0;  /* defer setting this until the program has been loaded */
 
     arc_debug_ops.to_magic = OPS_MAGIC;
 }
@@ -1257,126 +1942,155 @@ _initialize_arc_debug (void)
 {
     ENTERMSG;
 
-    init_arc_debug_ops ();
+    initialize_arc_debug_ops ();
     add_target (&arc_debug_ops);
 
     /* register ARC-specific commands with gdb */
 
-    add_setshow_boolean_cmd("arcjtag-debug-statemachine",
+    add_setshow_boolean_cmd(ARC_FSM_DEBUG_COMMAND,
                             no_class,
-                            &arc_jtag_ops.jtag_state_machine_debug,
-                            "Set whether to print JTAG state machine debug messages.\n",
-                            "Show whether to print JTAG state machine debug messages.\n",
-                            "If set the JTAG state machine messages are printed.\n",
+                            &arc_jtag_ops.state_machine_debug,
+                            _("Set whether to print JTAG state machine debug messages.\n"),
+                            _("Show whether to print JTAG state machine debug messages.\n"),
+                            _("If set the JTAG state machine messages are printed.\n"),
                             NULL,
                             NULL,
                             &setlist,
                             &showlist);
 
-    add_setshow_uinteger_cmd("arcjtag-retry-count",
+    add_setshow_uinteger_cmd(ARC_JTAG_RETRY_COMMAND,
                              no_class,
-                             &arc_jtag_ops.jtag_retry_count,
-                             "Set the number of attempts to be made for a JTAG operation.\n",
-                             "Show the number of attempts to be made for a JTAG operation.\n",
-                             "Indicates the number of times a JTAG operation is attempted before returning a failure.\n",
-                             /* "The number of times a JTAG operation is attempted \
-                                 before returning a failure is %s.\n", */
+                             &arc_jtag_ops.retry_count,
+                             _("Set the number of attempts to be made for a JTAG operation.\n"),
+                             _("Show the number of attempts to be made for a JTAG operation.\n"),
+                             _("Indicates the number of times a JTAG operation is attempted before returning a failure.\n"),
                              NULL,
                              NULL,
                              &setlist,
                              &showlist);
 
-    (void) add_cmd("arc-configuration",
+    (void) add_cmd(ARC_CONFIGURATION_COMMAND,
                    class_info,
                    arc_print_processor_variant_info,
-                   "Show ARC configuration information.",
+                   _("Show ARC configuration information.\n"
+                     ARC_CONFIGURATION_COMMAND_USAGE),
                    &infolist);
 
-    (void) add_cmd("arc-bcr-registers",
-                   class_info,
-                   arc_print_bcr_regs,
-                   "Show Build Configuration Registers in the ARC processor variant.",
-                   &infolist);
-
-    (void) add_cmd("arc-reset-board",
+    (void) add_cmd(ARC_RESET_BOARD_COMMAND,
                    class_obscure,
                    arc_debug_jtag_reset_board,
-                   "Reset the board.",
+                   _("Reset the board.\n"
+                     ARC_RESET_BOARD_COMMAND_USAGE),
                    &cmdlist);
 
-    (void) add_cmd("arc-list-actionpoints",
+    (void) add_cmd(ARC_LIST_ACTIONPOINTS_COMMAND,
                    class_obscure,
                    arc_list_actionpoints,
-                   "List the actionpoints.",
+                   _("List the processor actionpoints.\n"
+                     ARC_LIST_ACTIONPOINTS_COMMAND_USAGE),
                    &cmdlist);
 }
 
 
-/* Get processor out of user mode. */
-ARC_RegisterContents arc_clear_status32_user_bit (void)
+void arc_change_status32(ARC_Status32Action action)
 {
-    ARC_RegisterContents status32 = 0;
+    static ARC_RegisterContents status32;
 
-    if (arc_read_aux_register (ARC_HW_STATUS32_REGNUM, &status32))
+    if (action == CLEAR_USER_BIT)
     {
-        /* if the User bit is actually set */
-        if (status32 & STATUS32_USER)
-            if (!arc_write_aux_register(ARC_HW_STATUS32_REGNUM,  status32 & ~STATUS32_USER))
-                warning("Can not clear User bit in STATUS32 register");
+        /* Get processor out of user mode. */
+
+        if (arc_read_jtag_aux_register(status32_regnum, &status32, FALSE))
+        {
+            /* if the User bit is actually set */
+            if (status32 & STATUS32_USER)
+                if (!arc_write_jtag_aux_register(status32_regnum,
+                                                 status32 & ~STATUS32_USER, FALSE))
+                    warning(_("can not clear User bit in STATUS32 auxiliary register"));
+        }
+        else
+            warning(_("can not read STATUS32 auxiliary register"));
     }
     else
-        warning("Can not read STATUS32 register");
-
-    return status32;
-}
-
-
-/* Restore a saved status32; use with arc_clear_status32_user_bit. */
-void arc_restore_status32_user_bit (ARC_RegisterContents status32)
-{
-    /* if the User bit was actually cleared */
-    if (status32 & STATUS32_USER)
-        if (!arc_write_aux_register(ARC_HW_STATUS32_REGNUM, status32))
-            warning("Can not restore User bit in STATUS32 register");
-}
-
-
-
-Boolean arc_read_aux_register  (ARC_RegisterNumber hwregno, ARC_RegisterContents* contents)
-{
-    if (arc_jtag_ops.jtag_read_aux_reg(hwregno, contents) == JTAG_SUCCESS)
     {
-         DEBUG("arc_read_aux_register: hwregno = %d, contents = 0x%08X\n", hwregno, *contents);
-         return TRUE;
+        /* if the User bit was actually cleared */ 
+        if (status32 & STATUS32_USER)
+            if (!arc_write_jtag_aux_register(status32_regnum, status32, FALSE))
+                warning(_("can not restore User bit in STATUS32 auxiliary register"));
+    }
+}
+
+
+Boolean arc_read_jtag_core_register(ARC_RegisterNumber    hw_regno,
+                                    ARC_RegisterContents* contents,
+                                    Boolean               warn_on_failure)
+{
+    if (arc_jtag_ops.read_core_reg(hw_regno, contents) == JTAG_SUCCESS)
+    {
+        DEBUG("Read value 0x%08X from register %d\n", *contents, hw_regno);
+        return TRUE;
     }
 
-    warning("Failure reading auxiliary register 0x%x", hwregno);
+    if (warn_on_failure)
+        core_warning(_("failure reading %score register %s"),
+                     hw_regno, 
+                     arc_core_register_gdb_number(hw_regno));
     return FALSE;
 }
 
 
-Boolean arc_write_aux_register (ARC_RegisterNumber hwregno, ARC_RegisterContents contents)
+Boolean arc_write_jtag_core_register(ARC_RegisterNumber   hw_regno,
+                                     ARC_RegisterContents contents,
+                                     Boolean              warn_on_failure)
 {
-    ENTERARGS("hwregno = %d, contents = 0x%08X", hwregno, contents);
+    if (arc_jtag_ops.write_core_reg(hw_regno, contents) == JTAG_SUCCESS)
+    {
+        DEBUG("Written value 0x%08X to register %d\n", contents, hw_regno);
+        return TRUE;
+    }
 
-    if (arc_jtag_ops.jtag_write_aux_reg(hwregno, contents) == JTAG_SUCCESS)
-         return TRUE;
-
-    warning("Failure writing 0x%x to auxiliary register 0x%x", contents, hwregno);
+    if (warn_on_failure)
+        core_warning(_("failure writing to %score register %s"),
+                     hw_regno, 
+                     arc_core_register_gdb_number(hw_regno));
     return FALSE;
 }
 
 
-Boolean arc_BCR_is_used(int regnum)
+Boolean arc_read_jtag_aux_register(ARC_RegisterNumber    hw_regno,
+                                   ARC_RegisterContents* contents,
+                                   Boolean               warn_on_failure)
 {
-    unsigned int i;
-
-    for (i = 0; i < ELEMENTS_IN_ARRAY(arc_bcr_reg_info); i++)
+    if (arc_jtag_ops.read_aux_reg(hw_regno, contents) == JTAG_SUCCESS)
     {
-        if (regnum == arc_bcr_reg_info[i].gdb_regno)
-            return (arc_bcr_reg_info[i].mode != UU);
+        DEBUG("Read value 0x%08X from register %d\n", *contents, hw_regno);
+        return TRUE;
     }
 
+    if (warn_on_failure)
+        aux_warning(_("failure reading auxiliary register %s (0x%x)"),
+                    hw_regno);
+    return FALSE;
+}
+
+
+Boolean arc_write_jtag_aux_register(ARC_RegisterNumber   hw_regno,
+                                    ARC_RegisterContents contents,
+                                    Boolean              warn_on_failure)
+{
+    ARC_AuxRegisterDefinition* def = arc_find_aux_register_by_hw_number(hw_regno);
+
+    contents = arc_write_value(def, contents);
+
+    if (arc_jtag_ops.write_aux_reg(hw_regno, contents) == JTAG_SUCCESS)
+    {
+        DEBUG("Written value 0x%08X to register %d\n", contents, hw_regno);
+        return TRUE;
+    }
+
+    if (warn_on_failure)
+        aux_warning(_("failure writing to auxiliary register %s (0x%x)"),
+                    hw_regno);
     return FALSE;
 }
 

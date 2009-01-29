@@ -8104,8 +8104,18 @@ insert_single_step_breakpoint (CORE_ADDR next_pc)
 
   *bpt_p = deprecated_insert_raw_breakpoint (next_pc);
   if (*bpt_p == NULL)
-    error (_("Could not insert single-step breakpoint at 0x%s"),
-	     paddr_nz (next_pc));
+    {
+      /* richards/2008/10/27 ARC bug fix: if setting the (second)
+       * b/p failed, we must unset the first
+       *
+       * gdb bug: 2544
+       */
+      if (single_step_breakpoints[0] != NULL)
+         remove_single_step_breakpoints ();
+
+      error (_("Could not insert single-step breakpoint at 0x%s"),
+	       paddr_nz (next_pc));
+    }
 }
 
 /* Remove and delete any breakpoints used for software single step.  */

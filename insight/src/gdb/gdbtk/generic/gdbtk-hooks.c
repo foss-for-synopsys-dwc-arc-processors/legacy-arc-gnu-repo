@@ -76,6 +76,7 @@ extern void gdbtk_delete_tracepoint (int);
 extern void gdbtk_modify_tracepoint (int);
 
 static void gdbtk_architecture_changed (void);
+static void gdbtk_reg_architecture_changed (void);
 static void gdbtk_trace_find (char *arg, int from_tty);
 static void gdbtk_trace_start_stop (int, int);
 static void gdbtk_attach (void);
@@ -129,6 +130,7 @@ gdbtk_add_hooks (void)
   handlers.tracepoint_modify = gdbtk_modify_tracepoint;
   handlers.tracepoint_delete = gdbtk_delete_tracepoint;
   handlers.architecture_changed = gdbtk_architecture_changed;
+  handlers.reg_architecture_changed = gdbtk_reg_architecture_changed;
   deprecated_set_gdb_event_hooks (&handlers);
 
   /* Hooks */
@@ -835,4 +837,12 @@ static void
 gdbtk_architecture_changed (void)
 {
   Tcl_Eval (gdbtk_interp, "gdbtk_tcl_architecture_changed");
+}
+
+
+/* Called from gdbarch_update_p whenever the register architecture changes. */
+static void
+gdbtk_reg_architecture_changed (void)
+{
+  Tcl_Eval (gdbtk_interp, "gdb_reg_arch_changed");
 }

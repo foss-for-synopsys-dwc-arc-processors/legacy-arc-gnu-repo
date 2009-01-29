@@ -365,6 +365,7 @@ enum
 };
 enum ARC_Debugger_OperandType
 {
+    ARC_UNDEFINED,
     ARC_LIMM,
     ARC_SHIMM,
     ARC_REGISTER, 

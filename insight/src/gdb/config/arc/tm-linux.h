@@ -35,29 +35,25 @@ enum arc700_linux_regnums
    /* end marker: this is not a register, but its integer value gives the number
     * of registers
     */
-    ARC_NR_REGS
+    ARC_REG_END_MARKER
 };
 
 
-/* Pseudo-registers.
- *
- * N.B. NUM_REGS is not a constant - rather, it is a call to gdbarch_num_regs!
- *
- * FIXME: given that gdbarch_num_regs simply returns the value passed to function
- *        set_gdbarch_num_regs, and that function is called with parameter
- *        ARC_NR_REGS, it should be possible simply to declare these as an enum
- *        type with values starting at ARC_NR_REGS (this would be rather more
- *        efficient as it would not involve a function call each time one of
- *        thses values is used!).
- */
-#define ARC_ILINK1_REGNUM       (NUM_REGS)
-#define ARC_ILINK2_REGNUM       (NUM_REGS + 1)
-#define ARC_ERET_REGNUM         (NUM_REGS + 2)
-#define ARC_STATUS32_L1_REGNUM  (NUM_REGS + 3)
-#define ARC_STATUS32_L2_REGNUM  (NUM_REGS + 4)
-#define ARC_ERSTATUS_REGNUM     (NUM_REGS + 5)
+/* Pseudo-registers.  */
+
+enum arc700_linux_pseudo_regnums
+{
+    ARC_ILINK1_REGNUM = (int) ARC_REG_END_MARKER,
+    ARC_ILINK2_REGNUM,
+    ARC_ERET_REGNUM,
+    ARC_STATUS32_L1_REGNUM,
+    ARC_STATUS32_L2_REGNUM,
+    ARC_ERSTATUS_REGNUM
+};
+
 
 #define ARC_NR_PSEUDO_REGS      6
+#define ARC_NR_REGS             (int) ARC_REG_END_MARKER
 
 
 #endif /* ARC_TM_LINUX_H */

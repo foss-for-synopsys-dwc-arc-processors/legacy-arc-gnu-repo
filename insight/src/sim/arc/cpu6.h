@@ -1768,6 +1768,31 @@ struct scache {
   f_s12 = ((f_u6) | (((f_s12h) << (6))));\
 }\
 
+#define EXTRACT_IFMT_LR_L_U6__VARS \
+  UINT f_opm; \
+  UINT f_op__b; \
+  UINT f_B_5_3; \
+  UINT f_op_B; \
+  UINT f_go_type; \
+  UINT f_go_op; \
+  UINT f_F; \
+  UINT f_u6; \
+  UINT f_op_A; \
+  unsigned int length;
+#define EXTRACT_IFMT_LR_L_U6__CODE \
+  length = 4; \
+  f_opm = EXTRACT_MSB0_UINT (insn, 32, 0, 5); \
+  f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3); \
+  f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3); \
+{\
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));\
+}\
+  f_go_type = EXTRACT_MSB0_UINT (insn, 32, 8, 2); \
+  f_go_op = EXTRACT_MSB0_UINT (insn, 32, 10, 6); \
+  f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1); \
+  f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6); \
+  f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6); \
+
 #define EXTRACT_IFMT_ASL_L_R_R__RC_VARS \
   UINT f_opm; \
   UINT f_op__b; \

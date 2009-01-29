@@ -1,10 +1,10 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2008 Free Software Foundation, Inc.
 
    Contributed by ARC International (www.arc.com)
 
-   Authors:
+   Author:
       Richard Stuckey <richard.stuckey@arc.com>
 
    This file is part of GDB.
@@ -79,9 +79,9 @@
 /*             g denotes a gap byte                                           */
 /*             e denotes a end gap byte                                       */
 /*                                                                            */
-/*     There may 0 .. BYTES_IN_WORD - 1 leading bytes, 0 or more whole words, */
-/*     and 0 .. BYTES_IN_WORD - 1 trailing bytes. If the given address is     */
-/*     word-aligned, there is no gap and hence no leading bytes.              */
+/*     There may be 0 .. BYTES_IN_WORD - 1 leading bytes, 0 or more whole     */
+/*     words, and 0 .. BYTES_IN_WORD - 1 trailing bytes. If the given address */
+/*     is word-aligned, there is no gap and hence no leading bytes.           */
 /*                                                                            */
 /*     There is also a pathological case:                                     */
 /*                                                                            */
@@ -108,28 +108,37 @@
 /*                                                                            */
 /******************************************************************************/
 
-/* for internal debugging */
-//#define STATE_MACHINE_DEBUG 1
-//#define STANDALONE_TEST     1
-
-
 /* system header files */
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
 #include <errno.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <assert.h>
 
 /* gdb header files */
 #include "defs.h"
-#include "arc-gpio.h"
 
 /* ARC header files */
+#include "arc-gpio.h"
+#include "arc-jtag.h"
 #include "arc-jtag-ops.h"
 #include "arc-support.h"
+
+
+/* -------------------------------------------------------------------------- */
+/*                        conditional compilation flags                       */
+/* -------------------------------------------------------------------------- */
+
+/* we would really like to do optimise the use of the JTAG Data Register by
+ * loading a word into it only if that word differs from the last word loaded;
+ * but there seems to be undocumented behaviour of the JTAG mechanism that the
+ * Data Register is altered after a write operation! See Bug #93814
+*/
+#define JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+
+//#define CHECK_JTAG_DATA_REGISTER
+
+//#define STATE_MACHINE_DEBUG
 
 
 /* -------------------------------------------------------------------------- */
@@ -141,9 +150,8 @@
 #define BITS_IN_REGISTER_CODE    4
 
 
-typedef unsigned int  Bit;    /* only LSB of word is used */
-typedef unsigned char Byte;
-typedef unsigned int  JTAG_RegisterContents;
+typedef unsigned int Bit;    /* only LSB of word is used */
+typedef unsigned int JTAG_RegisterContents;
 
 
 typedef enum
@@ -177,14 +185,6 @@ typedef enum
     JTAG_ADDRESS_REGISTER             = 0xA,
     JTAG_DATA_REGISTER                = 0xB,
 } JTAG_Register;
-
-
-typedef enum
-{
-    DATA_PORT    = 0,   
-    STATUS_PORT  = 1,
-    CONTROL_PORT = 2
-} ParallelPort;
 
 
 #ifdef STATE_MACHINE_DEBUG
@@ -252,13 +252,6 @@ typedef union
 #define JTAG_TDO  (1 << 4)   /* on Status port               */
 
 
-/* parallel port I/O addresses (LPT1) */
-#define PORT_BASE_ADDRESS     0x378
-#define DATA_PORT_ADDRESS     (PORT_BASE_ADDRESS + DATA_PORT)
-#define STATUS_PORT_ADDRESS   (PORT_BASE_ADDRESS + STATUS_PORT)
-#define CONTROL_PORT_ADDRESS  (PORT_BASE_ADDRESS + CONTROL_PORT)
-
-
 /* commands which can be written to the JTAG Transaction Command Register */
 #define WRITE_MEMORY_LOCATION   0x0
 #define WRITE_CORE_REGISTER     0x1
@@ -271,13 +264,6 @@ typedef union
 
 /* these accumulate the bit masks to be written to the data and control ports */
 static Byte data_port_value, control_port_value;
-
-/* basic I/O */
-static int               gpio_driver;
-static struct GPIO_ioctl jtag_ioctl;
-static Boolean           port_error;
-
-static ARC_ProcessorVersion ARC_processor;
 
 /* variables for tracking the contents of the JTAG Address and Transaction
  * Command registers
@@ -335,24 +321,15 @@ JTAG_Operations arc_jtag_ops;
 #ifdef ARC_DEBUG
 #undef DEBUG
 #define DEBUG(...) \
-    if (arc_jtag_ops.jtag_state_machine_debug) printf(__VA_ARGS__)
+    if (arc_jtag_ops.state_machine_debug) fprintf_unfiltered(gdb_stdlog, __VA_ARGS__)
 #else
 #endif
 
 
-/* N.B. it must be possible to build this module without the rest of gdb so
- *      that it can be exercised by a stand-alone test driver
- */
-#ifdef STANDALONE_TEST
-#define error(...)            printf(__VA_ARGS__)
-#define warning(...)          printf(__VA_ARGS__)
-#define printf_filtered(...)  printf(__VA_ARGS__)
-#endif
-
 #ifdef STATE_MACHINE_DEBUG
 #define SET_STATE(s)                  set_state(s)
 #define NEXT_STATE(b)                 next_state(b)
-#define CHANGE_STATE(x, s)            change_state(x, s) 
+#define CHANGE_STATE(x, s)            change_state(x, s)
 #define STATE_IS(s)                   assert(current_state == s)
 #define STATE_IS_EITHER(s1, s2)       assert(current_state == s1 || \
                                              current_state == s2)
@@ -368,29 +345,35 @@ JTAG_Operations arc_jtag_ops;
 #define STATE_IS_ONE_OF(s1, s2, s3)
 #endif
 
+
 #define IS_WORD_ALIGNED(addr)         ((addr) % BYTES_IN_WORD == 0)
 #define BYTE(val)                     (Byte) ((val) & 0xFF)
+
+/* this is more efficient than memcpy(to, from, BYTES_IN_WORD) */
+#define COPY_WORD(to, from)           { ((Byte*) to)[0] = ((Byte*) from)[0]; \
+                                        ((Byte*) to)[1] = ((Byte*) from)[1]; \
+                                        ((Byte*) to)[2] = ((Byte*) from)[2]; \
+                                        ((Byte*) to)[3] = ((Byte*) from)[3]; }
+
+
+/* -------------------------------------------------------------------------- */
+/*                               forward declarations                         */
+/* -------------------------------------------------------------------------- */
+
+static void tapc_TMS(Bit x);
+static void set_interface(JTAG_Status status);
+static void interface_is_closed(void);
+static JTAG_RegisterContents read_jtag_reg (JTAG_Register regnum,
+                                            unsigned int  num_data_bits);
 
 
 /* -------------------------------------------------------------------------- */
 /*                               local functions                              */
 /* -------------------------------------------------------------------------- */
 
-static void tapc_TMS(Bit x);
-
-
-/* Sanity check to give error if JTAG i/f is not opened at all. */
-
-static void
-check_and_raise_error_if_JTAG_closed(void)
-{
-    if (arc_jtag_ops.jtag_status == JTAG_CLOSED)
-    {
-        error("JTAG connection is closed. "
-              "Use command 'target " ARC_TARGET_NAME "' first.\n");
-    }
-}
-
+/* -------------------------------------------------------------------------- */
+/* 1)                            debug functions                              */
+/* -------------------------------------------------------------------------- */
 
 #ifdef ARC_DEBUG
 static const char* name(JTAG_Register r)
@@ -401,6 +384,19 @@ static const char* name(JTAG_Register r)
         case JTAG_TRANSACTION_COMMAND_REGISTER : return "Transaction Command";
         case JTAG_ADDRESS_REGISTER             : return "Address";
         case JTAG_DATA_REGISTER                : return "Data";
+        default: abort();
+    }
+}
+
+
+static const char* JTAG_TransactionStatus_Image(JTAG_TransactionStatus value)
+{
+    switch (value)
+    {
+        case STALLED  : return "STALLED";
+        case FAILURE  : return "FAILURE";
+        case READY    : return "READY";
+        case NOT_READY: return "NOT READY";
         default: abort();
     }
 }
@@ -435,89 +431,19 @@ static const char* JTAG_ControllerState_Image(JTAG_ControllerState state)
 #endif
 
 
-/* -------------------------------------------------------------------------- */
-/* 1)                        primitive I/O functions                          */
-/* -------------------------------------------------------------------------- */
-
-/* See the comment in gdb file gpio.h
- *
- * For our purposes, the IOCTL input length is 2, and the input buffer contains
- * either
- *
- *     [0 | 1 | 2, <value>]              -- write <value> to port base + 0 | 1 | 2
- *
- * or
- *
- *     [0x80 | 0x81 | 0x82, <ignored> ]  -- read byte from port base + 0 | 1 | 2
- *                                          and place it in the output buffer
- *
- *
- * N.B. "input" is input TO the port, and "output" is output FROM the port.
- */
-
-/* initializations for GPIO interface */
-static int gpio_setup(void)
+#ifdef CHECK_JTAG_DATA_REGISTER
+static void check_Data_Register(ARC_Word expected)
 {
-    static char input_buffer [2];
-    static char output_buffer[2];
+    /* read the data from the JTAG Data Register */
+    ARC_Word actual = (ARC_Word) read_jtag_reg(JTAG_DATA_REGISTER, BITS_IN_WORD);
 
-    gpio_driver = open("//dev//gpio", O_RDWR);
-
-    if (gpio_driver == -1)
-        return errno;
-
-    if (ioctl(gpio_driver, (unsigned long) GPIO_IOC_HARDRESET) ||
-        ioctl(gpio_driver, (unsigned long) GPIO_IOC_SET_PORT_BASE, PORT_BASE_ADDRESS))
-        return errno;
-
-    /* set up buffers to hold data read from / written to ports */
-    jtag_ioctl.inbuf  = input_buffer;
-    jtag_ioctl.outbuf = output_buffer;
-
-    return 0;
+    /* is the data still in the register? */
+    if (actual != expected)
+       warning("JTAG Data Register: expected = %08X, actual = %08X\n", expected, actual);
+    else
+        printf_unfiltered("word %08X is still in JTAG Data Register\n", expected);
 }
-
-
-/* write a byte of data to the given port */
-static void gpio_write(ParallelPort port, Byte data)
-{
-    jtag_ioctl.inlen    = 2;
-    jtag_ioctl.inbuf[0] = (char) port;
-    jtag_ioctl.inbuf[1] = (char) data;
-
-    if (ioctl(gpio_driver, (unsigned long) GPIO_IOC_DO_IO, &jtag_ioctl))
-        error("Failure writing to port %d: %s\n", port, strerror(errno));
-
-    /* if no data has been consumed by the port */
-    if (jtag_ioctl.inlen == 0)
-        port_error = TRUE;
-
-//  DEBUG("jtag_ioctl.inlen: %d\n", jtag_ioctl.inlen);
-}
-
-
-/* read a byte of data from the given port */
-static Byte gpio_read(ParallelPort port)
-{
-    jtag_ioctl.inlen    = 2;
-    jtag_ioctl.inbuf[0] = (char) (port + 0x80);
-//  jtag_ioctl.inbuf[1] is ignored
-
-    /* N.B. outlen must be set! */
-    jtag_ioctl.outlen    = 1;
-    jtag_ioctl.outbuf[0] = (char) 0; // in case the read fails
-
-    if (ioctl(gpio_driver, (unsigned long) GPIO_IOC_DO_IO, &jtag_ioctl))
-        error("Failure reading from port %d: %s\n", port, strerror(errno));
-
-    /* if no data has been provided by the port */
-    if (jtag_ioctl.outlen == 0)
-        port_error = TRUE;
-
-//  DEBUG("jtag_ioctl.outlen: %d\n", jtag_ioctl.outlen);
-
-    return (Byte) jtag_ioctl.outbuf[0];
-}
+#endif
 
 
 /* -------------------------------------------------------------------------- */
@@ -535,24 +461,30 @@ static Byte gpio_read(ParallelPort port)
 static void
 tapc_set_TMS(Bit x)
 {
+    Byte current_value = data_port_value;
+
     if (x)
         data_port_value |=  JTAG_TMS;
     else
         data_port_value &= ~JTAG_TMS;
 
-    gpio_write(DATA_PORT, data_port_value);
+    if (data_port_value != current_value)
+        gpio_write(DATA_PORT, data_port_value);
 }
 
 
 static void
 tapc_set_TDI(Bit x)
 {
+    Byte current_value = data_port_value;
+
     if (x)
         data_port_value |=  JTAG_TDI;
     else
         data_port_value &= ~JTAG_TDI;
 
-    gpio_write(DATA_PORT, data_port_value);
+    if (data_port_value != current_value)
+        gpio_write(DATA_PORT, data_port_value);
 }
 
 
@@ -617,6 +549,15 @@ tapc_pulse(void)
 static void
 tapc_reset(void)
 {
+    ENTERMSG;
+
+    /* The Test Clock signal is active low (i.e. the signal is active when the
+     * corresponding bit written to the control bit is 0; so initialize the bit
+     * in the control port value to 1 so that the signal is initially not active.
+     */
+    control_port_value = (Byte) JTAG_TCK;
+    data_port_value    = (Byte) 0;
+
     /* from any state, this many TCK pulses should get the controller into state
      * Test-Logic-Reset
      */
@@ -638,6 +579,8 @@ tapc_reset(void)
     command_register_contents_known = FALSE;
 
     CHANGE_STATE(0, RUN_TEST_IDLE);
+
+    LEAVEMSG;
 }
 
 
@@ -658,9 +601,10 @@ tapc_TMS(Bit x)
 static Bit
 tapc_readTDO(void)
 {
+    Byte byte = gpio_read(STATUS_PORT);
+
     /* read from the status port */
-    return ((gpio_read(STATUS_PORT) & JTAG_TDO) != (Byte) 0) ? (Bit) 1
-                                                             : (Bit) 0;
+    return ((byte & JTAG_TDO) != (Byte) 0) ? (Bit) 1 : (Bit) 0;
 }
 
 
@@ -986,6 +930,8 @@ static JTAG_OperationStatus perform_jtag_transaction
     {
         JTAG_TransactionStatus status = read_jtag_status_register();
 
+        DEBUG("status: %s\n", JTAG_TransactionStatus_Image(status));
+
         /* the read has left the TAP Controller FSM in state Shift-DR */
         STATE_IS(SHIFT_DR);
 
@@ -995,8 +941,6 @@ static JTAG_OperationStatus perform_jtag_transaction
         /* if the transaction is complete */
         if (status == READY)
         {
-            DEBUG("*** READY\n");
-
             /* the value in the JTAG Address Register is incremented by four
              * (a memory access) or one (a register access) when a read/write
              * transaction has completed
@@ -1008,20 +952,12 @@ static JTAG_OperationStatus perform_jtag_transaction
         }
 
         if (status == FAILURE)
-        {
-            DEBUG("*** FAILED\n");
             break;
-        }
-
-        if (status == STALLED)
-        {
-            DEBUG("*** STALLED\n");
-        }
 
         /* pause and re-try */
         usleep(1);
     }
-    while (++tries <= arc_jtag_ops.jtag_retry_count);
+    while (++tries <= arc_jtag_ops.retry_count);
 
     LEAVEMSG;
     return result;
@@ -1072,20 +1008,6 @@ write_processor_register(ARC_RegisterNumber    regnum,
     write_jtag_reg(JTAG_DATA_REGISTER, contents, BITS_IN_REGISTER);
 
     return perform_jtag_transaction(Register, JTAG_WRITE_FAILURE);
-}
-
-
-static inline JTAG_OperationStatus
-read_aux_register(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
-{
-    return read_processor_register(regnum, READ_AUX_REGISTER, contents);
-}
-
-
-static inline JTAG_OperationStatus
-write_aux_register(ARC_RegisterNumber regnum, ARC_RegisterContents contents)
-{
-    return write_processor_register(regnum, WRITE_AUX_REGISTER, contents);
 }
 
 
@@ -1226,8 +1148,6 @@ jtag_read_core_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
 {
     ENTERARGS("regnum %d", regnum);
 
-    check_and_raise_error_if_JTAG_closed();
-
     return read_processor_register(regnum, READ_CORE_REGISTER, contents);
 }
 
@@ -1237,8 +1157,6 @@ static JTAG_OperationStatus
 jtag_write_core_reg(ARC_RegisterNumber regnum, ARC_RegisterContents contents)
 {
     ENTERARGS("regnum %d", regnum);
-
-    check_and_raise_error_if_JTAG_closed();
 
     return write_processor_register(regnum, WRITE_CORE_REGISTER, contents);
 }
@@ -1250,9 +1168,7 @@ jtag_read_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents* contents)
 {
     ENTERARGS("regnum %d", regnum);
 
-    check_and_raise_error_if_JTAG_closed();
-
-    return read_aux_register(regnum, contents);
+    return read_processor_register(regnum, READ_AUX_REGISTER, contents);
 }
 
 
@@ -1261,8 +1177,6 @@ static JTAG_OperationStatus
 jtag_write_aux_reg(ARC_RegisterNumber regnum, ARC_RegisterContents contents)
 {
     ENTERARGS("regnum %d", regnum);
-
-    check_and_raise_error_if_JTAG_closed();
 
     return write_processor_register(regnum, WRITE_AUX_REGISTER, contents);
 }
@@ -1276,8 +1190,6 @@ jtag_read_word(ARC_Address addr, ARC_Word* data)
 {
     ENTERARGS("addr 0x%08X", addr);
 
-    check_and_raise_error_if_JTAG_closed();
-
     return read_word(addr, data);
 }
 
@@ -1289,8 +1201,6 @@ static unsigned int
 jtag_write_word(ARC_Address addr, ARC_Word data)
 {
     ENTERARGS("addr 0x%08X, data 0x%08X", addr, data);
-
-    check_and_raise_error_if_JTAG_closed();
 
     return write_word(addr, data);
 }
@@ -1306,8 +1216,6 @@ jtag_read_chunk(ARC_Address addr, ARC_Byte* data, unsigned int bytes)
     unsigned int total_read = 0;
 
     ENTERARGS("addr 0x%08X, bytes %u", addr, bytes);
-
-    check_and_raise_error_if_JTAG_closed();
 
     /* special fast case for reading a single word */
     if (gap == 0 && bytes == BYTES_IN_WORD)
@@ -1372,7 +1280,7 @@ jtag_read_chunk(ARC_Address addr, ARC_Byte* data, unsigned int bytes)
                 /* copy it into the buffer
                  * (byte-by-byte copy means that alignment does not matter)
                  */
-                (void) memcpy(data, &word, BYTES_IN_WORD);
+                COPY_WORD(data, &word);
 
                 total_read += BYTES_IN_WORD;
                 addr       += BYTES_IN_WORD;
@@ -1406,8 +1314,6 @@ jtag_write_chunk(ARC_Address addr, ARC_Byte* data, unsigned int bytes)
     unsigned int total_written = 0;
 
     ENTERARGS("addr 0x%08X, bytes %u", addr, bytes);
-
-    check_and_raise_error_if_JTAG_closed();
 
     /* special fast case for writing a single word */
     if (gap == 0 && bytes == BYTES_IN_WORD)
@@ -1444,6 +1350,16 @@ jtag_write_chunk(ARC_Address addr, ARC_Byte* data, unsigned int bytes)
 
         if (chunk.words > 0)
         {
+#ifndef JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+            ARC_Word last_word;
+  
+            /* initialise last_word with a value that is different from the
+             * first word to be written
+             */
+            COPY_WORD(&last_word, data);
+            last_word++;
+#endif
+
             /* load the start address of the memory chunk that is to be written
              * into the JTAG Address Register
              */
@@ -1457,10 +1373,22 @@ jtag_write_chunk(ARC_Address addr, ARC_Byte* data, unsigned int bytes)
                 /* copy the next word of data from the buffer
                  * (byte-by-byte copy means that alignment does not matter)
                  */
-                (void) memcpy(&word, data, BYTES_IN_WORD);
+                COPY_WORD(&word, data);
 
-                /* load the word of data into the JTAG Data Register */
-                write_jtag_reg(JTAG_DATA_REGISTER, word, BITS_IN_WORD);
+#ifndef JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+                if (word != last_word)
+                {
+#endif
+                    write_jtag_reg(JTAG_DATA_REGISTER, word, BITS_IN_WORD);
+
+#ifdef CHECK_JTAG_DATA_REGISTER
+                    check_Data_Register(word); 
+#endif
+
+#ifndef JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+                    last_word = word;
+                }
+#endif
 
                 data += BYTES_IN_WORD;
 
@@ -1510,8 +1438,6 @@ jtag_write_pattern(ARC_Address addr, ARC_Word pattern, unsigned int bytes)
 
     ENTERARGS("addr 0x%08X, pattern 0x%08X, bytes %u", addr, pattern, bytes);
 
-    check_and_raise_error_if_JTAG_closed();
-
     /* special fast case for writing a single word */
     if (gap == 0 && bytes == BYTES_IN_WORD)
     {
@@ -1551,19 +1477,22 @@ jtag_write_pattern(ARC_Address addr, ARC_Word pattern, unsigned int bytes)
              */
             start_jtag_transaction(WRITE_MEMORY_LOCATION, addr);
 
-//          /* load the pattern into the JTAG Data Register */
-//          write_jtag_reg(JTAG_DATA_REGISTER, pattern, BITS_IN_WORD);
+#ifndef JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+            /* load the pattern into the JTAG Data Register */
+            write_jtag_reg(JTAG_DATA_REGISTER, pattern, BITS_IN_WORD);
+#endif
 
             /* write all the complete words of data */
             while (chunk.words--)
             {
-                /* load the pattern into the JTAG Data Register 
-                 * N.B. we would really like to do this before the loop, but
-                 *      there seems to be undocumented behaviour of the JTAG
-                 *      mechanism that the Data Register is set to zero after
-                 *      a write operation!
-                 */
+#ifdef JTAG_DATA_REGISTER_CORRUPTED_BY_WRITE
+                /* load the pattern into the JTAG Data Register */
                 write_jtag_reg(JTAG_DATA_REGISTER, pattern, BITS_IN_WORD);
+#endif
+
+#ifdef CHECK_JTAG_DATA_REGISTER
+                check_Data_Register(pattern); 
+#endif
 
                 /* write the word - this increments the address in the JTAG
                  * Address Register by the word size, so the register does not
@@ -1576,15 +1505,6 @@ jtag_write_pattern(ARC_Address addr, ARC_Word pattern, unsigned int bytes)
                     /* failed - just return amount of data written so far */
                     return total_written;
                 }
-
-#if 0
-                {
-                    /* read the data from the JTAG Data Register */
-                    ARC_Word back = (ARC_Word) read_jtag_reg(JTAG_DATA_REGISTER, BITS_IN_WORD);
-                    /* is the data still in the register? */
-                    assert(back == pattern);
-                }
-#endif
 
                 total_written += BYTES_IN_WORD;
                 addr          += BYTES_IN_WORD;
@@ -1614,99 +1534,22 @@ jtag_write_pattern(ARC_Address addr, ARC_Word pattern, unsigned int bytes)
 static Boolean
 jtag_open(void)
 {
-    Boolean      first_1        = TRUE;
-    Boolean      first_2        = TRUE;
-    Boolean      halt_attempted = FALSE;
-    unsigned int tries          = 0;
-    int          retval;
+    ENTERMSG;
 
-    if (arc_jtag_ops.jtag_status == JTAG_OPENED)
-        // success - already open!
-        return TRUE;
-
-    retval = gpio_setup();
-
-    if (retval != 0)
+    if (arc_jtag_ops.status == JTAG_CLOSED)
     {
-        warning("Unable to open JTAG port (device " GPIO_DEVICE "): %s\n",
-                strerror(retval));
-        return FALSE;
-    }
-
-    arc_jtag_ops.jtag_status = JTAG_OPENED;
-
-    /* we do not yet know what processor is on the target */
-    ARC_processor = UNSUPPORTED;
-
-    /* The Test Clock signal is active low (i.e. the signal is active when the
-     * corresponding bit written to the control bit is 0; so initialize the bit
-     * in the control port value to 1 so that the signal is initially not active.
-     */
-    control_port_value = (Byte) JTAG_TCK;
-    data_port_value    = (Byte) 0;
-    port_error         = FALSE;
-
-    tapc_reset();
-
-    /* try to ensure that the processor is halted
-     *
-     * N.B. unfortunately, if the gpio driver module has been installed on the
-     *      host machine, the gpio read/write operations appear to work even if
-     *      the host is NOT physically connected to the JTAG target!
-     *
-     *      There does not appear to be any way of detecting that situation -
-     *      all we can do is bale out if we have not succeded in reading the
-     *      STATUS32 register after the required number of retries!
-     */
-    do
-    {
-        JTAG_RegisterContents status = 0;
-
-        /* read the status32 register here to check if the halt bit is set */
-        if (read_aux_register(ARC_HW_STATUS32_REGNUM, &status) == JTAG_READ_FAILURE)
-        {
-            if (first_1)
-            {
-                warning("Failure reading STATUS32 auxiliary register\n");
-                first_1 = FALSE;
-            }
-        }
-        else
-        {
-            if (status & STATUS32_HALT)
-            {
-                printf_filtered("Processor halted.\n");
-                // success!
-                return TRUE;
-            }
-
-            if (first_2)
-            {
-                printf_filtered("Processor running. Trying to halt it...\n");
-                first_2 = FALSE;
-            }
-
-            if (write_aux_register(ARC_HW_DEBUG_REGNUM, DEBUG_FORCE_HALT) == JTAG_WRITE_FAILURE)
-                warning("Failure setting FH bit in DEBUG auxiliary register\n");
-            else
-                halt_attempted = TRUE;
-        }
-
-        /* just in case we actually did fail to read/write the port */
-        if (port_error)
-        {
-            warning("Error in accessing parallel port - check connection to board.\n");
+        /* make sure that the GPIO driver is open */
+        if (!gpio_open())
             return FALSE;
-        }
+
+        set_interface(JTAG_OPENED);
+
+        tapc_reset();
     }
-    while (++tries <= arc_jtag_ops.jtag_retry_count);
 
-    if (halt_attempted)
-        printf_filtered("Could not halt processor!\n");
-    else
-        printf_filtered("Could not connect to processor!\n");
+    LEAVEMSG;
 
-    return FALSE;
+    return TRUE;
 }
 
 
@@ -1714,16 +1557,16 @@ jtag_open(void)
 static void
 jtag_close(void)
 {
-    if (arc_jtag_ops.jtag_status == JTAG_OPENED)
+    ENTERMSG;
+
+    if (arc_jtag_ops.status == JTAG_OPENED)
     {
         tapc_reset();
 
         /* close file descriptor opened for communication with gpio driver */
-        (void) close(gpio_driver);
+        gpio_close();
 
-        arc_jtag_ops.jtag_status = JTAG_CLOSED;
-
-        ARC_processor = UNSUPPORTED;
+        set_interface(JTAG_CLOSED);
 
 #ifdef STATE_MACHINE_DEBUG
         current_state = UNDEFINED;
@@ -1731,68 +1574,18 @@ jtag_close(void)
 
         DEBUG("arc-jtag closed\n");
     }
+
+    LEAVEMSG;
 }
 
 
-/* wait for the target to halt */
+/* reset the target JTAG controller */
 static void
-jtag_wait(void)
+jtag_reset(void)
 {
-    sigset_t block_mask;
-
-    check_and_raise_error_if_JTAG_closed();
-
-    /* we want to be able to ignore SIGINTs */
-    (void) sigemptyset(&block_mask);
-    (void) sigaddset  (&block_mask, SIGINT);
-
-    /* busy wait until processor has halted */
-    do
-    {
-        JTAG_RegisterContents status32;
-
-        /* ignore any user interrupt whilst we are waiting for the processor to halt */
-        (void) sigprocmask(SIG_BLOCK, &block_mask, NULL);
-
-        if (read_aux_register(ARC_HW_STATUS32_REGNUM, &status32) == JTAG_READ_FAILURE)
-            warning("Failure reading STATUS32 auxiliary register\n");
-        else
-        {
-#if 0
-printf("status32: %08X\n", status32);
-
-{
-        JTAG_RegisterContents PC;
-
-        if (read_aux_register(ARC_HW_PC_REGNUM, &PC) == JTAG_READ_FAILURE)
-            warning("Failure reading PC auxiliary register\n");
-        else
-            printf("PC: %08X\n", PC);
-}
-#endif
-
-            if (status32 & STATUS32_HALT)
-            {
-                 (void) sigprocmask(SIG_UNBLOCK, &block_mask, NULL);
-                 break;
-            }
-        }
-
-        (void) sigprocmask(SIG_UNBLOCK, &block_mask, NULL);
-    } while (TRUE);
-
-
-    /* busy wait for any delayed load to complete */
-    while (TRUE)
-    {
-        JTAG_RegisterContents debug;
-
-        if (read_aux_register(ARC_HW_DEBUG_REGNUM, &debug) == JTAG_READ_FAILURE)
-            warning("Failure reading DEBUG auxiliary register\n");
-        else
-            if (!(debug & DEBUG_LOAD_PENDING))
-                break;
-    }
+    ENTERMSG;
+    tapc_reset();
+    LEAVEMSG;
 }
 
 
@@ -1800,24 +1593,80 @@ printf("status32: %08X\n", status32);
 static void
 jtag_reset_board(void)
 {
-   check_and_raise_error_if_JTAG_closed();
+    ENTERMSG;
 
-   /* force the processor to halt */
-   if (write_aux_register(ARC_HW_DEBUG_REGNUM, DEBUG_FORCE_HALT) == JTAG_WRITE_FAILURE)
-       warning("Failure writing to DEBUG auxiliary register\n");
+    /* make sure that the GPIO driver is open */
+    if (gpio_open())
+    {
+        /* Writing 9 did not work. But that's what the manual says. Hmmm. */
+//      gpio_write (CONTROL_PORT, 9);
 
-   /* Writing 9 did not work. But that's what the manual says. Hmmm. */
-// gpio_write (CONTROL_PORT, 9);
+        /* what is this for? */
+        gpio_write(CONTROL_PORT, (Byte) JTAG_TCK);
+        gpio_write(CONTROL_PORT, (Byte) 0xD);
+        gpio_write(CONTROL_PORT, (Byte) JTAG_TCK);
+        gpio_write(DATA_PORT,    (Byte) 0);
+        gpio_write(DATA_PORT,    (Byte) JTAG_TMS);
+        gpio_write(DATA_PORT,    (Byte) 0);
 
-   /* what is this for? */
-   gpio_write(CONTROL_PORT, (Byte) JTAG_TCK);
-   gpio_write(CONTROL_PORT, (Byte) 0xD);
-   gpio_write(CONTROL_PORT, (Byte) JTAG_TCK);
-   gpio_write(DATA_PORT,    (Byte) 0);
-   gpio_write(DATA_PORT,    (Byte) JTAG_TMS);
-   gpio_write(DATA_PORT,    (Byte) 0);
+        tapc_reset();
+    }
 
-   tapc_reset();
+    LEAVEMSG;
+}
+
+
+static void jtag_check_open(void)
+{
+    if (arc_jtag_ops.status == JTAG_CLOSED)
+        interface_is_closed();
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 8)                            interface management                         */
+/* -------------------------------------------------------------------------- */
+
+static void interface_is_closed(void)
+{
+    error(_("JTAG connection is closed. "
+            "Use command 'target " ARC_TARGET_NAME "' first."));
+}
+
+
+static void set_interface(JTAG_Status status)
+{
+    arc_jtag_ops.status = status;
+
+    if (status == JTAG_OPENED)
+    {
+        arc_jtag_ops.memory_read_word     = jtag_read_word;
+        arc_jtag_ops.memory_write_word    = jtag_write_word;
+        arc_jtag_ops.memory_read_chunk    = jtag_read_chunk;
+        arc_jtag_ops.memory_write_chunk   = jtag_write_chunk;
+        arc_jtag_ops.memory_write_pattern = jtag_write_pattern;
+        arc_jtag_ops.read_aux_reg         = jtag_read_aux_reg;
+        arc_jtag_ops.write_aux_reg        = jtag_write_aux_reg;
+        arc_jtag_ops.read_core_reg        = jtag_read_core_reg;
+        arc_jtag_ops.write_core_reg       = jtag_write_core_reg;
+        arc_jtag_ops.reset                = jtag_reset;
+    }
+    else
+    {
+        /* these will give "assignment from incompatible pointer type" warnings
+         * at compile-time - don't worry about it!
+         */
+        arc_jtag_ops.memory_read_word     = interface_is_closed;
+        arc_jtag_ops.memory_write_word    = interface_is_closed;
+        arc_jtag_ops.memory_read_chunk    = interface_is_closed;
+        arc_jtag_ops.memory_write_chunk   = interface_is_closed;
+        arc_jtag_ops.memory_write_pattern = interface_is_closed;
+        arc_jtag_ops.read_aux_reg         = interface_is_closed;
+        arc_jtag_ops.write_aux_reg        = interface_is_closed;
+        arc_jtag_ops.read_core_reg        = interface_is_closed;
+        arc_jtag_ops.write_core_reg       = interface_is_closed;
+        arc_jtag_ops.reset                = interface_is_closed;
+    }
 }
 
 
@@ -1825,65 +1674,24 @@ jtag_reset_board(void)
 /*                               externally visible functions                 */
 /* -------------------------------------------------------------------------- */
 
-/* return the processor variant that is connected */
-ARC_ProcessorVersion arc_get_architecture(void)
-{
-    ENTERMSG;
-
-    check_and_raise_error_if_JTAG_closed();
-
-    if (ARC_processor == UNSUPPORTED)
-    {
-        JTAG_RegisterContents value;
-
-        if (read_aux_register(ARC_HW_IDENTITY_REGNUM, &value) == JTAG_READ_FAILURE)
-            warning("Failure reading from IDENTITY auxiliary register");
-        else
-        {
-            /* get the processor version number */
-            value &= IDENTITY_ARCVER;
-
-            if ((value >= 0x30) && (value <= 0x3f))
-                ARC_processor = ARC700;
-            else if ((value >= 0x20) && (value <= 0x2f))
-                ARC_processor = ARC600;
-            else if ((value >= 0x10) && (value <= 0x1f))
-                ARC_processor = A5;
-            else if (value <= 0x0f)
-                ARC_processor = A4;
-            else
-                warning("Unsupported Processor Version 0x%x\n", value);
-       }
-   }
-
-   return ARC_processor;
-}
-
-
 /* initialize the arc_jtag_ops global variable */
 void
 _initialize_arc_jtag_ops(void)
 {
     ENTERMSG;
 
-    arc_jtag_ops.name                     = NULL;
-    arc_jtag_ops.jtag_status              = JTAG_CLOSED;
-    arc_jtag_ops.jtag_state_machine_debug = FALSE;
-    arc_jtag_ops.jtag_retry_count         = 50;
+    arc_jtag_ops.state_machine_debug = FALSE;
+    arc_jtag_ops.retry_count         = 50;
 
-    arc_jtag_ops.jtag_open                 = jtag_open;
-    arc_jtag_ops.jtag_close                = jtag_close;
-    arc_jtag_ops.jtag_memory_read_word     = jtag_read_word;
-    arc_jtag_ops.jtag_memory_write_word    = jtag_write_word;
-    arc_jtag_ops.jtag_memory_read_chunk    = jtag_read_chunk;
-    arc_jtag_ops.jtag_memory_write_chunk   = jtag_write_chunk;
-    arc_jtag_ops.jtag_memory_write_pattern = jtag_write_pattern;
-    arc_jtag_ops.jtag_read_aux_reg         = jtag_read_aux_reg;
-    arc_jtag_ops.jtag_write_aux_reg        = jtag_write_aux_reg;
-    arc_jtag_ops.jtag_read_core_reg        = jtag_read_core_reg;
-    arc_jtag_ops.jtag_write_core_reg       = jtag_write_core_reg;
-    arc_jtag_ops.jtag_wait                 = jtag_wait;
-    arc_jtag_ops.jtag_reset_board          = jtag_reset_board;
+    /* we want to be able to reset the board, and check whether it is connected,
+     * regardless of the connection state
+     */
+    arc_jtag_ops.open        = jtag_open;
+    arc_jtag_ops.close       = jtag_close;
+    arc_jtag_ops.check_open  = jtag_check_open;
+    arc_jtag_ops.reset_board = jtag_reset_board;
+
+    set_interface(JTAG_CLOSED);
 }
 
 /******************************************************************************/

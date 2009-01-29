@@ -1,6 +1,6 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
-   Copyright 2005 Free Software Foundation, Inc.
+   Copyright 2009 Free Software Foundation, Inc.
 
    Contributed by ARC International (www.arc.com)
 
@@ -37,8 +37,28 @@
 #ifndef ARC_JTAG_TDEP_H
 #define ARC_JTAG_TDEP_H
 
-struct gdbarch *arc_jtag_init (struct gdbarch *gdbarch);
+/* gdb header files */
+#include "gdbarch.h"
 
+/* ARC header files */
+#include "arc-aux-registers.h"
+#include "arc-architecture.h"
+
+
+// complete structure definition here
+struct arc_variant_info
+{
+    ARC_ProcessorVersion processor_version;
+    ARC_RegisterInfo     registers;
+};
+
+
+struct gdbarch *arc_jtag_initialize (struct gdbarch*      gdbarch,
+                                     struct gdbarch_list* arches);
+
+void _initialize_arc_jtag_tdep (void);
+
+void arc_check_pc_defined(struct gdbarch* gdbarch);
 
 #endif /* ARC_JTAG_TDEP_H */
 /******************************************************************************/

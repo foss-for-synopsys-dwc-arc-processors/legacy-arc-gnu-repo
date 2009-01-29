@@ -27,7 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "bfd.h"
 #include "symcat.h"
 #include "arc-desc.h"
-#include "arc-opc-cgen.h"
+#include "arc-opc.h"
 
 /* Operand references.  */
 
@@ -1585,6 +1585,27 @@ static const CGEN_OPINST sfmt_j_s__S_ops[] ATTRIBUTE_UNUSED = {
   { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
 };
 
+static const CGEN_OPINST sfmt_j_seq__S_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "R31", HW_H_R31, CGEN_MODE_SI, 0, 0, COND_REF },
+  { INPUT, "h_auxr_SI_34", HW_H_AUXR, CGEN_MODE_SI, 0, 34, 0 },
+  { INPUT, "h_auxr_SI_37", HW_H_AUXR, CGEN_MODE_SI, 0, 37, COND_REF },
+  { INPUT, "h_e1_BI", HW_H_E1, CGEN_MODE_BI, 0, 0, 0 },
+  { INPUT, "h_memory_UHI_countp", HW_H_MEMORY, CGEN_MODE_UHI, 0, 0, COND_REF },
+  { INPUT, "h_prof_offset_SI_0", HW_H_PROF_OFFSET, CGEN_MODE_SI, 0, 0, COND_REF },
+  { INPUT, "h_status32_SI_0", HW_H_STATUS32, CGEN_MODE_SI, 0, 0, COND_REF },
+  { INPUT, "h_timer_expire_SI_0", HW_H_TIMER_EXPIRE, CGEN_MODE_SI, 0, 0, 0 },
+  { INPUT, "h_ubit_BI", HW_H_UBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "h_auxr_SI_11", HW_H_AUXR, CGEN_MODE_SI, 0, 11, COND_REF },
+  { OUTPUT, "h_auxr_SI_33", HW_H_AUXR, CGEN_MODE_SI, 0, 33, COND_REF },
+  { OUTPUT, "h_cr_SI_29", HW_H_CR, CGEN_MODE_SI, 0, 29, COND_REF },
+  { OUTPUT, "h_e1_BI", HW_H_E1, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "h_memory_UHI_countp", HW_H_MEMORY, CGEN_MODE_UHI, 0, 0, COND_REF },
+  { OUTPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
 static const CGEN_OPINST sfmt_j_L_s12_d__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
   { INPUT, "h_auxr_SI_34", HW_H_AUXR, CGEN_MODE_SI, 0, 34, 0 },
@@ -2050,6 +2071,17 @@ static const CGEN_OPINST sfmt_lr_L_s12__ops[] ATTRIBUTE_UNUSED = {
   { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
 };
 
+static const CGEN_OPINST sfmt_lr_L_u6__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_INT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_auxr_SI_U6", HW_H_AUXR, CGEN_MODE_SI, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
 static const CGEN_OPINST sfmt_sr_L_r_r___RC__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { INPUT, "RC", HW_H_CR, CGEN_MODE_INT, OP_ENT (RC), 0, 0 },
@@ -2073,6 +2105,17 @@ static const CGEN_OPINST sfmt_sr_L_s12__ops[] ATTRIBUTE_UNUSED = {
   { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
 };
 
+static const CGEN_OPINST sfmt_sr_L_u6__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_INT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "h_auxr_SI_U6", HW_H_AUXR, CGEN_MODE_SI, 0, 0, 0 },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
 static const CGEN_OPINST sfmt_asl_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, 0 },
@@ -2091,6 +2134,10 @@ static const CGEN_OPINST sfmt_asl_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_asl_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "cbit", HW_H_CBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2116,6 +2163,10 @@ static const CGEN_OPINST sfmt_asr_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_asr_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "cbit", HW_H_CBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2142,6 +2193,10 @@ static const CGEN_OPINST sfmt_rrc_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, 0 },
   { INPUT, "cbit", HW_H_CBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "cbit", HW_H_CBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2165,6 +2220,10 @@ static const CGEN_OPINST sfmt_sexb_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_sexb_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_QI, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2187,6 +2246,10 @@ static const CGEN_OPINST sfmt_sexw_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_sexw_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_HI, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2212,6 +2275,10 @@ static const CGEN_OPINST sfmt_abs_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_abs_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "cbit", HW_H_CBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2237,6 +2304,10 @@ static const CGEN_OPINST sfmt_not_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_not_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, 0 },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2738,6 +2809,10 @@ static const CGEN_OPINST sfmt_swap_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_swap_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2747,6 +2822,10 @@ static const CGEN_OPINST sfmt_swap_L_u6__ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_norm_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_SI, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2772,6 +2851,10 @@ static const CGEN_OPINST sfmt_rnd16_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_rnd16_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2800,6 +2883,10 @@ static const CGEN_OPINST sfmt_abssw_L_r_r__RC_ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_abssw_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_HI, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2812,6 +2899,10 @@ static const CGEN_OPINST sfmt_abssw_L_u6__ops[] ATTRIBUTE_UNUSED = {
 static const CGEN_OPINST sfmt_abss_L_u6__ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
   { INPUT, "U6", HW_H_UINT, CGEN_MODE_SI, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
   { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
   { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
@@ -2854,6 +2945,328 @@ static const CGEN_OPINST sfmt_push_s_blink_ops[] ATTRIBUTE_UNUSED = {
   { INPUT, "SP", HW_H_SP, CGEN_MODE_SI, 0, 0, 0 },
   { OUTPUT, "SP", HW_H_SP, CGEN_MODE_SI, 0, 0, 0 },
   { OUTPUT, "h_memory_SI_SP", HW_H_MEMORY, CGEN_MODE_SI, 0, 0, 0 },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_mullw_L_s12__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "s12", HW_H_SINT, CGEN_MODE_INT, OP_ENT (S12), 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_mullw_ccu6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_mullw_L_u6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_mullw_L_r_r__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_mullw_cc__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_maclw_L_s12__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "s12", HW_H_SINT, CGEN_MODE_INT, OP_ENT (S12), 0, COND_REF },
+  { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_maclw_ccu6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_maclw_L_u6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_maclw_L_r_r__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, 0 },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_maclw_cc__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_machulw_L_s12__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { INPUT, "s12", HW_H_SINT, CGEN_MODE_INT, OP_ENT (S12), 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_machulw_ccu6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_machulw_L_u6__RA__ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "U6", HW_H_UINT, CGEN_MODE_UINT, OP_ENT (U6), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_machulw_L_r_r__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RA", HW_H_CR, CGEN_MODE_SI, OP_ENT (RA), 0, 0 },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, 0 },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, 0 },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
+};
+
+static const CGEN_OPINST sfmt_machulw_cc__RA__RC_ops[] ATTRIBUTE_UNUSED = {
+  { INPUT, "F", HW_H_UFLAGS, CGEN_MODE_UINT, OP_ENT (F), 0, COND_REF },
+  { INPUT, "Qcondb", HW_H_QCONDB, CGEN_MODE_BI, OP_ENT (QCONDB), 0, 0 },
+  { INPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { INPUT, "RC", HW_H_CR, CGEN_MODE_SI, OP_ENT (RC), 0, COND_REF },
+  { INPUT, "f_op_B", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "f_op_C", HW_H_UINT, CGEN_MODE_UINT, 0, 0, 0 },
+  { INPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { INPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_4", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "h_memory_HI_add__DFLT_pc_add__DFLT_4_2", HW_H_MEMORY, CGEN_MODE_HI, 0, 0, COND_REF },
+  { INPUT, "pc", HW_H_PC, CGEN_MODE_USI, 0, 0, COND_REF },
+  { OUTPUT, "RB", HW_H_CR, CGEN_MODE_SI, OP_ENT (RB), 0, COND_REF },
+  { OUTPUT, "h_cr_SI_56", HW_H_CR, CGEN_MODE_SI, 0, 56, COND_REF },
+  { OUTPUT, "h_cr_SI_57", HW_H_CR, CGEN_MODE_SI, 0, 57, COND_REF },
+  { OUTPUT, "nbit", HW_H_NBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s1bit", HW_H_S1BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "s2bit", HW_H_S2BIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "vbit", HW_H_VBIT, CGEN_MODE_BI, 0, 0, COND_REF },
+  { OUTPUT, "zbit", HW_H_ZBIT, CGEN_MODE_BI, 0, 0, COND_REF },
   { END, (const char *)0, (enum cgen_hw_type)0, (enum cgen_mode)0, (enum cgen_operand_type)0, 0, 0 }
 };
 
@@ -3057,16 +3470,16 @@ static const CGEN_OPINST *arc_cgen_opinst_table[MAX_INSNS] = {
   & sfmt_and_L_r_r__RA__RC_ops[0],
   & sfmt_and_cc__RA__RC_ops[0],
   & sfmt_I16_GO_SUB_s_go_ops[0],
-  & sfmt_and_L_s12__RA__ops[0],
-  & sfmt_and_ccu6__RA__ops[0],
-  & sfmt_and_L_u6__RA__ops[0],
-  & sfmt_and_L_r_r__RA__RC_ops[0],
-  & sfmt_and_cc__RA__RC_ops[0],
-  & sfmt_and_L_s12__RA__ops[0],
-  & sfmt_and_ccu6__RA__ops[0],
-  & sfmt_and_L_u6__RA__ops[0],
-  & sfmt_and_L_r_r__RA__RC_ops[0],
-  & sfmt_and_cc__RA__RC_ops[0],
+  & sfmt_add_L_s12__RA__ops[0],
+  & sfmt_add_ccu6__RA__ops[0],
+  & sfmt_add_L_u6__RA__ops[0],
+  & sfmt_add_L_r_r__RA__RC_ops[0],
+  & sfmt_add_cc__RA__RC_ops[0],
+  & sfmt_add_L_s12__RA__ops[0],
+  & sfmt_add_ccu6__RA__ops[0],
+  & sfmt_add_L_u6__RA__ops[0],
+  & sfmt_add_L_r_r__RA__RC_ops[0],
+  & sfmt_add_cc__RA__RC_ops[0],
   & sfmt_mov_L_s12__ops[0],
   & sfmt_mov_ccu6__ops[0],
   & sfmt_mov_L_u6__ops[0],
@@ -3189,8 +3602,8 @@ static const CGEN_OPINST *arc_cgen_opinst_table[MAX_INSNS] = {
   & sfmt_j_L_u6__ops[0],
   & sfmt_j_s_ops[0],
   & sfmt_j_s__S_ops[0],
-  & sfmt_j_s__S_ops[0],
-  & sfmt_j_s__S_ops[0],
+  & sfmt_j_seq__S_ops[0],
+  & sfmt_j_seq__S_ops[0],
   & sfmt_j_L_s12_d__ops[0],
   & sfmt_j_ccu6_d__ops[0],
   & sfmt_j_L_u6_d__ops[0],
@@ -3219,8 +3632,10 @@ static const CGEN_OPINST *arc_cgen_opinst_table[MAX_INSNS] = {
   & sfmt_flag_cc__RC_ops[0],
   & sfmt_lr_L_r_r___RC__ops[0],
   & sfmt_lr_L_s12__ops[0],
+  & sfmt_lr_L_u6__ops[0],
   & sfmt_sr_L_r_r___RC__ops[0],
   & sfmt_sr_L_s12__ops[0],
+  & sfmt_sr_L_u6__ops[0],
   & sfmt_asl_L_r_r__RC_ops[0],
   & sfmt_asl_L_u6__ops[0],
   & sfmt_I16_GO_SUB_s_go_ops[0],
@@ -3357,7 +3772,33 @@ static const CGEN_OPINST *arc_cgen_opinst_table[MAX_INSNS] = {
   & sfmt_pop_s_blink_ops[0],
   & sfmt_push_s_b_ops[0],
   & sfmt_push_s_blink_ops[0],
+  & sfmt_mullw_L_s12__RA__ops[0],
+  & sfmt_mullw_ccu6__RA__ops[0],
+  & sfmt_mullw_L_u6__RA__ops[0],
+  & sfmt_mullw_L_r_r__RA__RC_ops[0],
+  & sfmt_mullw_cc__RA__RC_ops[0],
+  & sfmt_maclw_L_s12__RA__ops[0],
+  & sfmt_maclw_ccu6__RA__ops[0],
+  & sfmt_maclw_L_u6__RA__ops[0],
+  & sfmt_maclw_L_r_r__RA__RC_ops[0],
+  & sfmt_maclw_cc__RA__RC_ops[0],
+  & sfmt_maclw_L_s12__RA__ops[0],
+  & sfmt_maclw_ccu6__RA__ops[0],
+  & sfmt_maclw_L_u6__RA__ops[0],
+  & sfmt_maclw_L_r_r__RA__RC_ops[0],
+  & sfmt_maclw_cc__RA__RC_ops[0],
+  & sfmt_mullw_L_s12__RA__ops[0],
+  & sfmt_mullw_ccu6__RA__ops[0],
+  & sfmt_mullw_L_u6__RA__ops[0],
+  & sfmt_mullw_L_r_r__RA__RC_ops[0],
+  & sfmt_mullw_cc__RA__RC_ops[0],
+  & sfmt_machulw_L_s12__RA__ops[0],
+  & sfmt_machulw_ccu6__RA__ops[0],
+  & sfmt_machulw_L_u6__RA__ops[0],
+  & sfmt_machulw_L_r_r__RA__RC_ops[0],
+  & sfmt_machulw_cc__RA__RC_ops[0],
   & sfmt_current_loop_end_ops[0],
+  & sfmt_current_loop_end_after_branch_ops[0],
   & sfmt_current_loop_end_after_branch_ops[0],
 };
 

@@ -13,6 +13,10 @@ cd uClibc-0.9.29
 make clean > /dev/zero 2> /dev/zero
 cd ..
 
+cd uClibc-0.9.30
+make clean > /dev/zero 2> /dev/zero
+cd ..
+
 
 
 

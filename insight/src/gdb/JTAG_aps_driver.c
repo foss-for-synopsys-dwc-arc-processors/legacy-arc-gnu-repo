@@ -57,27 +57,19 @@
 #include "arc-jtag.h"
 #include "arc-jtag-ops.h"
 #include "arc-jtag-actionpoints.h"
+#include "arc-aux-registers.h"
 
 
 /* -------------------------------------------------------------------------- */
 /*                               local types                                  */
 /* -------------------------------------------------------------------------- */
 
-typedef enum
+// complete the type here 
+struct aux_register_definition
 {
-    RO,    // read-only
-    RW,    // read/write
-    WO     // write-only
-} RegisterMode;
-
-
-typedef struct
-{
-   const char*          name;
-   ARC_RegisterNumber   regno;
-   ARC_RegisterContents mask;
-   RegisterMode         mode;
-} RegisterInfo;
+    const char*        name;
+    ARC_RegisterNumber number;
+};  
 
 
 /* -------------------------------------------------------------------------- */
@@ -112,12 +104,22 @@ static Boolean           simulate = FALSE;
 static unsigned int      num_actionpoints = 2;
 static struct target_ops operations;
 
+static const ARC_AuxRegisterDefinition registers[] =
+{
+    { "DEBUG",    ARC_HW_DEBUG_REGNUM    },
+    { "IDENTITY", ARC_HW_IDENTITY_REGNUM },
+    { "PC",       ARC_HW_PC_REGNUM       },
+    { "STATUS32", ARC_HW_STATUS32_REGNUM },
+    { "AP_BUILD", ARC_HW_AP_BUILD_REGNUM },
+    { "AMV0",     ARC_HW_AMV0_REGNUM     },
+    { "AMM0",     ARC_HW_AMM0_REGNUM     },
+    { "AC0",      ARC_HW_AC0_REGNUM      }
+};
+
 
 /* -------------------------------------------------------------------------- */
 /*                               local macros                                 */
 /* -------------------------------------------------------------------------- */
-
-#define warning   printf
 
 #define CHECK(status, expected) \
 { \
@@ -362,10 +364,10 @@ static void process_options(int argc, char** argv)
         switch (c)
         {
             case 'd':
-                arc_jtag_ops.jtag_state_machine_debug = TRUE;
+                arc_jtag_ops.state_machine_debug = TRUE;
                 break;
             case 'r':
-                arc_jtag_ops.jtag_retry_count = atoi(optarg);
+                arc_jtag_ops.retry_count = atoi(optarg);
                 break;
             case 'a':
                 num_actionpoints = atoi(optarg);
@@ -403,21 +405,21 @@ int main(int argc, char** argv)
 
     process_options(argc, argv);
 
-    opened = ((simulate) ? TRUE : arc_jtag_ops.jtag_open());
+    opened = ((simulate) ? TRUE : arc_jtag_ops.open());
 
     if (opened)
     {
         printf("ARC processor is connected\n");
 
         /* this can be done only after connection */
-        if (arc_init_actionpoint_ops(&operations))
+        if (arc_initialize_actionpoint_ops(&operations))
         {
             if (test)
             {
                 run_tests(TRUE);
                 printf("resetting board...\n");
                 if (!simulate)
-                    arc_jtag_ops.jtag_reset_board();
+                    arc_jtag_ops.reset_board();
                 printf("board reset\n");
                 if (!arc_restore_actionpoints_after_reset())
                     failed("could not restore actionpoints after reset");
@@ -428,7 +430,7 @@ int main(int argc, char** argv)
             printf("processor does not support actionpoints\n");
 
         if (!simulate)
-            arc_jtag_ops.jtag_close();
+            arc_jtag_ops.close();
     }
 
     printf("Finished test of ARC JTAG actionpoints\n");
@@ -437,45 +439,47 @@ int main(int argc, char** argv)
 }
 
 
-
-/* N.B. these functions are found in arc-jtag.c, but are included here in order
- *      to avoid including that module in the built test driver, as that would
- *      also pull in a lot of the gdb modules!
+/* N.B. these functions are found in arc-jtag.c and arc-aux-registers.c, but are
+ *      included here in order to avoid including that module in the built test
+ *      driver, as that would also pull in a lot of the gdb modules!
  *
  *      Also, this allows the AUX register read/write operations to be simulated,
  *      thus making it possible to test much of the logic of the arc-jtag-actionpoints
  *      module without a real JTAG target.
  */
 
-ARC_RegisterContents arc_clear_status32_user_bit (void)
+void arc_change_status32(ARC_Status32Action action)
 {
-    ARC_RegisterContents status32 = 0;
+    static ARC_RegisterContents status32;
 
-    if (arc_read_aux_register (ARC_HW_STATUS32_REGNUM, &status32))
+    if (action == CLEAR_USER_BIT)
     {
-        /* if the User bit is actually set */
-        if (status32 & STATUS32_USER)
-            if (!arc_write_aux_register(ARC_HW_STATUS32_REGNUM,  status32 & ~STATUS32_USER))
-                warning("Can not clear User bit in STATUS32 register");
+        /* Get processor out of user mode. */
+
+        if (arc_read_jtag_aux_register(ARC_HW_STATUS32_REGNUM, &status32, FALSE))
+        {
+            /* if the User bit is actually set */
+            if (status32 & STATUS32_USER)
+                if (!arc_write_jtag_aux_register(ARC_HW_STATUS32_REGNUM,
+                                                 status32 & ~STATUS32_USER, FALSE))
+                    warning(_("Can not clear User bit in STATUS32 register"));
+        }
+        else
+            warning(_("Can not read STATUS32 register"));
     }
     else
-        warning("Can not read STATUS32 register");
-
-    return status32;
+    {
+        /* if the User bit was actually cleared */
+        if (status32 & STATUS32_USER)
+            if (!arc_write_jtag_aux_register(ARC_HW_STATUS32_REGNUM, status32, FALSE))
+                warning(_("Can not restore User bit in STATUS32 register"));
+    }
 }
 
 
-void arc_restore_status32_user_bit (ARC_RegisterContents status32)
-{
-    /* if the User bit was actually cleared */
-    if (status32 & STATUS32_USER)
-        if (!arc_write_aux_register(ARC_HW_STATUS32_REGNUM, status32))
-            warning("Can not restore User bit in STATUS32 register");
-}
-
-
-
-Boolean arc_read_aux_register  (ARC_RegisterNumber hwregno, ARC_RegisterContents* contents)
+Boolean arc_read_jtag_aux_register (ARC_RegisterNumber    hwregno,
+                                    ARC_RegisterContents* contents,
+                                    Boolean               warn_on_failure)
 {
     if (simulate)
     {
@@ -493,11 +497,13 @@ Boolean arc_read_aux_register  (ARC_RegisterNumber hwregno, ARC_RegisterContents
         return TRUE;
     }
 
-    return (arc_jtag_ops.jtag_read_aux_reg(hwregno, contents) == JTAG_SUCCESS);
+    return (arc_jtag_ops.read_aux_reg(hwregno, contents) == JTAG_SUCCESS);
 }
 
 
-Boolean arc_write_aux_register (ARC_RegisterNumber hwregno, ARC_RegisterContents contents)
+Boolean arc_write_jtag_aux_register (ARC_RegisterNumber   hwregno,
+                                     ARC_RegisterContents contents,
+                                     Boolean              warn_on_failure)
 {
     if (simulate)
     {
@@ -505,7 +511,39 @@ Boolean arc_write_aux_register (ARC_RegisterNumber hwregno, ARC_RegisterContents
         return TRUE;
     }
 
-    return (arc_jtag_ops.jtag_write_aux_reg(hwregno, contents) == JTAG_SUCCESS);
+    return (arc_jtag_ops.write_aux_reg(hwregno, contents) == JTAG_SUCCESS);
+}
+
+
+ARC_AuxRegisterDefinition*
+arc_find_aux_register_by_name(const char* name)
+{
+    unsigned int i;
+
+    for (i = 0; i < ELEMENTS_IN_ARRAY(registers); i++)
+    {
+        const ARC_AuxRegisterDefinition* def = &registers[i];
+
+        if (strcmp(name, def->name) == 0)
+            return (ARC_AuxRegisterDefinition*) def;
+    }
+
+    return NULL;
+}
+
+
+ARC_RegisterNumber arc_aux_hw_register_number(ARC_AuxRegisterDefinition* def)
+{
+    return def->number;
+}
+
+
+ARC_RegisterNumber arc_aux_find_register_number(const char*        name,
+                                                ARC_RegisterNumber defaultNumber)
+{
+    ARC_AuxRegisterDefinition* def = arc_find_aux_register_by_name(name);
+
+    return (def) ? def->number : defaultNumber;
 }
 
 /******************************************************************************/

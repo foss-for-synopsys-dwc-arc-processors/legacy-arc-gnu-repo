@@ -1,6 +1,6 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
-   Copyright 2005 Free Software Foundation, Inc.
+   Copyright 2009 Free Software Foundation, Inc.
 
    Contributed by ARC International (www.arc.com)
 
@@ -32,7 +32,7 @@
 /*                                                                            */
 /* Usage:                                                                     */
 /*     Once the connection to the target has been established, the function   */
-/*     arc_init_actionpoint_ops shoud be called: this will update the         */
+/*     arc_initialize_actionpoint_ops should be called: this will update the  */
 /*     debug_ops structure according to the support provided by the ARC       */
 /*     processor in the target for hardware breakpoints and watchpoints.      */
 /*                                                                            */
@@ -46,8 +46,11 @@
 #ifndef ARC_ACTIONPOINTS_H
 #define ARC_ACTIONPOINTS_H
 
+/* gdb header files */
 #include "defs.h"
 #include "target.h"
+
+/* ARC header files */
 #include "arc-support.h"
 
 
@@ -55,7 +58,7 @@
 #define FAILURE        (-1)
 
 
-Boolean arc_init_actionpoint_ops(struct target_ops* debug_ops);
+Boolean arc_initialize_actionpoint_ops(struct target_ops* debug_ops);
 
 Boolean arc_restore_actionpoints_after_reset(void);
 

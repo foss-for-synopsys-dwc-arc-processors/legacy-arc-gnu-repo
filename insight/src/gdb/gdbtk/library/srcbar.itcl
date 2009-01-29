@@ -1041,12 +1041,19 @@ itcl::class SrcBar {
 
     set successful [gdbtk_connect $async]
 
+# ARC 24/11/08
+# en/disable other menu items
+
     if {$successful} {
       $menu entryconfigure "Connect to target" -state disabled
-      $menu entryconfigure "Disconnect" -state normal
+      $menu entryconfigure "Download"          -state normal
+      $menu entryconfigure "Run"               -state normal
+      $menu entryconfigure "Disconnect"        -state normal
     } else {
       $menu entryconfigure "Connect to target" -state normal
-      $menu entryconfigure "Disconnect" -state disabled
+      $menu entryconfigure "Download"          -state disabled
+      $menu entryconfigure "Run"               -state disabled
+      $menu entryconfigure "Disconnect"        -state disabled
     }
 
     # Make the menu reflect this change
@@ -1066,8 +1073,13 @@ itcl::class SrcBar {
 
     gdbtk_disconnect $async
 
+# ARC 24/11/08
+# disable other menu items
+
     $menu entryconfigure "Connect to target" -state normal
-    $menu entryconfigure "Disconnect" -state disabled
+    $menu entryconfigure "Download"          -state disabled
+    $menu entryconfigure "Run"               -state disabled
+    $menu entryconfigure "Disconnect"        -state disabled
   }
 
   ####################################################################

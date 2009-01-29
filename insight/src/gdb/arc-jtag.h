@@ -1,11 +1,12 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Contributed by Codito Technologies Pvt. Ltd. (www.codito.com)
 
    Authors:
-      Soam Vasani <soam.vasani@codito.com>
+      Soam Vasani     <soam.vasani@codito.com>
+      Richard Stuckey <richard.stuckey@arc.com>
 
    This file is part of GDB.
 
@@ -35,43 +36,43 @@
 #ifndef ARC_JTAG_H
 #define ARC_JTAG_H
 
+/* ARC header files */
 #include "arc-support.h"
 
 
-#define ARC_TARGET_OBJECT_AUXREGS 	(-1)
-
-
-#define target_read_aux_reg(readbuf, first_regno, count)           \
-         current_target.to_xfer_partial(&current_target,           \
-                                        ARC_TARGET_OBJECT_AUXREGS, \
-                                        NULL,                      \
-                                        (gdb_byte*) readbuf,       \
-                                        NULL,                      \
-                                        first_regno,               \
-                                        count)
-
-#define target_write_aux_reg(writebuf, first_regno, count)         \
-         current_target.to_xfer_partial(&current_target,           \
-                                        ARC_TARGET_OBJECT_AUXREGS, \
-                                        NULL,                      \
-                                        NULL,                      \
-                                        (gdb_byte*) writebuf,      \
-                                        first_regno,               \
-                                        count)
+typedef enum
+{
+    CLEAR_USER_BIT,
+    RESTORE_USER_BIT
+} ARC_Status32Action;
 
 
 void _initialize_arc_debug(void);
 
 
-/* utility functions */
+/* operation for clearing/restoring the User bit in the STATUS32 register */
+void arc_change_status32(ARC_Status32Action action);
 
-ARC_RegisterContents arc_clear_status32_user_bit (void);
-void                 arc_restore_status32_user_bit (ARC_RegisterContents status32);
 
-Boolean arc_read_aux_register  (ARC_RegisterNumber hwregno, ARC_RegisterContents* contents);
-Boolean arc_write_aux_register (ARC_RegisterNumber hwregno, ARC_RegisterContents  contents);
+/* operations for reading/writing core/auxiliary registers; these must be used
+ * when access to the registers *specifically* via the JTAG i/f is required
+ */
 
-Boolean arc_BCR_is_used(int regnum);
+Boolean arc_read_jtag_core_register  (ARC_RegisterNumber    hw_regno,
+                                      ARC_RegisterContents* contents,
+                                      Boolean               warn_on_failure);
+
+Boolean arc_write_jtag_core_register (ARC_RegisterNumber    hw_regno,
+                                      ARC_RegisterContents  contents,
+                                      Boolean               warn_on_failure);
+
+Boolean arc_read_jtag_aux_register   (ARC_RegisterNumber    hw_regno,
+                                      ARC_RegisterContents* contents,
+                                      Boolean               warn_on_failure);
+
+Boolean arc_write_jtag_aux_register  (ARC_RegisterNumber    hw_regno,
+                                      ARC_RegisterContents  contents,
+                                      Boolean               warn_on_failure);
 
 #endif /* ARC_JTAG_H */
 /******************************************************************************/

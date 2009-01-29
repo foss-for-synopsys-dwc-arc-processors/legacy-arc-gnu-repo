@@ -1,12 +1,13 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Contributed by Codito Technologies Pvt. Ltd. (www.codito.com)
 
    Authors: 
-      Soam Vasani <soam.vasani@codito.com>
+      Soam Vasani          <soam.vasani@codito.com>
       Ramana Radhakrishnan <ramana.radhakrishnan@codito.com> 
+      Richard Stuckey      <richard.stuckey@arc.com>
 
    This file is part of GDB.
    
@@ -36,29 +37,60 @@
 #ifndef ARC_TDEP_H
 #define ARC_TDEP_H
 
-#define SP_REGNUM       (gdbarch_sp_regnum       (current_gdbarch))
-#define PC_REGNUM       (gdbarch_pc_regnum       (current_gdbarch))
-#define NUM_REGS        (gdbarch_num_regs        (current_gdbarch))
-#define NUM_PSEUDO_REGS (gdbarch_num_pseudo_regs (current_gdbarch))
+/* ARC header files */
+#include "arc-support.h"
 
 
-typedef enum
-{
-    ARC700_MMU
-} ARC_ExtensionsSupportedInformation;
+#define ARC_PC_REGNUM       (gdbarch_pc_regnum       (current_gdbarch))
+#define ARC_NUM_REGS        (gdbarch_num_regs        (current_gdbarch))
+#define ARC_NUM_PSEUDO_REGS (gdbarch_num_pseudo_regs (current_gdbarch))
+#define ARC_TOTAL_REGS      (ARC_NUM_REGS + ARC_NUM_PSEUDO_REGS)
 
 
-typedef struct ARCProcessorInformation
-{
-    ARC_ProcessorVersion               processor_version;
-    ARC_ExtensionsSupportedInformation extensions_supported;  // not used
-} ARC_VariantsInfo;
+#define ARC_MAX_CORE_REGS                      64
+#define ARC_FIRST_EXTENSION_CORE_REGISTER      32
+#define ARC_LAST_EXTENSION_CORE_REGISTER       59
+#define ARC_NUM_EXTENSION_CORE_REGS            (ARC_LAST_EXTENSION_CORE_REGISTER - ARC_FIRST_EXTENSION_CORE_REGISTER + 1)
+#define ARC_NUM_STANDARD_CORE_REGS             (ARC_MAX_CORE_REGS - ARC_NUM_EXTENSION_CORE_REGS)
+
+
+#define IS_EXTENSION_CORE_REGISTER(hw_regnum)  (ARC_FIRST_EXTENSION_CORE_REGISTER <= (hw_regnum) && (hw_regnum) <= ARC_LAST_EXTENSION_CORE_REGISTER)
+
+
+/* ARC processor ABI-related registers:
+ *
+ *    R0  .. R7 are the registers used to pass arguments in function calls
+ *    R13 .. R26 are the callee-saved registers
+ *    when a return value is stored in registers it is in either R0 or in the pair (R0,R1).
+ */
+
+#define ARC_ABI_GLOBAL_POINTER                 26
+#define ARC_ABI_FRAME_POINTER                  27
+#define ARC_ABI_STACK_POINTER                  28
+
+#define ARC_ABI_FIRST_CALLEE_SAVED_REGISTER    13
+#define ARC_ABI_LAST_CALLEE_SAVED_REGISTER     26
+
+#define ARC_ABI_FIRST_ARGUMENT_REGISTER         0
+#define ARC_ABI_LAST_ARGUMENT_REGISTER          7
+
+#define ARC_ABI_RETURN_REGNUM                   0
+#define ARC_ABI_RETURN_LOW_REGNUM               0
+#define ARC_ABI_RETURN_HIGH_REGNUM              1
+
+#define IS_ARGUMENT_REGISTER(hw_regnum)         (ARC_ABI_FIRST_ARGUMENT_REGISTER <= (hw_regnum) && (hw_regnum) <= ARC_ABI_LAST_ARGUMENT_REGISTER)
+
+
+/* this type is completed in the files arc-jtag-tdep.h and arc-linux-tdep.h,
+ * as apppropriate for the arc-elf2 and arc-uclinux builds of gdb
+ */
+typedef struct arc_variant_info ARC_VariantsInfo;
 
 
 #define REGISTER_NOT_PRESENT   (-1)   // special value for sc_reg_offset[reg]
 
 
-/* this structure hold target-dependent information
+/* this structure holds target-dependent information
  *
  * N.B. this type is used in the target-independent gdb code, but it is treated
  *      as an opaque (or private) type: the only use of it is by pointers to
@@ -93,10 +125,6 @@ struct gdbarch_tdep
      */
     int (*register_reggroup_p) (int regnum, struct reggroup* group);
   
-    /* Names of processor registers, both real and pseudo */
-    const char** register_names;
-    unsigned int num_register_names;
-
     /* Breakpoint instruction to be used */
     const unsigned char* breakpoint_instruction;
     unsigned int         breakpoint_size;
@@ -115,8 +143,6 @@ void _initialize_arc_tdep (void);
 /* utility functions used by other ARC-specific modules */
 
 void arc_initialize_disassembler(struct disassemble_info* info);
-
-int arc_binutils_reg_to_regnum (struct gdbarch *gdbarch, int reg);
 
 #endif /* ARC_TDEP_H */
 /******************************************************************************/

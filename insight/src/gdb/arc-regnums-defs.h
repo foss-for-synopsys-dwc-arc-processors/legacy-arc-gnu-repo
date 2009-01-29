@@ -1,4 +1,4 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
@@ -6,6 +6,7 @@
 
    Authors: 
       Ramana Radhakrishnan <ramana.radhakrishnan@codito.com> 
+      Richard Stuckey      <richard.stuckey@arc.com>
 
    This file is part of GDB.
    
@@ -32,7 +33,13 @@
 /* N.B. this file is NOT a module header file and must NOT have an inclusion  */
 /*      guard: it may be included at multiple points in a module.             */
 /*                                                                            */
+/*                      THIS FILE IS NO LONGER USED!!!!                       */
+/*                                                                            */
 /******************************************************************************/
+
+#ifndef STANDALONE_TEST
+#error This file is no longer used
+#endif
 
 /* Auxiliary Registers */
 
@@ -53,7 +60,7 @@ RAUX ( CONTROL0,             0x22,  "Processor Timer 1 Control Value",          
 RAUX ( LIMIT0,               0x23,  "Processor Timer 1 Limit Value",              ARC_LIMIT0_REGNUM,                      0xFFFFFFFF,   RW,   ARCompact )
 RAUX ( INT_VECTOR_BASE,      0x25,  "Interrupt Vector Base Register",             ARC_INT_VECTOR_BASE_REGNUM,             0xFFFFFC00,   RW,   ARCompact )
 RAUX ( AUX_MACMODE,          0x41,  "Aux MAC Mode",                               ARC_AUX_MACMODE_REGNUM,                 0xFFFFFFFF,   RW,   ARCompact )
-RAUX ( AUX_IRQ_LV12,         0x42,  "Aux IRQ Level 2",                            ARC_AUX_IRQ_LV12_REGNUM,                0x00000003,   RW,   ARCompact )
+RAUX ( AUX_IRQ_LV12,         0x43,  "Aux IRQ Level 2",                            ARC_AUX_IRQ_LV12_REGNUM,                0x00000003,   RW,   ARCompact )
 RAUX ( COUNT1,               0x100, "Processor Timer 1 Count Value",              ARC_COUNT1_REGNUM,                      0xFFFFFFFF,   RW,   ARCompact )
 RAUX ( CONTROL1,             0x101, "Processor Timer 1 Control Value",            ARC_CONTROL1_REGNUM,                    0x0000000F,   RW,   ARCompact )
 RAUX ( LIMIT1,               0x102, "Processor Timer 1 Limit Value",              ARC_LIMIT1_REGNUM,                      0xFFFFFFFF,   RW,   ARCompact )

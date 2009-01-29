@@ -24,22 +24,24 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 
-#include <ansidecl.h>
-#include "dis-asm.h"
-#include "opcode/arc.h"
-#include "elf-bfd.h"
-#include "elf/arc.h"
-#include <string.h>
-
 #include <ctype.h>
 #include <stdarg.h>
-#include "arc-dis.h"
+#include <ansidecl.h>
+#include <string.h>
+
+#include "dis-asm.h"
+#include "opcode/arc.h"
 #include "arc-ext.h"
+#include "arc-dis.h"
+#include "arcompact-dis.h"
+#include "elf-bfd.h"
+#include "elf/arc.h"
+
 
 /* Prototypes */
 static bfd_vma bfd_getm32 (unsigned int data);
 /*static bfd_vma bfd_getm32_ac (unsigned int data); UNUSED*/
-struct arcDisState arcAnalyzeInstr ( bfd_vma address,		/* Address of this instruction */ disassemble_info* info );
+
   /*
     Ravi:
     warning: implicit declaration of function `printf_unfiltered'
@@ -539,7 +541,8 @@ write_instr_name_(struct arcDisState *state,
     }
   if (flag) strcat(state->instrBuffer, ".f");
   if (state->nullifyMode)
-    strcat(state->instrBuffer, ".d");
+    if (strstr(state->instrBuffer, ".d") == NULL)
+       strcat(state->instrBuffer, ".d");
   if (signExtend)    strcat(state->instrBuffer, ".x");
   switch (addrWriteBack)
   {
@@ -551,7 +554,7 @@ write_instr_name_(struct arcDisState *state,
 }
 
 #define write_instr_name()	{\
-  write_instr_name_(state, instrName,cond, condCodeIsPartOfName, flag, signExtend, addrWriteBack, directMem); \
+  write_instr_name_(state, instrName, cond, condCodeIsPartOfName, flag, signExtend, addrWriteBack, directMem); \
  formatString[0] = '\0'; \
 }
 
@@ -652,6 +655,8 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
   state->ea_reg2 = no_reg;
   state->_offset = 0;
   state->_addrWriteBack = 0;
+
+  state->sourceType = ARC_UNDEFINED;
 
   state->instructionLen = info->bytes_per_line;
 
@@ -2200,6 +2205,7 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
       write_instr_name();
       /* This address could be a label we know.  Convert it. */
       add_target(fieldC); /* For debugger. */
+      state->flow = direct_jump;
 
       WRITE_FORMAT_x(B);
       WRITE_FORMAT_COMMA_x(A);
@@ -2542,36 +2548,53 @@ decodeInstr
   /* disassemble */
   bytes = dsmOneArcInst(address, (void *)&s, info);
 
-  /* display the disassembly instruction */
+  /* display the disassembled instruction */
 
-  if (s.instructionLen == 2)
-    (*func) (stream, "        ");
+  {
+    char* instr   = s.instrBuffer;
+    char* operand = s.operandBuffer;
+    char* space   = strchr(instr, ' ');
+ 
+    if (s.instructionLen == 2)
+      (*func) (stream, "    %04x ", (unsigned int) s.words[0]);
+    else
+      (*func) (stream, "%08x ", (unsigned int) s.words[0]);
 
-  (*func) (stream, "%08x ", (unsigned int) s.words[0]);
-  (*func) (stream, "    ");
+    (*func) (stream, "    ");
 
-  (*func) (stream, "%-10s ", s.instrBuffer);
-
-  if (__TRANSLATION_REQUIRED(s))
-    {
-      bfd_vma addr;
-      char *tmpBuffer;
-      int i = 1;
-      if (s.operandBuffer[0] != '@')
+    /* if the operand is actually in the instruction buffer */
+    if ((space != NULL) && (operand[0] == '\0'))
       {
-	/* Branch instruction with 3 operands, Translation is required
-           only for the third operand. Print the first 2 operands */
-        strcpy(buf, s.operandBuffer);
-	tmpBuffer = strtok(buf,"@");
-        (*func) (stream, "%s",tmpBuffer);
-	i = strlen(tmpBuffer)+1;
+          *space  = '\0';
+          operand = space + 1;
       }
-      addr = s.addresses[s.operandBuffer[i] - '0'];
-      (*info->print_address_func) ((bfd_vma) addr, info);
-      (*func) (stream, "\n");
-    }
-  else
-    (*func) (stream, "%s",s.operandBuffer);
+
+    (*func) (stream, "%-10s ", instr);
+
+    if (__TRANSLATION_REQUIRED(s))
+      {
+        bfd_vma addr;
+        char *tmpBuffer;
+        int i = 1;
+
+        if (operand[0] != '@')
+        {
+	  /* Branch instruction with 3 operands, Translation is required
+             only for the third operand. Print the first 2 operands */
+          strcpy(buf, operand);
+	  tmpBuffer = strtok(buf,"@");
+          (*func) (stream, "%s", tmpBuffer);
+	  i = strlen(tmpBuffer) + 1;
+        }
+
+        addr = s.addresses[operand[i] - '0'];
+        (*info->print_address_func) ((bfd_vma) addr, info);
+        (*func) (stream, "\n");
+      }
+    else
+      (*func) (stream, "%s", operand);
+  }
+
   return s.instructionLen;
 
 }
@@ -2664,8 +2687,6 @@ arcAnalyzeInstr
 
 /* Side effect:                            */
 /* load (possibly empty) extension section */
-
-disassembler_ftype arcompact_get_disassembler (void *);
 
 disassembler_ftype
 arcompact_get_disassembler (void *ptr)

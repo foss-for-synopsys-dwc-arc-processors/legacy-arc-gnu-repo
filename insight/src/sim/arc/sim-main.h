@@ -12,7 +12,7 @@ typedef struct _sim_cpu SIM_CPU;
 #include "sim-basics.h"
 #include "cgen-types.h"
 #include "arc-desc.h"
-#include "arc-opc-cgen.h"
+#include "arc-opc.h"
 #include "arch.h"
 
 /* These must be defined before sim-base.h.  */
@@ -73,14 +73,25 @@ struct _sim_cpu {
 
 /* The sim_state struct.  */
 
+
+struct sim_memory {
+  USI heap_start;
+  USI heap_end;
+  USI stack_start;
+  USI stack_top;
+  USI total_size;
+  USI argument_data_start;
+  USI num_arguments;
+};
+
 struct sim_state {
   sim_cpu *cpu;
 #define STATE_CPU(sd, n) (/*&*/ (sd)->cpu)
 
   CGEN_STATE cgen_state;
-  unsigned int heap_start;
-  unsigned int heap_end;
-  unsigned int stack_top;
+
+  struct sim_memory memory;
+  int memory_regions_defined_by_user;
 
   sim_state_base base;
 };

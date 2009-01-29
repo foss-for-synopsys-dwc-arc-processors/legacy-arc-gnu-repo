@@ -103,6 +103,15 @@ itcl::body TargetSelection::init_target_db {} {
   set gdb_target(remotetcp,runlist) {1 1 0 1}
   set gdb_target(remotetcp,after_attaching) {}
 
+  # ARC-JTAG target
+  set gdb_target(arcjtag,pretty-name) "ARC-JTAG"
+  set gdb_target(arcjtag,defbaud) ""
+  set gdb_target(arcjtag,baud-rates) {}
+  set gdb_target(arcjtag,cmd) "arcjtag"
+  set gdb_target(arcjtag,runlist) {1 1 1 0}
+  set gdb_target(arcjtag,options) ""
+  set gdb_target(arcjtag,after_attaching) {}
+
   # ARM Angel
   set gdb_target(rdi,pretty-name) "ARM Angel/Serial"
   set gdb_target(rdi,defbaud) "9600"

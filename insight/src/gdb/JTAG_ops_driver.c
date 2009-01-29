@@ -118,22 +118,6 @@ static void failed(const char* fmt, ...)
 }
 
 
-
-static const char* processor_variant(void)
-{
-    switch (arc_get_architecture())
-    {
-        case UNSUPPORTED: return "unsupported";
-        case ARCompact  : return "ARCompact";
-        case ARC600     : return "ARC600";
-        case ARC700     : return "ARC700";
-        case A5         : return "A5";
-        case A4         : return "A4";
-        default         : return "unknown";
-    }
-}
-
-
 static void read_core_registers(void)
 {
     ARC_RegisterNumber r;
@@ -141,7 +125,7 @@ static void read_core_registers(void)
     for (r = 0; r < ARC_NR_CORE_REGS; r++)
     {
         ARC_RegisterContents contents;
-        JTAG_OperationStatus status = arc_jtag_ops.jtag_read_core_reg(r, &contents);
+        JTAG_OperationStatus status = arc_jtag_ops.read_core_reg(r, &contents);
 
         if (status == JTAG_SUCCESS)
             printf("core register %02d: 0x%08X\n", r, contents);
@@ -158,13 +142,13 @@ static void write_core_registers(void)
     for (r = 0; r < ARC_NR_CORE_REGS; r++)
     {
         ARC_RegisterContents contents = 0xDEADBEEF + r;
-        JTAG_OperationStatus status   = arc_jtag_ops.jtag_write_core_reg(r, contents);
+        JTAG_OperationStatus status   = arc_jtag_ops.write_core_reg(r, contents);
 
         if (status == JTAG_SUCCESS)
         {
             ARC_RegisterContents new_contents;
 
-            status = arc_jtag_ops.jtag_read_core_reg(r, &new_contents);
+            status = arc_jtag_ops.read_core_reg(r, &new_contents);
 
             if (status == JTAG_SUCCESS)
             {
@@ -188,7 +172,7 @@ static void read_auxiliary_registers(void)
     {
   const RegisterInfo*        info = &aux[i];
         ARC_RegisterContents contents;
-        JTAG_OperationStatus status = arc_jtag_ops.jtag_read_aux_reg(info->regno, &contents);
+        JTAG_OperationStatus status = arc_jtag_ops.read_aux_reg(info->regno, &contents);
 
         if (status == JTAG_SUCCESS)
             printf("aux register 0x%03x (%-15s): 0x%08X\n", info->regno, info->name, contents);
@@ -209,13 +193,13 @@ static void write_auxiliary_registers(void)
         if (info->mode != RO)
         {
             ARC_RegisterContents contents = 0xFFFFFFFF;
-            JTAG_OperationStatus status   = arc_jtag_ops.jtag_write_aux_reg(info->regno, contents);
+            JTAG_OperationStatus status   = arc_jtag_ops.write_aux_reg(info->regno, contents);
 
             if (status == JTAG_SUCCESS)
             {
                 ARC_RegisterContents new_contents;
 
-                status = arc_jtag_ops.jtag_read_aux_reg(info->regno, &new_contents);
+                status = arc_jtag_ops.read_aux_reg(info->regno, &new_contents);
 
                 if (status == JTAG_SUCCESS)
                 {
@@ -248,7 +232,7 @@ static void read_build_configuration_registers(void)
         if (info->mode != UU)
         {
             ARC_RegisterContents contents;
-            JTAG_OperationStatus status = arc_jtag_ops.jtag_read_aux_reg(info->regno, &contents);
+            JTAG_OperationStatus status = arc_jtag_ops.read_aux_reg(info->regno, &contents);
 
             if (status == JTAG_SUCCESS)
                 printf("BCR 0x%02x (%-16s): 0x%08X\n", info->regno, info->name, contents);
@@ -276,35 +260,35 @@ static void read_write_memory_words(void)
     ARC_Word       read4  = 0;
     unsigned int   bytes;
 
-    bytes = arc_jtag_ops.jtag_memory_write_word(DATA_AREA, write1);
+    bytes = arc_jtag_ops.memory_write_word(DATA_AREA, write1);
     if (bytes != 4)
         failed("memory word 1 write: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_write_word(DATA_AREA + 4, write2);
+    bytes = arc_jtag_ops.memory_write_word(DATA_AREA + 4, write2);
     if (bytes != 4)
         failed("memory word 2 write: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_write_word(DATA_AREA + 8, write3);
+    bytes = arc_jtag_ops.memory_write_word(DATA_AREA + 8, write3);
     if (bytes != 4)
         failed("memory word 3 write: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_write_word(DATA_AREA + 20, write4);
+    bytes = arc_jtag_ops.memory_write_word(DATA_AREA + 20, write4);
     if (bytes != 4)
         failed("memory word 4 write: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_word(DATA_AREA, &read1);
+    bytes = arc_jtag_ops.memory_read_word(DATA_AREA, &read1);
     if (bytes != 4)
         failed("memory word 1 read: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_word(DATA_AREA + 4, &read2);
+    bytes = arc_jtag_ops.memory_read_word(DATA_AREA + 4, &read2);
     if (bytes != 4)
         failed("memory word 2 read: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_word(DATA_AREA + 8, &read3);
+    bytes = arc_jtag_ops.memory_read_word(DATA_AREA + 8, &read3);
     if (bytes != 4)
         failed("memory word 3 read: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_word(DATA_AREA + 20, &read4);
+    bytes = arc_jtag_ops.memory_read_word(DATA_AREA + 20, &read4);
     if (bytes != 4)
         failed("memory word 4 read: %d", bytes);
 
@@ -344,13 +328,13 @@ static void read_write_memory_chunks(void)
 
     /* write series of complete words */
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA, out, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA, out, BUFFER_LENGTH);
     if (bytes != BUFFER_LENGTH)
         failed("memory chunk write: %d", bytes);
 
     /* and read them back */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (bytes != BUFFER_LENGTH)
         failed("memory chunk read: %d", bytes);
 
@@ -364,7 +348,7 @@ static void read_write_memory_chunks(void)
 
     /* 0) read single word */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, 4);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, 4);
     if (bytes != 4)
         failed("memory chunk read word: %d", bytes);
 
@@ -375,7 +359,7 @@ static void read_write_memory_chunks(void)
 
     for (i = 1; i <= 3; i++)
     {
-        bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 4 - i, in, i);
+        bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 4 - i, in, i);
         if (bytes != i)
             failed("memory chunk read leading bytes: %d", bytes);
 
@@ -387,7 +371,7 @@ static void read_write_memory_chunks(void)
 
     for (i = 1; i <= 3; i++)
     {
-        bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, i);
+        bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, i);
         if (bytes != i)
             failed("memory chunk read trailing bytes: %d", bytes);
 
@@ -397,7 +381,7 @@ static void read_write_memory_chunks(void)
 
     /* 3) read leading bytes and series of complete words */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 1, in, 11);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 1, in, 11);
     if (bytes != 11)
         failed("memory chunk read leading bytes and words: %d", bytes);
 
@@ -406,7 +390,7 @@ static void read_write_memory_chunks(void)
 
     /* 4) read series of complete words and trailing bytes */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, 11);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, 11);
     if (bytes != 11)
         failed("memory chunk read words and trailing bytes: %d", bytes);
 
@@ -415,7 +399,7 @@ static void read_write_memory_chunks(void)
 
     /* 5) read leading bytes and trailing bytes */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 1, in, 5);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 1, in, 5);
     if (bytes != 5)
         failed("memory chunk read leading and trailing bytes: %d", bytes);
 
@@ -424,7 +408,7 @@ static void read_write_memory_chunks(void)
 
     /* 6) read leading bytes, series of complete words and trailing bytes */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 2, in, 23);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 2, in, 23);
     if (bytes != 23)
         failed("memory chunk read leading bytes, words and trailing bytes: %d", bytes);
 
@@ -433,21 +417,21 @@ static void read_write_memory_chunks(void)
 
     /* 7) pathological cases: bytes in middle of word */
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 1, in, 1);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 1, in, 1);
     if (bytes != 1)
         failed("memory chunk read bytes in middle (1) : %d", bytes);
 
     if (memcmp(in, out + 1, 1) != 0)
         failed("memory chunk read middle bytes (1)");
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 2, in, 2);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 2, in, 2);
     if (bytes != 2)
         failed("memory chunk read bytes in middle (2) : %d", bytes);
 
     if (memcmp(in, out + 2, 2) != 0)
         failed("memory chunk read middle bytes (2)");
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA + 3, in, 1);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA + 3, in, 1);
     if (bytes != 1)
         failed("memory chunk read bytes in middle (3) : %d", bytes);
 
@@ -472,11 +456,11 @@ static void read_write_memory_chunks(void)
     out[2] = 66;
     out[3] = 53;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA, out, 4);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA, out, 4);
     if (bytes != 4)
         failed("memory chunk write word: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, 4);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, 4);
     if (memcmp(in, out, 4) != 0)
         failed("memory chunk write word");
 
@@ -489,11 +473,11 @@ static void read_write_memory_chunks(void)
         /* change data in output buffer to 8-bit values */
         *(out + offset) = 128 + i;
 
-        bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, i);
+        bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, i);
         if (bytes != i)
             failed("memory chunk write leading bytes: %d", bytes);
 
-        bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+        bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
         if (memcmp(in, out, BUFFER_LENGTH) != 0)
             failed("memory chunk write leading bytes");
     }
@@ -507,11 +491,11 @@ static void read_write_memory_chunks(void)
         /* change data in output buffer to 8-bit values */
         *(out + offset + i - 1) = 128 + i;
 
-        bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, i);
+        bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, i);
         if (bytes != i)
             failed("memory chunk write trailing bytes: %d", bytes);
 
-        bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+        bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
         if (memcmp(in, out, BUFFER_LENGTH) != 0)
             failed("memory chunk write trailing bytes");
     }
@@ -523,11 +507,11 @@ static void read_write_memory_chunks(void)
     for (i = 0; i < 11; i++)
         *(out + offset + i) = 128 + i;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 11);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 11);
     if (bytes != 11)
         failed("memory chunk write leading bytes and words: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write leading bytes and words");
 
@@ -538,11 +522,11 @@ static void read_write_memory_chunks(void)
     for (i = 0; i < 11; i++)
         *(out + offset + i) = 128 + i;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 11);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 11);
     if (bytes != 11)
         failed("memory chunk write words and trailing bytes: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write words and trailing bytes");
 
@@ -553,11 +537,11 @@ static void read_write_memory_chunks(void)
     for (i = 0; i < 5; i++)
         *(out + offset + i) = 128 + i;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 5);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 5);
     if (bytes != 5)
         failed("memory chunk write leading and trailing bytes: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write leading and trailing bytes");
 
@@ -568,11 +552,11 @@ static void read_write_memory_chunks(void)
     for (i = 0; i < 23; i++)
         *(out + offset + i) = 128 + i;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 23);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 23);
     if (bytes != 23)
         failed("memory chunk write leading bytes, words and trailing bytes: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write leading bytes, words and trailing bytes");
 
@@ -581,11 +565,11 @@ static void read_write_memory_chunks(void)
     offset = 85;
     *(out + offset) = 128;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 1);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 1);
     if (bytes != 1)
         failed("memory chunk write bytes in middle (1) : %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write middle bytes (1)");
 
@@ -593,22 +577,22 @@ static void read_write_memory_chunks(void)
     *(out + offset)     = 129;
     *(out + offset + 1) = 130;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 2);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 2);
     if (bytes != 2)
         failed("memory chunk write bytes in middle (2) : %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write middle bytes (2)");
 
     offset = 106;
     *(out + offset) = 131;
 
-    bytes = arc_jtag_ops.jtag_memory_write_chunk(DATA_AREA + offset, out + offset, 1);
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA + offset, out + offset, 1);
     if (bytes != 1)
         failed("memory chunk write bytes in middle (3) : %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory chunk write middle bytes (3)");
 
@@ -622,11 +606,11 @@ static void read_write_memory_chunks(void)
     for (i = 0; i < 15; i++)
         *(out + offset + i) = 0;
 
-    bytes = arc_jtag_ops.jtag_memory_zero_fill(DATA_AREA + offset, 15);
+    bytes = arc_jtag_ops.memory_zero_fill(DATA_AREA + offset, 15);
     if (bytes != 15)
         failed("memory zero: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory zero");
 
@@ -693,13 +677,29 @@ static void read_write_memory_chunks(void)
     *(out + offset + 19) = 0xBE;
 #endif
 
-    bytes = arc_jtag_ops.jtag_memory_write_pattern(DATA_AREA + offset, 0xDEADBEEF, 20);
+    bytes = arc_jtag_ops.memory_write_pattern(DATA_AREA + offset, 0xDEADBEEF, 20);
     if (bytes != 20)
         failed("memory pattern: %d", bytes);
 
-    bytes = arc_jtag_ops.jtag_memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
     if (memcmp(in, out, BUFFER_LENGTH) != 0)
         failed("memory pattern");
+
+    /* ----------------------------------------------------------- */
+    /*                       write repeated values operation       */
+    /* ----------------------------------------------------------- */
+
+    /* initialize output buffer to the same value */
+    for (i = 0; i < BUFFER_LENGTH; i++)
+        out[i] = 0xA;
+
+    bytes = arc_jtag_ops.memory_write_chunk(DATA_AREA, out, BUFFER_LENGTH);
+    if (bytes != BUFFER_LENGTH)
+        failed("memory chunk write repeated values : %d", bytes);
+
+    bytes = arc_jtag_ops.memory_read_chunk(DATA_AREA, in, BUFFER_LENGTH);
+    if (memcmp(in, out, BUFFER_LENGTH) != 0)
+        failed("memory chunk write repeated values");
 }
 
 
@@ -726,10 +726,10 @@ static void process_options(int argc, char** argv)
         switch (c)
         {
             case 'd':
-                arc_jtag_ops.jtag_state_machine_debug = TRUE;
+                arc_jtag_ops.state_machine_debug = TRUE;
                 break;
             case 'r':
-                arc_jtag_ops.jtag_retry_count = atoi(optarg);
+                arc_jtag_ops.retry_count = atoi(optarg);
                 break;
             case 'c':
                 test = FALSE;
@@ -756,22 +756,22 @@ int main(int argc, char** argv)
 
     process_options(argc, argv);
 
-    opened = arc_jtag_ops.jtag_open();
+    opened = arc_jtag_ops.open();
 
     if (opened)
     {
-        printf("ARC processor is %s\n", processor_variant());
+        printf("ARC processor is connected\n");
 
         if (test)
         {
             run_tests();
             printf("resetting board...\n");
-            arc_jtag_ops.jtag_reset_board();
+            arc_jtag_ops.reset_board();
             printf("board reset\n");
             run_tests();
         }
 
-        arc_jtag_ops.jtag_close();
+        arc_jtag_ops.close();
     }
 
     printf("Finished test of ARC JTAG interface\n");

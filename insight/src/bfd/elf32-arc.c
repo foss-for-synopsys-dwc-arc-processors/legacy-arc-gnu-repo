@@ -521,9 +521,6 @@ arc_elf_object_p (abfd)
 
   switch (arch)
     {
-    case E_ARC_MACH_A4:
-      mach = bfd_mach_arc_a4;
-      break;
     case E_ARC_MACH_A5:
       mach = bfd_mach_arc_a5;
       break;
@@ -555,10 +552,6 @@ arc_elf_final_write_processing (abfd, linker)
 
   switch (mach = bfd_get_mach (abfd))
     {
-    case bfd_mach_arc_a4:
-      val = E_ARC_MACH_A4;
-      elf_elfheader (abfd)->e_machine = EM_ARC;
-      break;
     case bfd_mach_arc_a5:
       val = E_ARC_MACH_A5;
       elf_elfheader (abfd)->e_machine = EM_ARCOMPACT;

@@ -188,16 +188,16 @@ static const struct insn_sem a5f_insn_sem[] =
   { ARC_INSN_XOR_L_R_R__RA__RC, A5F_INSN_XOR_L_R_R__RA__RC, A5F_SFMT_AND_L_R_R__RA__RC },
   { ARC_INSN_XOR_CC__RA__RC, A5F_INSN_XOR_CC__RA__RC, A5F_SFMT_AND_CC__RA__RC },
   { ARC_INSN_I16_GO_XOR_S_GO, A5F_INSN_I16_GO_XOR_S_GO, A5F_SFMT_I16_GO_SUB_S_GO },
-  { ARC_INSN_MAX_L_S12__RA_, A5F_INSN_MAX_L_S12__RA_, A5F_SFMT_AND_L_S12__RA_ },
-  { ARC_INSN_MAX_CCU6__RA_, A5F_INSN_MAX_CCU6__RA_, A5F_SFMT_AND_CCU6__RA_ },
-  { ARC_INSN_MAX_L_U6__RA_, A5F_INSN_MAX_L_U6__RA_, A5F_SFMT_AND_L_U6__RA_ },
-  { ARC_INSN_MAX_L_R_R__RA__RC, A5F_INSN_MAX_L_R_R__RA__RC, A5F_SFMT_AND_L_R_R__RA__RC },
-  { ARC_INSN_MAX_CC__RA__RC, A5F_INSN_MAX_CC__RA__RC, A5F_SFMT_AND_CC__RA__RC },
-  { ARC_INSN_MIN_L_S12__RA_, A5F_INSN_MIN_L_S12__RA_, A5F_SFMT_AND_L_S12__RA_ },
-  { ARC_INSN_MIN_CCU6__RA_, A5F_INSN_MIN_CCU6__RA_, A5F_SFMT_AND_CCU6__RA_ },
-  { ARC_INSN_MIN_L_U6__RA_, A5F_INSN_MIN_L_U6__RA_, A5F_SFMT_AND_L_U6__RA_ },
-  { ARC_INSN_MIN_L_R_R__RA__RC, A5F_INSN_MIN_L_R_R__RA__RC, A5F_SFMT_AND_L_R_R__RA__RC },
-  { ARC_INSN_MIN_CC__RA__RC, A5F_INSN_MIN_CC__RA__RC, A5F_SFMT_AND_CC__RA__RC },
+  { ARC_INSN_MAX_L_S12__RA_, A5F_INSN_MAX_L_S12__RA_, A5F_SFMT_ADD_L_S12__RA_ },
+  { ARC_INSN_MAX_CCU6__RA_, A5F_INSN_MAX_CCU6__RA_, A5F_SFMT_ADD_CCU6__RA_ },
+  { ARC_INSN_MAX_L_U6__RA_, A5F_INSN_MAX_L_U6__RA_, A5F_SFMT_ADD_L_U6__RA_ },
+  { ARC_INSN_MAX_L_R_R__RA__RC, A5F_INSN_MAX_L_R_R__RA__RC, A5F_SFMT_ADD_L_R_R__RA__RC },
+  { ARC_INSN_MAX_CC__RA__RC, A5F_INSN_MAX_CC__RA__RC, A5F_SFMT_ADD_CC__RA__RC },
+  { ARC_INSN_MIN_L_S12__RA_, A5F_INSN_MIN_L_S12__RA_, A5F_SFMT_ADD_L_S12__RA_ },
+  { ARC_INSN_MIN_CCU6__RA_, A5F_INSN_MIN_CCU6__RA_, A5F_SFMT_ADD_CCU6__RA_ },
+  { ARC_INSN_MIN_L_U6__RA_, A5F_INSN_MIN_L_U6__RA_, A5F_SFMT_ADD_L_U6__RA_ },
+  { ARC_INSN_MIN_L_R_R__RA__RC, A5F_INSN_MIN_L_R_R__RA__RC, A5F_SFMT_ADD_L_R_R__RA__RC },
+  { ARC_INSN_MIN_CC__RA__RC, A5F_INSN_MIN_CC__RA__RC, A5F_SFMT_ADD_CC__RA__RC },
   { ARC_INSN_MOV_L_S12_, A5F_INSN_MOV_L_S12_, A5F_SFMT_MOV_L_S12_ },
   { ARC_INSN_MOV_CCU6_, A5F_INSN_MOV_CCU6_, A5F_SFMT_MOV_CCU6_ },
   { ARC_INSN_MOV_L_U6_, A5F_INSN_MOV_L_U6_, A5F_SFMT_MOV_L_U6_ },
@@ -320,8 +320,8 @@ static const struct insn_sem a5f_insn_sem[] =
   { ARC_INSN_J_L_U6_, A5F_INSN_J_L_U6_, A5F_SFMT_J_L_U6_ },
   { ARC_INSN_J_S, A5F_INSN_J_S, A5F_SFMT_J_S },
   { ARC_INSN_J_S__S, A5F_INSN_J_S__S, A5F_SFMT_J_S__S },
-  { ARC_INSN_J_SEQ__S, A5F_INSN_J_SEQ__S, A5F_SFMT_J_S__S },
-  { ARC_INSN_J_SNE__S, A5F_INSN_J_SNE__S, A5F_SFMT_J_S__S },
+  { ARC_INSN_J_SEQ__S, A5F_INSN_J_SEQ__S, A5F_SFMT_J_SEQ__S },
+  { ARC_INSN_J_SNE__S, A5F_INSN_J_SNE__S, A5F_SFMT_J_SEQ__S },
   { ARC_INSN_J_L_S12_D_, A5F_INSN_J_L_S12_D_, A5F_SFMT_J_L_S12_D_ },
   { ARC_INSN_J_CCU6_D_, A5F_INSN_J_CCU6_D_, A5F_SFMT_J_CCU6_D_ },
   { ARC_INSN_J_L_U6_D_, A5F_INSN_J_L_U6_D_, A5F_SFMT_J_L_U6_D_ },
@@ -350,8 +350,10 @@ static const struct insn_sem a5f_insn_sem[] =
   { ARC_INSN_FLAG_CC__RC, A5F_INSN_FLAG_CC__RC, A5F_SFMT_FLAG_CC__RC },
   { ARC_INSN_LR_L_R_R___RC_, A5F_INSN_LR_L_R_R___RC_, A5F_SFMT_LR_L_R_R___RC_ },
   { ARC_INSN_LR_L_S12_, A5F_INSN_LR_L_S12_, A5F_SFMT_LR_L_S12_ },
+  { ARC_INSN_LR_L_U6_, A5F_INSN_LR_L_U6_, A5F_SFMT_LR_L_U6_ },
   { ARC_INSN_SR_L_R_R___RC_, A5F_INSN_SR_L_R_R___RC_, A5F_SFMT_SR_L_R_R___RC_ },
   { ARC_INSN_SR_L_S12_, A5F_INSN_SR_L_S12_, A5F_SFMT_SR_L_S12_ },
+  { ARC_INSN_SR_L_U6_, A5F_INSN_SR_L_U6_, A5F_SFMT_SR_L_U6_ },
   { ARC_INSN_ASL_L_R_R__RC, A5F_INSN_ASL_L_R_R__RC, A5F_SFMT_ASL_L_R_R__RC },
   { ARC_INSN_ASL_L_U6_, A5F_INSN_ASL_L_U6_, A5F_SFMT_ASL_L_U6_ },
   { ARC_INSN_I16_GO_ASL_S_GO, A5F_INSN_I16_GO_ASL_S_GO, A5F_SFMT_I16_GO_SUB_S_GO },
@@ -486,8 +488,34 @@ static const struct insn_sem a5f_insn_sem[] =
   { ARC_INSN_POP_S_BLINK, A5F_INSN_POP_S_BLINK, A5F_SFMT_POP_S_BLINK },
   { ARC_INSN_PUSH_S_B, A5F_INSN_PUSH_S_B, A5F_SFMT_PUSH_S_B },
   { ARC_INSN_PUSH_S_BLINK, A5F_INSN_PUSH_S_BLINK, A5F_SFMT_PUSH_S_BLINK },
+  { ARC_INSN_MULLW_L_S12__RA_, A5F_INSN_MULLW_L_S12__RA_, A5F_SFMT_MULLW_L_S12__RA_ },
+  { ARC_INSN_MULLW_CCU6__RA_, A5F_INSN_MULLW_CCU6__RA_, A5F_SFMT_MULLW_CCU6__RA_ },
+  { ARC_INSN_MULLW_L_U6__RA_, A5F_INSN_MULLW_L_U6__RA_, A5F_SFMT_MULLW_L_U6__RA_ },
+  { ARC_INSN_MULLW_L_R_R__RA__RC, A5F_INSN_MULLW_L_R_R__RA__RC, A5F_SFMT_MULLW_L_R_R__RA__RC },
+  { ARC_INSN_MULLW_CC__RA__RC, A5F_INSN_MULLW_CC__RA__RC, A5F_SFMT_MULLW_CC__RA__RC },
+  { ARC_INSN_MACLW_L_S12__RA_, A5F_INSN_MACLW_L_S12__RA_, A5F_SFMT_MACLW_L_S12__RA_ },
+  { ARC_INSN_MACLW_CCU6__RA_, A5F_INSN_MACLW_CCU6__RA_, A5F_SFMT_MACLW_CCU6__RA_ },
+  { ARC_INSN_MACLW_L_U6__RA_, A5F_INSN_MACLW_L_U6__RA_, A5F_SFMT_MACLW_L_U6__RA_ },
+  { ARC_INSN_MACLW_L_R_R__RA__RC, A5F_INSN_MACLW_L_R_R__RA__RC, A5F_SFMT_MACLW_L_R_R__RA__RC },
+  { ARC_INSN_MACLW_CC__RA__RC, A5F_INSN_MACLW_CC__RA__RC, A5F_SFMT_MACLW_CC__RA__RC },
+  { ARC_INSN_MACHLW_L_S12__RA_, A5F_INSN_MACHLW_L_S12__RA_, A5F_SFMT_MACLW_L_S12__RA_ },
+  { ARC_INSN_MACHLW_CCU6__RA_, A5F_INSN_MACHLW_CCU6__RA_, A5F_SFMT_MACLW_CCU6__RA_ },
+  { ARC_INSN_MACHLW_L_U6__RA_, A5F_INSN_MACHLW_L_U6__RA_, A5F_SFMT_MACLW_L_U6__RA_ },
+  { ARC_INSN_MACHLW_L_R_R__RA__RC, A5F_INSN_MACHLW_L_R_R__RA__RC, A5F_SFMT_MACLW_L_R_R__RA__RC },
+  { ARC_INSN_MACHLW_CC__RA__RC, A5F_INSN_MACHLW_CC__RA__RC, A5F_SFMT_MACLW_CC__RA__RC },
+  { ARC_INSN_MULULW_L_S12__RA_, A5F_INSN_MULULW_L_S12__RA_, A5F_SFMT_MULLW_L_S12__RA_ },
+  { ARC_INSN_MULULW_CCU6__RA_, A5F_INSN_MULULW_CCU6__RA_, A5F_SFMT_MULLW_CCU6__RA_ },
+  { ARC_INSN_MULULW_L_U6__RA_, A5F_INSN_MULULW_L_U6__RA_, A5F_SFMT_MULLW_L_U6__RA_ },
+  { ARC_INSN_MULULW_L_R_R__RA__RC, A5F_INSN_MULULW_L_R_R__RA__RC, A5F_SFMT_MULLW_L_R_R__RA__RC },
+  { ARC_INSN_MULULW_CC__RA__RC, A5F_INSN_MULULW_CC__RA__RC, A5F_SFMT_MULLW_CC__RA__RC },
+  { ARC_INSN_MACHULW_L_S12__RA_, A5F_INSN_MACHULW_L_S12__RA_, A5F_SFMT_MACHULW_L_S12__RA_ },
+  { ARC_INSN_MACHULW_CCU6__RA_, A5F_INSN_MACHULW_CCU6__RA_, A5F_SFMT_MACHULW_CCU6__RA_ },
+  { ARC_INSN_MACHULW_L_U6__RA_, A5F_INSN_MACHULW_L_U6__RA_, A5F_SFMT_MACHULW_L_U6__RA_ },
+  { ARC_INSN_MACHULW_L_R_R__RA__RC, A5F_INSN_MACHULW_L_R_R__RA__RC, A5F_SFMT_MACHULW_L_R_R__RA__RC },
+  { ARC_INSN_MACHULW_CC__RA__RC, A5F_INSN_MACHULW_CC__RA__RC, A5F_SFMT_MACHULW_CC__RA__RC },
   { ARC_INSN_CURRENT_LOOP_END, A5F_INSN_CURRENT_LOOP_END, A5F_SFMT_CURRENT_LOOP_END },
   { ARC_INSN_CURRENT_LOOP_END_AFTER_BRANCH, A5F_INSN_CURRENT_LOOP_END_AFTER_BRANCH, A5F_SFMT_CURRENT_LOOP_END_AFTER_BRANCH },
+  { ARC_INSN_ARC600_CURRENT_LOOP_END_AFTER_BRANCH, A5F_INSN_ARC600_CURRENT_LOOP_END_AFTER_BRANCH, A5F_SFMT_CURRENT_LOOP_END_AFTER_BRANCH },
 };
 
 static const struct insn_sem a5f_insn_sem_invalid = {
@@ -831,7 +859,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20080000)
-              { itype = A5F_INSN_MAX_L_R_R__RA__RC; goto extract_sfmt_and_L_r_r__RA__RC; }
+              { itype = A5F_INSN_MAX_L_R_R__RA__RC; goto extract_sfmt_add_L_r_r__RA__RC; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -862,7 +890,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20090000)
-              { itype = A5F_INSN_MIN_L_R_R__RA__RC; goto extract_sfmt_and_L_r_r__RA__RC; }
+              { itype = A5F_INSN_MIN_L_R_R__RA__RC; goto extract_sfmt_add_L_r_r__RA__RC; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -1512,7 +1540,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 100 : /* fall through */
       case 102 : /* fall through */
       case 104 : /* fall through */
-      case 106 : /* fall through */
       case 108 : /* fall through */
       case 110 : /* fall through */
       case 118 : /* fall through */
@@ -1579,7 +1606,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 95 : /* fall through */
       case 101 : /* fall through */
       case 103 : /* fall through */
-      case 107 : /* fall through */
       case 109 : /* fall through */
       case 113 : /* fall through */
       case 119 : /* fall through */
@@ -1854,12 +1880,27 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
         }
       case 47 :
         {
-          unsigned int val = (((insn >> 0) & (15 << 0)));
+          unsigned int val = (((insn >> 23) & (1 << 6)) | ((insn >> 0) & (63 << 0)));
           switch (val)
           {
-          case 0 :
+          case 0 : /* fall through */
+          case 1 : /* fall through */
+          case 2 : /* fall through */
+          case 3 : /* fall through */
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 : /* fall through */
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 : /* fall through */
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
@@ -1867,412 +1908,334 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
                   { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
+                if ((entire_insn & 0xf8000000) == 0x80000000)
+                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
+                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+              default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+              }
+            }
+          case 16 : /* fall through */
+          case 17 : /* fall through */
+          case 18 : /* fall through */
+          case 19 : /* fall through */
+          case 20 : /* fall through */
+          case 21 : /* fall through */
+          case 22 : /* fall through */
+          case 23 : /* fall through */
+          case 24 : /* fall through */
+          case 25 : /* fall through */
+          case 26 : /* fall through */
+          case 27 : /* fall through */
+          case 28 : /* fall through */
+          case 29 : /* fall through */
+          case 30 : /* fall through */
+          case 31 : /* fall through */
+          case 48 : /* fall through */
+          case 49 : /* fall through */
+          case 50 : /* fall through */
+          case 51 : /* fall through */
+          case 52 : /* fall through */
+          case 53 : /* fall through */
+          case 54 : /* fall through */
+          case 55 : /* fall through */
+          case 56 : /* fall through */
+          case 57 : /* fall through */
+          case 58 : /* fall through */
+          case 59 : /* fall through */
+          case 60 : /* fall through */
+          case 61 : /* fall through */
+          case 62 : /* fall through */
+          case 63 :
+            if ((entire_insn & 0xf8000000) == 0x80000000)
+              { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 32 : /* fall through */
+          case 33 : /* fall through */
+          case 34 : /* fall through */
+          case 35 : /* fall through */
+          case 36 : /* fall through */
+          case 37 : /* fall through */
+          case 38 : /* fall through */
+          case 39 : /* fall through */
+          case 40 : /* fall through */
+          case 41 : /* fall through */
+          case 42 : /* fall through */
+          case 43 : /* fall through */
+          case 44 : /* fall through */
+          case 45 : /* fall through */
+          case 46 : /* fall through */
+          case 47 :
+            {
+              unsigned int val = (((insn >> 31) & (1 << 0)));
+              switch (val)
+              {
+              case 0 :
                 if ((entire_insn & 0xf8010030) == 0x10020)
                   { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
+              case 1 :
+                if ((entire_insn & 0xf8000000) == 0x80000000)
+                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
+                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+              default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+              }
+            }
+          case 64 :
+            {
+              unsigned int val = (((insn >> 31) & (1 << 0)));
+              switch (val)
+              {
+              case 0 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0000)
                   { itype = A5F_INSN_ASL_L_R_R__RC; goto extract_sfmt_asl_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 1 :
+          case 65 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0001)
                   { itype = A5F_INSN_ASR_L_R_R__RC; goto extract_sfmt_asr_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 2 :
+          case 66 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0002)
                   { itype = A5F_INSN_LSR_L_R_R__RC; goto extract_sfmt_asr_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 3 :
+          case 67 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0003)
                   { itype = A5F_INSN_ROR_L_R_R__RC; goto extract_sfmt_asr_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 4 :
+          case 68 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0004)
                   { itype = A5F_INSN_RRC_L_R_R__RC; goto extract_sfmt_rrc_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 5 :
+          case 69 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0005)
                   { itype = A5F_INSN_SEXB_L_R_R__RC; goto extract_sfmt_sexb_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 6 :
+          case 70 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0006)
                   { itype = A5F_INSN_SEXW_L_R_R__RC; goto extract_sfmt_sexw_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 7 :
+          case 71 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0007)
                   { itype = A5F_INSN_EXTB_L_R_R__RC; goto extract_sfmt_sexb_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 8 :
+          case 72 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0008)
                   { itype = A5F_INSN_EXTW_L_R_R__RC; goto extract_sfmt_sexw_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 9 :
+          case 73 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f0009)
                   { itype = A5F_INSN_ABS_L_R_R__RC; goto extract_sfmt_abs_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 10 :
+          case 74 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f000a)
                   { itype = A5F_INSN_NOT_L_R_R__RC; goto extract_sfmt_not_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 11 :
+          case 75 :
             {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f000b)
                   { itype = A5F_INSN_RLC_L_R_R__RC; goto extract_sfmt_rrc_L_r_r__RC; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
-                if ((entire_insn & 0xf8000000) == 0xa0000000)
-                  { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              }
-            }
-          case 12 : /* fall through */
-          case 13 : /* fall through */
-          case 15 :
-            {
-              unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
-              switch (val)
-              {
-              case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 4 : /* fall through */
-              case 5 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 6 : /* fall through */
-              case 7 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
               }
             }
-          case 14 :
+          case 76 : /* fall through */
+          case 77 : /* fall through */
+          case 78 : /* fall through */
+          case 79 : /* fall through */
+          case 80 : /* fall through */
+          case 81 : /* fall through */
+          case 82 : /* fall through */
+          case 83 : /* fall through */
+          case 84 : /* fall through */
+          case 85 : /* fall through */
+          case 86 : /* fall through */
+          case 87 : /* fall through */
+          case 88 : /* fall through */
+          case 89 : /* fall through */
+          case 90 : /* fall through */
+          case 91 : /* fall through */
+          case 92 : /* fall through */
+          case 93 : /* fall through */
+          case 94 : /* fall through */
+          case 95 : /* fall through */
+          case 96 : /* fall through */
+          case 97 : /* fall through */
+          case 98 : /* fall through */
+          case 99 : /* fall through */
+          case 100 : /* fall through */
+          case 101 : /* fall through */
+          case 102 : /* fall through */
+          case 103 : /* fall through */
+          case 104 : /* fall through */
+          case 105 : /* fall through */
+          case 106 : /* fall through */
+          case 107 : /* fall through */
+          case 108 : /* fall through */
+          case 109 : /* fall through */
+          case 110 : /* fall through */
+          case 111 : /* fall through */
+          case 112 : /* fall through */
+          case 113 : /* fall through */
+          case 114 : /* fall through */
+          case 115 : /* fall through */
+          case 116 : /* fall through */
+          case 117 : /* fall through */
+          case 118 : /* fall through */
+          case 119 : /* fall through */
+          case 120 : /* fall through */
+          case 121 : /* fall through */
+          case 122 : /* fall through */
+          case 123 : /* fall through */
+          case 124 : /* fall through */
+          case 125 : /* fall through */
+          case 127 :
+            if ((entire_insn & 0xf8000000) == 0xa0000000)
+              { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 126 :
             {
-              unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+              unsigned int val = (((insn >> 31) & (1 << 0)));
               switch (val)
               {
               case 0 :
-                if ((entire_insn & 0xf8010030) == 0x10000)
-                  { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 2 :
-                if ((entire_insn & 0xf8010030) == 0x10020)
-                  { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 7 :
                 if ((entire_insn & 0xf8ff003f) == 0x202f003e)
                   { itype = A5F_INSN_CURRENT_LOOP_END; goto extract_sfmt_current_loop_end; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 8 : /* fall through */
-              case 9 : /* fall through */
-              case 10 : /* fall through */
-              case 11 :
-                if ((entire_insn & 0xf8000000) == 0x80000000)
-                  { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
-                itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
-              case 12 : /* fall through */
-              case 13 : /* fall through */
-              case 14 : /* fall through */
-              case 15 :
+              case 1 :
                 if ((entire_insn & 0xf8000000) == 0xa0000000)
                   { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
                 itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
@@ -2701,7 +2664,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20480000)
-              { itype = A5F_INSN_MAX_L_U6__RA_; goto extract_sfmt_and_L_u6__RA_; }
+              { itype = A5F_INSN_MAX_L_U6__RA_; goto extract_sfmt_add_L_u6__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -2732,7 +2695,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20490000)
-              { itype = A5F_INSN_MIN_L_U6__RA_; goto extract_sfmt_and_L_u6__RA_; }
+              { itype = A5F_INSN_MIN_L_U6__RA_; goto extract_sfmt_add_L_u6__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -3508,6 +3471,68 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20690000)
               { itype = A5F_INSN_FLAG_L_U6_; goto extract_sfmt_flag_L_u6_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x80000000)
+              { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa0000000)
+              { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 106 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010020) == 0x0)
+              { itype = A5F_INSN_BCC_L; goto extract_sfmt_bcc_l; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010020) == 0x20)
+              { itype = A5F_INSN_BCC_L_D; goto extract_sfmt_bcc_l; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x206a0000)
+              { itype = A5F_INSN_LR_L_U6_; goto extract_sfmt_lr_L_u6_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x80000000)
+              { itype = A5F_INSN_LD_S_ABU; goto extract_sfmt_ld_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa0000000)
+              { itype = A5F_INSN_ST_S_ABU; goto extract_sfmt_st_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 107 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x10000)
+              { itype = A5F_INSN_B_L; goto extract_sfmt_b_l; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x10020)
+              { itype = A5F_INSN_B_L_D; goto extract_sfmt_b_l; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x206b0000)
+              { itype = A5F_INSN_SR_L_U6_; goto extract_sfmt_sr_L_u6_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -4445,7 +4470,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20880000)
-              { itype = A5F_INSN_MAX_L_S12__RA_; goto extract_sfmt_and_L_s12__RA_; }
+              { itype = A5F_INSN_MAX_L_S12__RA_; goto extract_sfmt_add_L_s12__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -4476,7 +4501,7 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xf8ff0000) == 0x20890000)
-              { itype = A5F_INSN_MIN_L_S12__RA_; goto extract_sfmt_and_L_s12__RA_; }
+              { itype = A5F_INSN_MIN_L_S12__RA_; goto extract_sfmt_add_L_s12__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -5801,11 +5826,11 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xf8ff0020) == 0x20c80000)
-              { itype = A5F_INSN_MAX_CC__RA__RC; goto extract_sfmt_and_cc__RA__RC; }
+              { itype = A5F_INSN_MAX_CC__RA__RC; goto extract_sfmt_add_cc__RA__RC; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 3 :
             if ((entire_insn & 0xf8ff0020) == 0x20c80020)
-              { itype = A5F_INSN_MAX_CCU6__RA_; goto extract_sfmt_and_ccu6__RA_; }
+              { itype = A5F_INSN_MAX_CCU6__RA_; goto extract_sfmt_add_ccu6__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -5835,11 +5860,11 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xf8ff0020) == 0x20c90000)
-              { itype = A5F_INSN_MIN_CC__RA__RC; goto extract_sfmt_and_cc__RA__RC; }
+              { itype = A5F_INSN_MIN_CC__RA__RC; goto extract_sfmt_add_cc__RA__RC; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 3 :
             if ((entire_insn & 0xf8ff0020) == 0x20c90020)
-              { itype = A5F_INSN_MIN_CCU6__RA_; goto extract_sfmt_and_ccu6__RA_; }
+              { itype = A5F_INSN_MIN_CCU6__RA_; goto extract_sfmt_add_ccu6__RA_; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 4 : /* fall through */
           case 5 :
@@ -7241,9 +7266,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 295 : /* fall through */
       case 299 : /* fall through */
       case 301 : /* fall through */
-      case 305 : /* fall through */
-      case 307 : /* fall through */
-      case 309 : /* fall through */
       case 311 : /* fall through */
       case 313 : /* fall through */
       case 315 : /* fall through */
@@ -7266,9 +7288,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 359 : /* fall through */
       case 363 : /* fall through */
       case 365 : /* fall through */
-      case 369 : /* fall through */
-      case 371 : /* fall through */
-      case 373 : /* fall through */
       case 375 : /* fall through */
       case 377 : /* fall through */
       case 379 : /* fall through */
@@ -7292,9 +7311,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 427 : /* fall through */
       case 429 : /* fall through */
       case 431 : /* fall through */
-      case 433 : /* fall through */
-      case 435 : /* fall through */
-      case 437 : /* fall through */
       case 439 : /* fall through */
       case 441 : /* fall through */
       case 443 : /* fall through */
@@ -7318,9 +7334,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 491 : /* fall through */
       case 493 : /* fall through */
       case 495 : /* fall through */
-      case 497 : /* fall through */
-      case 499 : /* fall through */
-      case 501 : /* fall through */
       case 503 : /* fall through */
       case 505 : /* fall through */
       case 507 : /* fall through */
@@ -7447,7 +7460,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 288 : /* fall through */
       case 292 : /* fall through */
       case 300 : /* fall through */
-      case 304 : /* fall through */
       case 308 : /* fall through */
       case 312 : /* fall through */
       case 316 : /* fall through */
@@ -7459,7 +7471,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 352 : /* fall through */
       case 356 : /* fall through */
       case 364 : /* fall through */
-      case 368 : /* fall through */
       case 372 : /* fall through */
       case 376 : /* fall through */
       case 380 : /* fall through */
@@ -7471,7 +7482,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 416 : /* fall through */
       case 420 : /* fall through */
       case 428 : /* fall through */
-      case 432 : /* fall through */
       case 436 : /* fall through */
       case 440 : /* fall through */
       case 444 : /* fall through */
@@ -7483,7 +7493,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 480 : /* fall through */
       case 484 : /* fall through */
       case 492 : /* fall through */
-      case 496 : /* fall through */
       case 500 : /* fall through */
       case 504 : /* fall through */
       case 508 :
@@ -7522,7 +7531,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 298 : /* fall through */
       case 302 : /* fall through */
       case 306 : /* fall through */
-      case 310 : /* fall through */
       case 314 : /* fall through */
       case 318 : /* fall through */
       case 334 : /* fall through */
@@ -7535,7 +7543,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 362 : /* fall through */
       case 366 : /* fall through */
       case 370 : /* fall through */
-      case 374 : /* fall through */
       case 378 : /* fall through */
       case 382 : /* fall through */
       case 398 : /* fall through */
@@ -7548,7 +7555,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 426 : /* fall through */
       case 430 : /* fall through */
       case 434 : /* fall through */
-      case 438 : /* fall through */
       case 442 : /* fall through */
       case 446 : /* fall through */
       case 462 : /* fall through */
@@ -7561,7 +7567,6 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
       case 490 : /* fall through */
       case 494 : /* fall through */
       case 498 : /* fall through */
-      case 502 : /* fall through */
       case 506 : /* fall through */
       case 510 :
         {
@@ -7821,6 +7826,203 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 125 : /* fall through */
           case 126 : /* fall through */
           case 127 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 304 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030020) == 0x8000000)
+              { itype = A5F_INSN_BLCC; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030020) == 0x8000020)
+              { itype = A5F_INSN_BLCC_D; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28300000)
+              { itype = A5F_INSN_MULULW_L_R_R__RA__RC; goto extract_sfmt_mullw_L_r_r__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 305 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28310000)
+              { itype = A5F_INSN_MULLW_L_R_R__RA__RC; goto extract_sfmt_mullw_L_r_r__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 307 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28330000)
+              { itype = A5F_INSN_MACLW_L_R_R__RA__RC; goto extract_sfmt_maclw_L_r_r__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 309 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28350000)
+              { itype = A5F_INSN_MACHULW_L_R_R__RA__RC; goto extract_sfmt_machulw_L_r_r__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 310 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030030) == 0x8020000)
+              { itype = A5F_INSN_BL; goto extract_sfmt_bl; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030030) == 0x8020020)
+              { itype = A5F_INSN_BL_D; goto extract_sfmt_bl_d; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28360000)
+              { itype = A5F_INSN_MACHLW_L_R_R__RA__RC; goto extract_sfmt_maclw_L_r_r__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
             if ((entire_insn & 0xf8000000) == 0xa8000000)
               { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
@@ -8476,6 +8678,203 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
+      case 368 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030020) == 0x8000000)
+              { itype = A5F_INSN_BLCC; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030020) == 0x8000020)
+              { itype = A5F_INSN_BLCC_D; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28700000)
+              { itype = A5F_INSN_MULULW_L_U6__RA_; goto extract_sfmt_mullw_L_u6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 369 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28710000)
+              { itype = A5F_INSN_MULLW_L_U6__RA_; goto extract_sfmt_mullw_L_u6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 371 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28730000)
+              { itype = A5F_INSN_MACLW_L_U6__RA_; goto extract_sfmt_maclw_L_u6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 373 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28750000)
+              { itype = A5F_INSN_MACHULW_L_U6__RA_; goto extract_sfmt_machulw_L_u6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 374 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030030) == 0x8020000)
+              { itype = A5F_INSN_BL; goto extract_sfmt_bl; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030030) == 0x8020020)
+              { itype = A5F_INSN_BL_D; goto extract_sfmt_bl_d; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28760000)
+              { itype = A5F_INSN_MACHLW_L_U6__RA_; goto extract_sfmt_maclw_L_u6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
       case 384 :
         {
           unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
@@ -8957,6 +9356,203 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : /* fall through */
           case 14 : /* fall through */
           case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 432 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030020) == 0x8000000)
+              { itype = A5F_INSN_BLCC; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030020) == 0x8000020)
+              { itype = A5F_INSN_BLCC_D; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28b00000)
+              { itype = A5F_INSN_MULULW_L_S12__RA_; goto extract_sfmt_mullw_L_s12__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 433 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28b10000)
+              { itype = A5F_INSN_MULLW_L_S12__RA_; goto extract_sfmt_mullw_L_s12__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 435 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28b30000)
+              { itype = A5F_INSN_MACLW_L_S12__RA_; goto extract_sfmt_maclw_L_s12__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 437 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 : /* fall through */
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0000) == 0x28b50000)
+              { itype = A5F_INSN_MACHULW_L_S12__RA_; goto extract_sfmt_machulw_L_s12__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 438 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030030) == 0x8020000)
+              { itype = A5F_INSN_BL; goto extract_sfmt_bl; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030030) == 0x8020020)
+              { itype = A5F_INSN_BL_D; goto extract_sfmt_bl_d; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 : /* fall through */
+          case 3 :
+            if ((entire_insn & 0xf8ff0000) == 0x28b60000)
+              { itype = A5F_INSN_MACHLW_L_S12__RA_; goto extract_sfmt_maclw_L_s12__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
             if ((entire_insn & 0xf8000000) == 0xa8000000)
               { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
@@ -9483,6 +10079,218 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : /* fall through */
           case 14 : /* fall through */
           case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 496 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030020) == 0x8000000)
+              { itype = A5F_INSN_BLCC; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030020) == 0x8000020)
+              { itype = A5F_INSN_BLCC_D; goto extract_sfmt_blcc; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f00000)
+              { itype = A5F_INSN_MULULW_CC__RA__RC; goto extract_sfmt_mullw_cc__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f00020)
+              { itype = A5F_INSN_MULULW_CCU6__RA_; goto extract_sfmt_mullw_ccu6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 497 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f10000)
+              { itype = A5F_INSN_MULLW_CC__RA__RC; goto extract_sfmt_mullw_cc__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f10020)
+              { itype = A5F_INSN_MULLW_CCU6__RA_; goto extract_sfmt_mullw_ccu6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 499 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f30000)
+              { itype = A5F_INSN_MACLW_CC__RA__RC; goto extract_sfmt_maclw_cc__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f30020)
+              { itype = A5F_INSN_MACLW_CCU6__RA_; goto extract_sfmt_maclw_ccu6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 501 :
+        {
+          unsigned int val = (((insn >> 28) & (1 << 3)) | ((insn >> 27) & (1 << 2)) | ((insn >> 4) & (3 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8010030) == 0x8010000)
+              { itype = A5F_INSN_BRCC_RC; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8010030) == 0x8010010)
+              { itype = A5F_INSN_BRCC_U6; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8010030) == 0x8010020)
+              { itype = A5F_INSN_BRCC_RC_D; goto extract_sfmt_brcc_RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8010030) == 0x8010030)
+              { itype = A5F_INSN_BRCC_U6_D; goto extract_sfmt_brcc_U6; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f50000)
+              { itype = A5F_INSN_MACHULW_CC__RA__RC; goto extract_sfmt_machulw_cc__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f50020)
+              { itype = A5F_INSN_MACHULW_CCU6__RA_; goto extract_sfmt_machulw_ccu6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 8 : /* fall through */
+          case 9 : /* fall through */
+          case 10 : /* fall through */
+          case 11 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 12 : /* fall through */
+          case 13 : /* fall through */
+          case 14 : /* fall through */
+          case 15 :
+            if ((entire_insn & 0xf8000000) == 0xa8000000)
+              { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 502 :
+        {
+          unsigned int val = (((insn >> 29) & (1 << 2)) | ((insn >> 28) & (1 << 1)) | ((insn >> 5) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf8030030) == 0x8020000)
+              { itype = A5F_INSN_BL; goto extract_sfmt_bl; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf8030030) == 0x8020020)
+              { itype = A5F_INSN_BL_D; goto extract_sfmt_bl_d; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f60000)
+              { itype = A5F_INSN_MACHLW_CC__RA__RC; goto extract_sfmt_maclw_cc__RA__RC; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 3 :
+            if ((entire_insn & 0xf8ff0020) == 0x28f60020)
+              { itype = A5F_INSN_MACHLW_CCU6__RA_; goto extract_sfmt_maclw_ccu6__RA_; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 4 : /* fall through */
+          case 5 :
+            if ((entire_insn & 0xf8000000) == 0x88000000)
+              { itype = A5F_INSN_LDB_S_ABU; goto extract_sfmt_ldb_s_abu; }
+            itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 : /* fall through */
+          case 7 :
             if ((entire_insn & 0xf8000000) == 0xa8000000)
               { itype = A5F_INSN_STB_S_ABU; goto extract_sfmt_stb_s_abu; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
@@ -13401,11 +14209,11 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 12 :
             if ((entire_insn & 0xffff0000) == 0x7ce00000)
-              { itype = A5F_INSN_J_SEQ__S; goto extract_sfmt_j_s__S; }
+              { itype = A5F_INSN_J_SEQ__S; goto extract_sfmt_j_seq__S; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 13 :
             if ((entire_insn & 0xffff0000) == 0x7de00000)
-              { itype = A5F_INSN_J_SNE__S; goto extract_sfmt_j_s__S; }
+              { itype = A5F_INSN_J_SNE__S; goto extract_sfmt_j_seq__S; }
             itype = A5F_INSN_X_INVALID; goto extract_sfmt_empty;
           case 14 :
             if ((entire_insn & 0xffff0000) == 0x7ee00000)
@@ -16972,6 +17780,25 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
+ extract_sfmt_j_seq__S:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+#define FLD(f) abuf->fields.fmt_empty.f
+
+
+  /* Record the fields for the semantic handler.  */
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_j_seq__S", (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
  extract_sfmt_j_L_s12_d_:
   {
     const IDESC *idesc = &a5f_insn_data[itype];
@@ -17750,6 +18577,38 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
+ extract_sfmt_lr_L_u6_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+    UINT f_op__b;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_u6) = f_u6;
+  FLD (f_op_B) = f_op_B;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_lr_L_u6_", "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
  extract_sfmt_sr_L_r_r___RC_:
   {
     const IDESC *idesc = &a5f_insn_data[itype];
@@ -17809,6 +18668,38 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   FLD (f_s12) = f_s12;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sr_L_s12_", "f_op_B 0x%x", 'x', f_op_B, "f_s12 0x%x", 'x', f_s12, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_sr_L_u6_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+    UINT f_op__b;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sr_L_u6_", "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, (char *) 0));
 
 #if WITH_PROFILE_MODEL_P
   /* Record the fields for profiling.  */
@@ -17880,6 +18771,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_asl_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -17944,6 +18841,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_asr_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -18008,6 +18911,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_rrc_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -18072,6 +18981,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sexb_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -18136,6 +19051,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sexw_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -18200,6 +19121,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_abs_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -18264,6 +19191,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_not_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19353,6 +20286,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_swap_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19382,6 +20321,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_norm_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19446,6 +20391,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_rnd16_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19510,6 +20461,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_abssw_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19539,6 +20496,12 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_op_B) = f_op_B;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_abss_L_u6_", "f_F 0x%x", 'x', f_F, "f_u6 0x%x", 'x', f_u6, "f_op_B 0x%x", 'x', f_op_B, (char *) 0));
 
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }
@@ -19612,6 +20575,585 @@ a5f_decode (SIM_CPU *current_cpu, IADDR pc,
   /* Record the fields for the semantic handler.  */
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_push_s_blink", (char *) 0));
 
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mullw_L_s12__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    INT f_s12h;
+    UINT f_op_B;
+    INT f_s12;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_s12h = EXTRACT_MSB0_INT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+{
+  f_s12 = ((f_u6) | (((f_s12h) << (6))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_s12) = f_s12;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mullw_L_s12__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_s12 0x%x", 'x', f_s12, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mullw_ccu6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mullw_ccu6__RA_", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mullw_L_u6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mullw_L_u6__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mullw_L_r_r__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mullw_L_r_r__RA__RC", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mullw_cc__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mullw_cc__RA__RC", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_maclw_L_s12__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    INT f_s12h;
+    UINT f_op_B;
+    INT f_s12;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_s12h = EXTRACT_MSB0_INT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+{
+  f_s12 = ((f_u6) | (((f_s12h) << (6))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_s12) = f_s12;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_maclw_L_s12__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_s12 0x%x", 'x', f_s12, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_maclw_ccu6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_maclw_ccu6__RA_", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_maclw_L_u6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_maclw_L_u6__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_maclw_L_r_r__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_maclw_L_r_r__RA__RC", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_maclw_cc__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_maclw_cc__RA__RC", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_machulw_L_s12__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    INT f_s12h;
+    UINT f_op_B;
+    INT f_s12;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_s12h = EXTRACT_MSB0_INT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+{
+  f_s12 = ((f_u6) | (((f_s12h) << (6))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_s12) = f_s12;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_machulw_L_s12__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_s12 0x%x", 'x', f_s12, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_machulw_ccu6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_machulw_ccu6__RA_", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_machulw_L_u6__RA_:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_u6;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_u6 = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_u6) = f_u6;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_machulw_L_u6__RA_", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_u6 0x%x", 'x', f_u6, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_machulw_L_r_r__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_op_A;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_op_A = EXTRACT_MSB0_UINT (insn, 32, 26, 6);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  FLD (f_op_A) = f_op_A;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_machulw_L_r_r__RA__RC", "f_F 0x%x", 'x', f_F, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, "f_op_A 0x%x", 'x', f_op_A, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_machulw_cc__RA__RC:
+  {
+    const IDESC *idesc = &a5f_insn_data[itype];
+    CGEN_INSN_INT insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+    UINT f_op__b;
+    UINT f_F;
+    UINT f_B_5_3;
+    UINT f_op_C;
+    UINT f_cond_Q;
+    UINT f_op_B;
+
+    f_op__b = EXTRACT_MSB0_UINT (insn, 32, 5, 3);
+    f_F = EXTRACT_MSB0_UINT (insn, 32, 16, 1);
+    f_B_5_3 = EXTRACT_MSB0_UINT (insn, 32, 17, 3);
+    f_op_C = EXTRACT_MSB0_UINT (insn, 32, 20, 6);
+    f_cond_Q = EXTRACT_MSB0_UINT (insn, 32, 27, 5);
+{
+  f_op_B = ((f_op__b) | (((f_B_5_3) << (3))));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_F) = f_F;
+  FLD (f_cond_Q) = f_cond_Q;
+  FLD (f_op_B) = f_op_B;
+  FLD (f_op_C) = f_op_C;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_machulw_cc__RA__RC", "f_F 0x%x", 'x', f_F, "f_cond_Q 0x%x", 'x', f_cond_Q, "f_op_B 0x%x", 'x', f_op_B, "f_op_C 0x%x", 'x', f_op_C, (char *) 0));
+
+#if WITH_PROFILE_MODEL_P
+  /* Record the fields for profiling.  */
+  if (PROFILE_MODEL_P (current_cpu))
+    {
+    }
+#endif
 #undef FLD
     return idesc;
   }

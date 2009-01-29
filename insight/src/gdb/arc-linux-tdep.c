@@ -1,10 +1,11 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Authors: 
-      Soam Vasani <soam.vasani@codito.com>
+      Soam Vasani          <soam.vasani@codito.com>
       Ramana Radhakrishnan <ramana.radhakrishnan@codito.com> 
+      Richard Stuckey      <richard.stuckey@arc.com>
 
    This file is part of GDB.
    
@@ -29,7 +30,6 @@
 /*     This module provides support for the ARC processor family's target     */
 /*     dependencies which are specific to the arc-linux-uclibc configuration  */
 /*     of the ARC gdb.                                                        */
-/*                                                                            */
 /*                                                                            */
 /* Usage:                                                                     */
 /*     The module exports a function _initialize_arc_linux_tdep: the call to  */
@@ -59,13 +59,17 @@
 /* ARC header files */
 /* deprecated tm.h support in 6.8 fix */
 #include "config/arc/tm-linux.h"
+#include "arc-linux-tdep.h"
 #include "arc-support.h"
-#include "arc-jtag-ops.h"
 #include "arc-tdep.h"
+
 
 /* -------------------------------------------------------------------------- */
 /*                               local data                                   */
 /* -------------------------------------------------------------------------- */
+
+#define STATUS32_L            0x00000100
+
 
 /* Default breakpoint instruction used for ARC700 Linux */
 static const unsigned char breakpoint_instruction[] = { 0x3e, 0x78 };
@@ -229,6 +233,13 @@ extern struct arcDisState arcAnalyzeInstr (bfd_vma address,disassemble_info* inf
 
 
 /* -------------------------------------------------------------------------- */
+/*                               forward declarations                         */
+/* -------------------------------------------------------------------------- */
+
+static int arc_linux_binutils_reg_to_regnum (struct gdbarch *gdbarch, int reg);
+
+
+/* -------------------------------------------------------------------------- */
 /*                               local macros                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -247,6 +258,7 @@ extern struct arcDisState arcAnalyzeInstr (bfd_vma address,disassemble_info* inf
 static Boolean
 next_pc(CORE_ADDR pc, CORE_ADDR *fall_thru, CORE_ADDR *target)
 {
+    struct regcache*        regcache = get_current_regcache();
     struct disassemble_info di;
     struct arcDisState      instr;
     Boolean                 two_targets = FALSE;
@@ -280,9 +292,10 @@ next_pc(CORE_ADDR pc, CORE_ADDR *fall_thru, CORE_ADDR *target)
         if (instr.flow == direct_jump || instr.flow == direct_call)
             *target = (CORE_ADDR) instr.targets[0];
         else
-            regcache_cooked_read(get_current_regcache(),
-                                arc_binutils_reg_to_regnum(current_gdbarch,
-				instr.register_for_indirect_jump), (gdb_byte*) target);
+            regcache_cooked_read(regcache,
+                                 arc_linux_binutils_reg_to_regnum(current_gdbarch,
+                                 instr.register_for_indirect_jump),
+                                 (gdb_byte*) target);
 
         /* for instructions with delay slots, the fall thru is not the instruction
          * immediately after the branch instruction, but the one after that
@@ -303,10 +316,10 @@ next_pc(CORE_ADDR pc, CORE_ADDR *fall_thru, CORE_ADDR *target)
     {
         unsigned int lp_end, lp_start, lp_count, status32;
 
-        regcache_cooked_read(get_current_regcache(), ARC_LP_START_REGNUM, (gdb_byte*) &lp_start);
-        regcache_cooked_read(get_current_regcache(), ARC_LP_END_REGNUM,   (gdb_byte*) &lp_end);
-        regcache_cooked_read(get_current_regcache(), ARC_LP_COUNT_REGNUM, (gdb_byte*) &lp_count);
-        regcache_cooked_read(get_current_regcache(), ARC_STATUS32_REGNUM, (gdb_byte*) &status32);
+        regcache_cooked_read(regcache, ARC_LP_START_REGNUM, (gdb_byte*) &lp_start);
+        regcache_cooked_read(regcache, ARC_LP_END_REGNUM,   (gdb_byte*) &lp_end);
+        regcache_cooked_read(regcache, ARC_LP_COUNT_REGNUM, (gdb_byte*) &lp_count);
+        regcache_cooked_read(regcache, ARC_STATUS32_REGNUM, (gdb_byte*) &status32);
 
         if (!(status32 & STATUS32_L) && *fall_thru == lp_end && lp_count > 1)
         {
@@ -336,7 +349,7 @@ arcompact_linux_supply_gregset (struct regcache *regcache,
     {
         if (arcompact_linux_core_reg_offsets[reg] != REGISTER_NOT_PRESENT)
             regcache_raw_supply (regcache,
-                                 reg,
+                                 (int) reg,
                                  buf + arcompact_linux_core_reg_offsets[reg]);
     }
 }
@@ -397,11 +410,21 @@ linux_sigcontext_addr (struct frame_info *next_frame)
 static int
 register_reggroup_p (int regnum, struct reggroup *group)
 {
-    if (regnum == ARC_ORIG_R8_REGNUM && group == system_reggroup)
-        return 1;
+    if (system_reggroup)
+    {
+        if (regnum == ARC_ORIG_R8_REGNUM ||
+            regnum == ARC_EFA_REGNUM     ||
+            regnum == ARC_ERET_REGNUM    ||
+            regnum == ARC_ERSTATUS_REGNUM)
+            return 1;
+    }
+    else if (group == general_reggroup)
+    {
+        if (regnum == ARC_RET_REGNUM)
+            return 0;
 
-    if (regnum == ARC_RET_REGNUM     && group == general_reggroup)
-        return 0;
+        return (regnum == ARC_STATUS32_REGNUM) ? 0 : 1;
+    }
 
     /* let the caller sort it out! */
     return -1;
@@ -441,55 +464,98 @@ register_reggroup_p (int regnum, struct reggroup *group)
 static void
 arc_linux_pseudo_register_read (struct gdbarch  *gdbarch,
                                 struct regcache *regcache,
-                                int              regno,
+                                int              gdb_regno,
                                 gdb_byte        *buf)
 {
-    unsigned int *contents = (unsigned int *) buf;
+    unsigned int* contents = (unsigned int *) buf;
     unsigned int  status32, ret;
     int           orig_r8;
 
-    regcache_cooked_read (get_current_regcache(), ARC_ORIG_R8_REGNUM, (gdb_byte*) &orig_r8);
+    regcache_cooked_read (regcache, ARC_ORIG_R8_REGNUM, (gdb_byte*) &orig_r8);
 
-    if (regno == ARC_ILINK1_REGNUM ||
-        regno == ARC_ILINK2_REGNUM ||
-        regno == ARC_ERET_REGNUM)
+    if (gdb_regno == ARC_ILINK1_REGNUM ||
+        gdb_regno == ARC_ILINK2_REGNUM ||
+        gdb_regno == ARC_ERET_REGNUM)
     {
-        regcache_cooked_read (get_current_regcache(), ARC_RET_REGNUM, (gdb_byte*) &ret);
+        regcache_cooked_read (regcache, ARC_RET_REGNUM, (gdb_byte*) &ret);
 
-        if (regno == ARC_ILINK1_REGNUM)
+        if (gdb_regno == ARC_ILINK1_REGNUM)
             *contents = ((orig_r8 == -1) ? ret : 0);
-        else if (regno == ARC_ILINK2_REGNUM)
+        else if (gdb_regno == ARC_ILINK2_REGNUM)
             *contents = ((orig_r8 == -2) ? ret : 0);
-        else  // (regno == ARC_ERET_REGNUM)
+        else  // (gdb_regno == ARC_ERET_REGNUM)
             *contents = ((orig_r8 >= 0)  ? ret : 0);
 
     }
-    else if (regno == ARC_STATUS32_L1_REGNUM ||
-             regno == ARC_STATUS32_L2_REGNUM ||
-             regno == ARC_ERSTATUS_REGNUM)
+    else if (gdb_regno == ARC_STATUS32_L1_REGNUM ||
+             gdb_regno == ARC_STATUS32_L2_REGNUM ||
+             gdb_regno == ARC_ERSTATUS_REGNUM)
     {
-        regcache_cooked_read (get_current_regcache(), ARC_STATUS32_REGNUM, (gdb_byte*) &status32);
+        regcache_cooked_read (regcache, ARC_STATUS32_REGNUM, (gdb_byte*) &status32);
 
-        if (regno == ARC_STATUS32_L1_REGNUM)
+        if (gdb_regno == ARC_STATUS32_L1_REGNUM)
             *contents = ((orig_r8 == -1) ? status32 : 0);
-        else if (regno == ARC_STATUS32_L2_REGNUM)
+        else if (gdb_regno == ARC_STATUS32_L2_REGNUM)
             *contents = ((orig_r8 == -2) ? status32 : 0);
-        else // (regno == ARC_ERSTATUS_REGNUM)
+        else // (gdb_regno == ARC_ERSTATUS_REGNUM)
             *contents = ((orig_r8 >= 0)  ? status32 : 0);
     }
     else
-        internal_error(__FILE__, __LINE__, "%s: bad pseudo register number (%d)", __FUNCTION__, regno);
+        internal_error(__FILE__, __LINE__, _("%s: bad pseudo register number (%d)"), __FUNCTION__, gdb_regno);
 }
 
 
 static void
 arc_linux_pseudo_register_write (struct gdbarch  *gdbarch,
                                  struct regcache *regcache,
-                                 int              regno,
+                                 int              gdb_regno,
                                  const gdb_byte  *buf)
 {
     /* none of our pseudo-regs are writable */
-    internal_error(__FILE__, __LINE__, "%s: pseudo-registers are unwritable", __FUNCTION__);
+    internal_error(__FILE__, __LINE__, _("%s: pseudo-registers are unwritable"), __FUNCTION__);
+}
+
+
+/*
+ * mapping from binutils/gcc register number to GDB register number ("regnum")
+ *
+ * N.B. registers such as ARC_FP_REGNUM, ARC_SP_REGNUM, etc., actually have
+ *      different GDB register numbers in the arc-elf32 and arc-linux-uclibc
+ *      configurations of the ARC gdb.
+ *
+ *      IS THIS TRUE??????
+ */
+static int arc_linux_binutils_reg_to_regnum (struct gdbarch *gdbarch, int reg)
+{
+    /* from gcc/config/arc/arc.h */
+
+    if (reg >= 0 && reg <= 26)
+        return reg;
+    else if (reg == ARC_ABI_FRAME_POINTER)      /* fp */
+        return ARC_FP_REGNUM;
+    else if (reg == ARC_ABI_STACK_POINTER)      /* sp */
+        return ARC_SP_REGNUM;
+    else if (reg == 29)                         /* ilink1 */
+        return ARC_ILINK1_REGNUM;
+    else if (reg == 30)                         /* ilink2 */
+        return ARC_ILINK2_REGNUM;
+    else if (reg == 31)                         /* blink */
+        return ARC_BLINK_REGNUM;
+    else if (IS_EXTENSION_CORE_REGISTER(reg))   /* reserved */
+        ;
+    else if (reg == 60)                         /* lp_count */
+        return ARC_LP_COUNT_REGNUM;
+#if 0
+    else if (reg == 61)                         /* reserved */
+        ;
+    else if (reg == 62)                         /* no such register */
+        ;
+   else if (reg == 63)                          /* PCL */
+        ;
+#endif
+
+    warning(_("unmapped register #%d encountered"), reg);
+    return -1;
 }
 
 
@@ -541,6 +607,42 @@ arc_linux_print_registers_info (struct gdbarch    *gdbarch,
 }
 
 
+/* return the name of the given register */
+static const char*
+arc_linux_register_name (struct gdbarch *gdbarch, int gdb_regno)
+{
+    gdb_assert(ELEMENTS_IN_ARRAY(register_names) == (unsigned int) (ARC_NR_REGS + ARC_NR_PSEUDO_REGS));
+
+    /* Oh, for a proper language with array bounds checking, like Ada... */
+    gdb_assert(0 <= gdb_regno && gdb_regno < (int) ELEMENTS_IN_ARRAY(register_names));
+
+    return register_names[gdb_regno];
+}
+
+
+/* determine whether the given register is read-only */
+static int
+arc_linux_cannot_store_register (struct gdbarch *gdbarch, int gdb_regno)
+{
+    if (gdb_regno == ARC_EFA_REGNUM         ||
+        gdb_regno == ARC_ERET_REGNUM        ||
+        gdb_regno == ARC_STATUS32_L1_REGNUM ||
+        gdb_regno == ARC_STATUS32_L2_REGNUM ||
+        gdb_regno == ARC_ERSTATUS_REGNUM    ||
+        gdb_regno == ARC_ILINK1_REGNUM      ||
+        gdb_regno == ARC_ILINK2_REGNUM)
+    {
+      /* No warning should be printed.  arc_cannot_store_register being
+         called does not imply that someone is actually writing to regnum.  */
+
+     /* warning(_("writing to read-only register: %s"), gdbarch_register_name(gdbarch, gdb_regno)); */
+        return 1;
+    }
+
+    return 0;
+}
+
+
 /* this is called with insert_breakpoints_p = 1 before single-stepping and
    with insert_breakpoints_p = 0 after the step */
 
@@ -550,24 +652,21 @@ arc_linux_print_registers_info (struct gdbarch    *gdbarch,
         using breakpoints. It now uses insert_single_step_breakpoint() function this code 
         needs to be validated */
 
-int arc_software_single_step(struct frame_info *frame)
+static int arc_linux_software_single_step(struct frame_info *frame)
 {
-        static CORE_ADDR fall_thru, branch_target;
+    CORE_ADDR fall_thru, branch_target;
+    CORE_ADDR pc              = read_pc ();
+    Boolean   two_breakpoints = next_pc (pc, &fall_thru, &branch_target);
 
-        static char two_breakpoints;
-        CORE_ADDR pc;
+    insert_single_step_breakpoint (fall_thru);
 
-        pc = read_pc ();
-        two_breakpoints = next_pc (pc, &fall_thru, &branch_target);
+    if (two_breakpoints)
+    {
+       if (pc != branch_target)
+           insert_single_step_breakpoint (branch_target);
+    }
 
-        insert_single_step_breakpoint (fall_thru);
-        if(two_breakpoints)
-        {
-                if(pc != branch_target)
-                        insert_single_step_breakpoint (branch_target);
-        }
-
-        return 1;       // returns always true for now
+    return 1;       // returns always true for now
 }
 
 
@@ -575,7 +674,7 @@ int arc_software_single_step(struct frame_info *frame)
 static void
 arc_linux_write_pc (struct regcache *regcache, CORE_ADDR pc)
 {
-    regcache_cooked_write_unsigned (regcache, PC_REGNUM, pc);
+    regcache_cooked_write_unsigned (regcache, ARC_PC_REGNUM, pc);
 
     /* We must be careful with modifying the program counter.  If we
      * just interrupted a system call, the kernel might try to restart
@@ -595,7 +694,7 @@ arc_linux_write_pc (struct regcache *regcache, CORE_ADDR pc)
 
     // FIXME: why -3 and not -1? -3 does not appear to be a defined valued for
     //        orig_r8 (i.e. -2, -1 or >= 0) - perhaps it means "none of these"?
-    regcache_cooked_write_unsigned (regcache, ARC_ORIG_R8_REGNUM, -3);
+    regcache_cooked_write_signed (regcache, ARC_ORIG_R8_REGNUM, -3);
 }
 
 
@@ -624,8 +723,7 @@ arc_linux_skip_solib_resolver (struct gdbarch *gdbarch, CORE_ADDR pc)
 
     /* lookup_minimal_symbol didn't work, for some reason.  */
     struct symbol *resolver =
-    	lookup_symbol_global ("_dl_linux_resolver", 0, 0/* Makis: Warning added this as API changed in 6.8*/, VAR_DOMAIN, 0);
-
+    lookup_symbol_global ("_dl_linux_resolver", 0, 0/* Makis: Warning added this as API changed in 6.8*/, VAR_DOMAIN, 0);
 
     DEBUG((resolver == NULL) ? "--- %s : pc = %x, no resolver found"
                              : "--- %s : pc = %x, resolver at %x\n",
@@ -702,19 +800,23 @@ arc_linux_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
     tdep->breakpoint_size        = (unsigned int) sizeof(breakpoint_instruction);
 
     tdep->register_reggroup_p = register_reggroup_p;
-    tdep->register_names      = register_names;
-    tdep->num_register_names  = ELEMENTS_IN_ARRAY(register_names);
 
     tdep->lowest_pc              = 0x74;             // FIXME: why this?
     tdep->processor_variant_info = NULL;
 
     /* Pass target-dependent info to gdb. */
 
+    /* ARC_NR_REGS and ARC_NR_PSEUDO_REGS are defined in the tm.h configuration file */
     set_gdbarch_pc_regnum                (gdbarch, ARC_STOP_PC_REGNUM);
+    set_gdbarch_num_regs                 (gdbarch, ARC_NR_REGS);
+    set_gdbarch_num_pseudo_regs          (gdbarch, ARC_NR_PSEUDO_REGS);
     set_gdbarch_print_registers_info     (gdbarch, arc_linux_print_registers_info);
+    set_gdbarch_register_name            (gdbarch, arc_linux_register_name);
+    set_gdbarch_cannot_store_register    (gdbarch, arc_linux_cannot_store_register);
+    set_gdbarch_dwarf2_reg_to_regnum     (gdbarch, arc_linux_binutils_reg_to_regnum);
 
     set_gdbarch_decr_pc_after_break      (gdbarch, 0);
-    set_gdbarch_software_single_step     (gdbarch, arc_software_single_step);
+    set_gdbarch_software_single_step     (gdbarch, arc_linux_software_single_step);
     set_gdbarch_write_pc                 (gdbarch, arc_linux_write_pc);
     set_gdbarch_pseudo_register_read     (gdbarch, arc_linux_pseudo_register_read);
     set_gdbarch_pseudo_register_write    (gdbarch, arc_linux_pseudo_register_write);
@@ -743,6 +845,18 @@ _initialize_arc_linux_tdep (void)
                             0,                   // machine (irrelevant)
                             GDB_OSABI_LINUX,
                             arc_linux_init_abi);
+}
+
+
+/* these functions are required simply to avoid undefined symbols at linkage */
+
+void arc_check_pc_defined(struct gdbarch* gdbarch)
+{
+}
+
+
+void arc_convert_aux_contents_for_write(int gdb_regno, void* buffer)
+{
 }
 
 /******************************************************************************/

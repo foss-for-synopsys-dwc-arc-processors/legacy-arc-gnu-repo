@@ -1,12 +1,13 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Contributed by Codito Technologies Pvt. Ltd. (www.codito.com)
 
    Authors:
-      Soam Vasani <soam.vasani@codito.com>
+      Soam Vasani          <soam.vasani@codito.com>
       Ramana Radhakrishnan <ramana.radhakrishnan@codito.com>
+      Richard Stuckey      <richard.stuckey@arc.com>
 
    This file is part of GDB.
 
@@ -24,7 +25,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-
 
 /******************************************************************************/
 /*                                                                            */
@@ -128,11 +128,15 @@
 /*           newlib)                                                          */
 /*                                                                            */
 /*           ARC-specific modules:                                            */
-/*                arc-tdep                                                    */
+/*                arc-embed                                                   */
 /*                arc-jtag-tdep                                               */
 /*                arc-jtag                                                    */
 /*                arc-jtag-ops                                                */
 /*                arc-jtag-actionpoints                                       */
+/*                arc-jtag-fileio                                             */
+/*                arc-aux-registers                                           */
+/*                arc-architecture                                            */
+/*                arc-board                                                   */
 /*                                                                            */
 /*     2) arc-linux-uclibc:                                                   */
 /*           for deugging user mode Linux applications, via communication to  */
@@ -142,11 +146,16 @@
 /*                arc-tdep                                                    */
 /*                arc-linux-tdep                                              */
 /*                                                                            */
+/*     Note that the arc-embed.c and arc-tdep.c files are textually identical */
+/*     except for the inclusion of a different configuration header file.     */
+/*     This is simply a device for building the two different configurations, */
+/*     and should be replaced by a better method which avoids duplication of  */
+/*     the source.                                                            */
 /*                                                                            */
-/*     This (arc-tdep) module provides operations which are common to both    */
-/*     configurations; operations which are specific to one configuration, or */
-/*     which have different variants in each configuration, are provided by   */
-/*     the other modules.                                                     */
+/*     This module (arc-embed/arc-tdep) provides operations which are common  */
+/*     to both configurations; operations which are specific to one, or which */
+/*     have different variants in each configuration, are provided by the     */
+/*     other modules.                                                         */
 /*                                                                            */
 /******************************************************************************/
 
@@ -169,18 +178,23 @@
 #include "gdbcore.h"
 #include "observer.h"
 #include "osabi.h"
-#include "opcode/arc.h"
 #include "gdbcmd.h"
 #include "block.h"
 #include "dictionary.h"
 #include "language.h"
 #include "demangle.h"
+#include "objfiles.h"
 
 /* ARC header files */
+#include "opcode/arc.h"
+#include "opcodes/arc-dis.h"
+#include "opcodes/arc-ext.h"
+#include "opcodes/arcompact-dis.h"
 #include "config/arc/tm-embed.h"
 #include "arc-support.h"
 #include "arc-jtag-ops.h"
 #include "arc-tdep.h"
+
 
 /* -------------------------------------------------------------------------- */
 /*                               local types                                  */
@@ -245,28 +259,11 @@ typedef struct
 /*                               local data                                   */
 /* -------------------------------------------------------------------------- */
 
+#define DEBUG_COMMAND               "arc-debug"
 #define SHOW_FRAME_COMMAND          "arc-show-frame"
 #define SHOW_FRAME_COMMAND_USAGE    "Usage: " SHOW_FRAME_COMMAND " [ <FRAME> ]\n"
 
-
-#define GLOBAL_POINTER        26
-#define FRAME_POINTER         27
-#define STACK_POINTER         28
-
-/* R13 .. R26 are the callee-saved registers */
-#define FIRST_CALLEE_SAVED_REGISTER    13
-#define LAST_CALLEE_SAVED_REGISTER     26
-
-/* R0 .. R7 are the registers used to pass arguments in function calls */
-#define FIRST_ARGUMENT_REGISTER     0
-#define LAST_ARGUMENT_REGISTER      7
-
-/* When a return value is stored in registers it is in either R0 or in
- * (R1,R0).  Used in extract_return_value/store_return_value.
- */
-#define ARC_RETURN_REGNUM           0
-#define ARC_RETURN_LOW_REGNUM       0
-#define ARC_RETURN_HIGH_REGNUM      1
+#define NEW_LINE                     _("\n") 
 
 
 /* -------------------------------------------------------------------------- */
@@ -378,18 +375,6 @@ Boolean arc_debug_target;
 
 
 /* -------------------------------------------------------------------------- */
-/*                               external functions                           */
-/* -------------------------------------------------------------------------- */
-
-/* FIXME: these should be in a header file! */
-
-extern struct arcDisState arcAnalyzeInstr (bfd_vma address, disassemble_info* info);
-
-/* defined in opcodes, but there's no header file with this prototype... */
-extern disassembler_ftype arcompact_get_disassembler (void*);
-
-
-/* -------------------------------------------------------------------------- */
 /*                               local functions                              */
 /* -------------------------------------------------------------------------- */
 
@@ -408,7 +393,7 @@ static void printFrameInfo(char*        message,
     DEBUG("old_sp_offset_from_fp = %d\n",  (int)               info->old_sp_offset_from_fp);
     DEBUG("is_leaf = %d, uses_fp = %d\n", info->is_leaf, info->uses_fp);
 
-     for (i = FIRST_CALLEE_SAVED_REGISTER; i < LAST_CALLEE_SAVED_REGISTER; i++)
+     for (i = ARC_ABI_FIRST_CALLEE_SAVED_REGISTER; i < ARC_ABI_LAST_CALLEE_SAVED_REGISTER; i++)
      {
         if (info->saved_regs_mask & (1 << i))
             DEBUG("saved register R%02d %s 0x%lx\n",
@@ -469,6 +454,29 @@ static int read_memory_for_disassembler(bfd_vma                  memaddr,
 }
 
 
+/* this is a callback function which gets called by gdb whenever the current
+ * object file changes
+ */
+static void set_disassembler(struct objfile* objfile)
+{
+    if (objfile)
+    {
+       /* the ARC libopcodes wants obfd so that it can find out what CPU
+        * extensions are defined in the file
+        */
+        set_gdbarch_print_insn(current_gdbarch, arc_get_disassembler(objfile->obfd));
+//      dump_ARC_extmap();
+    }
+}
+
+
+static int dummy_disassembler(bfd_vma address, disassemble_info* info)
+{
+    error(_("no disassembly operation yet available (no executable file loaded)"));
+    return 0;
+}
+
+
 /* simple utility function to create a new frame cache structure */
 static UnwindCache* create_cache(struct frame_info* next_frame)
 {
@@ -519,7 +527,7 @@ static void find_previous_stack_pointer(UnwindCache*       info,
          */
         info->prev_sp = info->frame_base + (CORE_ADDR) info->old_sp_offset_from_fp;
 
-        for (i = FIRST_CALLEE_SAVED_REGISTER; i < LAST_CALLEE_SAVED_REGISTER; i++)
+        for (i = ARC_ABI_FIRST_CALLEE_SAVED_REGISTER; i < ARC_ABI_LAST_CALLEE_SAVED_REGISTER; i++)
         {
             /* If this register has been saved, add the previous stack pointer
              * to the offset from the previous stack pointer at which the
@@ -568,7 +576,7 @@ static void find_previous_stack_pointer(UnwindCache*       info,
          * the previous SP and this frame's SP (the delta_sp is negated as it is
          * a negative quantity).
          */
-        info->prev_sp = this_sp + (CORE_ADDR) (-info->delta_sp);
+        info->prev_sp = (CORE_ADDR) (this_sp + (ULONGEST) (-info->delta_sp));
 
         /* Assume that the FP is this frame's SP */
         info->frame_base = (CORE_ADDR) this_sp;
@@ -601,7 +609,7 @@ static Boolean is_callee_saved_register(unsigned int  reg,
                                         int           offset,
                                         UnwindCache*  info)
 {
-    if ((FIRST_CALLEE_SAVED_REGISTER <= reg && reg <= LAST_CALLEE_SAVED_REGISTER))
+    if (ARC_ABI_FIRST_CALLEE_SAVED_REGISTER <= reg && reg <= ARC_ABI_LAST_CALLEE_SAVED_REGISTER)
     {
         DEBUG("register R%02u saved\n", reg);
 
@@ -679,7 +687,7 @@ static Boolean is_in_prologue(UnwindCache*        info,
         if (instr->_addrWriteBack != (char) 0)
         {
             /* This is a st.a  */
-            if (instr->ea_reg1 == STACK_POINTER)
+            if (instr->ea_reg1 == ARC_ABI_STACK_POINTER)
             {
                 if (instr->_offset == -4)
                 {
@@ -694,7 +702,7 @@ static Boolean is_in_prologue(UnwindCache*        info,
                 {
                     if (instr->sourceType == ARC_REGISTER )
                     {
-                        /* st.a <reg>,[sp,<offset>] */
+                        /* st.a <reg>, [sp,<offset>] */
 
                         if (is_callee_saved_register(instr->source_operand.registerNum,
                                                      instr->_offset,
@@ -710,14 +718,14 @@ static Boolean is_in_prologue(UnwindCache*        info,
         }
         else
         {
-            /* Is this a store of some register onto the stack using the stack
-             * pointer?
-             */
-            if (instr->ea_reg1 == STACK_POINTER)
+            if (instr->sourceType == ARC_REGISTER )
             {
-                if (instr->sourceType == ARC_REGISTER )
+                /* Is this a store of some register onto the stack using the
+                 * stack pointer?
+                 */
+                if (instr->ea_reg1 == ARC_ABI_STACK_POINTER)
                 {
-                    /* st <reg>,[sp,offset] */
+                    /* st <reg>, [sp,offset] */
 
                     if (is_callee_saved_register(instr->source_operand.registerNum,
                                                  instr->_offset,
@@ -725,19 +733,22 @@ static Boolean is_in_prologue(UnwindCache*        info,
                         /* this is NOT a push onto the stack, so do not change delta_sp */
                         return TRUE;
                 }
-            }
 
-            /* Is this the store of some register on the stack using the frame
-             * pointer? We check for argument registers getting saved and
-             * restored.
-             */
-            if (instr->ea_reg1 == FRAME_POINTER)
-                if ((instr->source_operand.registerNum <= 7))
+                /* Is this the store of some register on the stack using the
+                 * frame pointer? We check for argument registers getting saved
+                 * and restored.
+                 */
+                if (instr->ea_reg1 == ARC_ABI_FRAME_POINTER)
                 {
-                    /* Saving argument registers. Don't set the bits in the saved mask, just skip.
-                     */
-                    return TRUE;
+                    if (IS_ARGUMENT_REGISTER(instr->source_operand.registerNum))
+                    {
+                        /* Saving argument registers. Don't set the bits in the
+                         * saved mask, just skip.
+                         */
+                        return TRUE;
+                    }
                 }
+            }
         }
     }
 
@@ -842,7 +853,7 @@ static Boolean is_in_prologue(UnwindCache*        info,
  */
 
 /* 3 instructions before and after callee saves, and max number of saves; assume each is 4-byte inst */
-#define MAX_PROLOGUE_LENGTH   ((6 + (LAST_CALLEE_SAVED_REGISTER - FIRST_CALLEE_SAVED_REGISTER + 1)) * 4)
+#define MAX_PROLOGUE_LENGTH   ((6 + (ARC_ABI_LAST_CALLEE_SAVED_REGISTER - ARC_ABI_FIRST_CALLEE_SAVED_REGISTER + 1)) * 4)
 
 static CORE_ADDR
 scan_prologue (CORE_ADDR          entrypoint,
@@ -916,8 +927,7 @@ scan_prologue (CORE_ADDR          entrypoint,
             find_previous_stack_pointer(info, next_frame);
 
             /* The PC is found in blink (the actual register or located on the stack). */
-            info->saved_regs[PC_REGNUM]     = info->saved_regs[ARC_BLINK_REGNUM];
-//          info->saved_regs[ARC_PC_REGNUM] = info->saved_regs[ARC_BLINK_REGNUM];
+            info->saved_regs[ARC_PC_REGNUM] = info->saved_regs[ARC_BLINK_REGNUM];
 
             printFrameInfo("after previous SP found", info, TRUE);
         }
@@ -972,7 +982,7 @@ extract_return_value (struct type     *type,
             ULONGEST val;
 
             /* Get the return value from one register. */
-            regcache_cooked_read_unsigned (regcache, ARC_RETURN_REGNUM, &val);
+            regcache_cooked_read_unsigned (regcache, ARC_ABI_RETURN_REGNUM, &val);
             store_unsigned_integer (valbuf, (int) len, val);
 
             DEBUG("returning 0x%08llX\n", val);
@@ -982,8 +992,8 @@ extract_return_value (struct type     *type,
             ULONGEST low, high;
 
             /* Get the return value from two registers. */
-            regcache_cooked_read_unsigned (regcache, ARC_RETURN_LOW_REGNUM,  &low);
-            regcache_cooked_read_unsigned (regcache, ARC_RETURN_HIGH_REGNUM, &high);
+            regcache_cooked_read_unsigned (regcache, ARC_ABI_RETURN_LOW_REGNUM,  &low);
+            regcache_cooked_read_unsigned (regcache, ARC_ABI_RETURN_HIGH_REGNUM, &high);
 
             store_unsigned_integer (valbuf,                     BYTES_IN_REGISTER,             low);
             store_unsigned_integer (valbuf + BYTES_IN_REGISTER, (int) len - BYTES_IN_REGISTER, high);
@@ -991,7 +1001,7 @@ extract_return_value (struct type     *type,
             DEBUG("returning 0x%08llX%08llX\n", high, low);
         }
         else
-            error ("%s: type length %u too large", __FUNCTION__, len);
+            error(_("%s: type length %u too large"), __FUNCTION__, len);
     }
 }
 
@@ -1015,7 +1025,7 @@ store_return_value (struct type     *type,
 
             /* Put the return value into one register. */
             val = extract_unsigned_integer (valbuf, (int) len);
-            regcache_cooked_write_unsigned (regcache, ARC_RETURN_REGNUM, val);
+            regcache_cooked_write_unsigned (regcache, ARC_ABI_RETURN_REGNUM, val);
 
             DEBUG("storing 0x%08llX\n", val);
         }
@@ -1027,13 +1037,13 @@ store_return_value (struct type     *type,
             low  = extract_unsigned_integer (valbuf,                     BYTES_IN_REGISTER);
             high = extract_unsigned_integer (valbuf + BYTES_IN_REGISTER, (int) len - BYTES_IN_REGISTER);
 
-            regcache_cooked_write_unsigned (regcache, ARC_RETURN_LOW_REGNUM,  low);
-            regcache_cooked_write_unsigned (regcache, ARC_RETURN_HIGH_REGNUM, high);
+            regcache_cooked_write_unsigned (regcache, ARC_ABI_RETURN_LOW_REGNUM,  low);
+            regcache_cooked_write_unsigned (regcache, ARC_ABI_RETURN_HIGH_REGNUM, high);
 
             DEBUG("storing 0x%08llX%08llX\n", high, low);
         }
         else
-            error ("arc_store_return_value: type length too large.");
+            error(_("arc_store_return_value: type length too large."));
     }
 }
 
@@ -1050,24 +1060,6 @@ static struct type *
 arc_register_type (struct gdbarch *gdbarch, int regnum)
 {
     return builtin_type_uint32;
-}
-
-
-/* return the name of the given register */
-static const char*
-arc_register_name (struct gdbarch *gdbarch, int regno)
-{
-    struct gdbarch_tdep* tdep = gdbarch_tdep (current_gdbarch);
-
-    /* N.B. NUM_REGS and NUM_PSEUDO_REGS are not constants - rather, they are
-     *      calls to gdb_arch functions
-     */
-    gdb_assert(tdep->num_register_names == NUM_REGS + NUM_PSEUDO_REGS);
-
-    /* Oh, for a proper language with array bounds checking, like Ada... */
-    gdb_assert(0 <= regno && regno < (int) tdep->num_register_names);
-
-    return tdep->register_names[regno];
 }
 
 
@@ -1185,7 +1177,7 @@ arc_frame_prev_register (struct frame_info *next_frame,
          * instead: the saved value of PC points into this frame's function's prologue,
          * not the next frame's function's resume location.
          */
-        if (regnum == PC_REGNUM)
+        if (regnum == ARC_PC_REGNUM)
             regnum = ARC_BLINK_REGNUM;
 
         /* SP is generally not saved to the stack, but this frame is identified
@@ -1228,7 +1220,8 @@ arc_frame_sniffer (struct frame_info *next_frame)
         arc_frame_prev_register,     // prev_register
         NULL,                        // unwind_data
         NULL,                        // sniffer
-        NULL                         // prev_pc
+        NULL,                        // prev_pc
+        NULL                         // dealloc_cache
     };
 
     return &arc_frame_unwind;
@@ -1253,30 +1246,6 @@ arc_breakpoint_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pcptr, int *lenptr)
     *lenptr = (int) tdep->breakpoint_size;
 
     return tdep->breakpoint_instruction;
-}
-
-
-/* determine whether the given register is read-only */
-static int
-arc_cannot_store_register (struct gdbarch *gdbarch, int regno)
-{
-    /* FIXME: is this a Linux-specific set? */
-    if (regno == ARC_EFA_REGNUM         ||
-        regno == ARC_ERET_REGNUM        ||
-        regno == ARC_STATUS32_L1_REGNUM ||
-        regno == ARC_STATUS32_L2_REGNUM ||
-        regno == ARC_ERSTATUS_REGNUM    ||
-        regno == ARC_ILINK1_REGNUM      ||
-        regno == ARC_ILINK2_REGNUM)
-    {
-      /* No warning should be printed.  arc_cannot_store_register being
-         called does not imply that someone is actually writing to regnum.  */
-
-     /* warning("writing to read-only register: %s\n", arc_register_name(regno)); */
-        return 1;
-    }
-
-    return 0;
 }
 
 
@@ -1312,13 +1281,19 @@ arc_register_reggroup_p (struct gdbarch  *gdbarch,
     if (group == save_reggroup || group == restore_reggroup)
     {
         /* don't save/restore read-only registers. */
-	return (!arc_cannot_store_register(current_gdbarch, regnum));
+	return (!gdbarch_cannot_store_register(current_gdbarch, regnum));
     }
 
-    if (group == general_reggroup)
-        return (regnum == ARC_STATUS32_REGNUM) ? 0 : 1;
+    if (group == system_reggroup)
+    {
+        if (regnum == ARC_ILINK1_REGNUM ||
+            regnum == ARC_ILINK2_REGNUM)
+            return 1;
 
-    internal_error(__FILE__, __LINE__, "bad register group");
+        return 0;
+    }
+
+    internal_error(__FILE__, __LINE__, _("bad register group"));
     return 0;
 }
 
@@ -1332,7 +1307,7 @@ arc_dwarf2_frame_init_reg (struct gdbarch                *gdbarch,
 //  ENTERARGS("Regno no:%d, 0x%x", regnum, (unsigned int) regnum);
 
     /* The return address column. */
-    if (regnum == PC_REGNUM)
+    if (regnum == ARC_PC_REGNUM)
         reg->how = DWARF2_FRAME_REG_RA;
 
     /* The call frame address. */
@@ -1344,9 +1319,7 @@ arc_dwarf2_frame_init_reg (struct gdbarch                *gdbarch,
 static CORE_ADDR
 arc_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
 {
-    ULONGEST pc;
-
-    pc = frame_unwind_register_unsigned (next_frame, PC_REGNUM);
+    ULONGEST pc = frame_unwind_register_unsigned (next_frame, ARC_PC_REGNUM);
 
     DEBUG("unwind PC: 0x%08llx\n", pc);
 
@@ -1359,7 +1332,7 @@ arc_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
 {
     ULONGEST sp;
 
-    sp  = frame_unwind_register_unsigned (next_frame, SP_REGNUM);
+    sp  = frame_unwind_register_unsigned (next_frame, ARC_SP_REGNUM);
 
     DEBUG("unwind SP: 0x%08llx\n", sp);
 
@@ -1459,7 +1432,7 @@ arc_sigtramp_frame_cache (struct frame_info *next_frame,
         *this_cache = cache;
 
         /* get the stack pointer and use it as the frame base */
-        frame_unwind_register (next_frame, SP_REGNUM, buf);
+        frame_unwind_register (next_frame, ARC_SP_REGNUM, buf);
         cache->frame_base = (CORE_ADDR) extract_unsigned_integer (buf, BYTES_IN_REGISTER);
 
         /* If the ARC-private target-dependent info has a table of offsets of
@@ -1518,7 +1491,7 @@ arc_sigtramp_frame_prev_register (struct frame_info *next_frame,
         UnwindCache *cache = arc_sigtramp_frame_cache (next_frame, this_cache);
 
         /* on a signal, the PC is in ret */
-        if (regnum == PC_REGNUM)
+        if (regnum == ARC_PC_REGNUM)
             regnum = tdep->pc_regnum_in_sigcontext;
 
         trad_frame_get_prev_register (next_frame,
@@ -1553,7 +1526,8 @@ arc_sigtramp_frame_sniffer (struct frame_info *next_frame)
                 arc_sigtramp_frame_prev_register, // prev_register
                 NULL,                             // unwind_data
                 NULL,                             // sniffer
-                NULL                              // prev_pc
+                NULL,                             // prev_pc
+                NULL                              // dealloc_cache
             };
 
             return &arc_sigtramp_frame_unwind;
@@ -1593,7 +1567,7 @@ arc_push_dummy_call(struct gdbarch  *gdbarch,
     ENTERARGS("nargs = %d", nargs);
 
     {
-        int arg_reg = FIRST_ARGUMENT_REGISTER;
+        int arg_reg = ARC_ABI_FIRST_ARGUMENT_REGISTER;
 
         /* Push the return address. */
         regcache_cooked_write_unsigned (regcache, ARC_BLINK_REGNUM, bp_addr);
@@ -1651,13 +1625,13 @@ arc_push_dummy_call(struct gdbarch  *gdbarch,
                 unsigned int len   = TYPE_LENGTH (value_type (args[i]));
                 unsigned int space = ROUND_UP_TO_WORDS(len);
 
-                (void) memcpy(data, value_contents (args[i]), len);
+                (void) memcpy(data, value_contents (args[i]), (size_t) len);
                 data += space;
             }
 
             /* Now load as much as possible of the memory image into registers. */
             data = memory_image;
-            while (arg_reg <= LAST_ARGUMENT_REGISTER)
+            while (arg_reg <= ARC_ABI_LAST_ARGUMENT_REGISTER)
             {
                 DEBUG("passing 0x%08lX in register R%d\n", *(unsigned long *) data, arg_reg);
 
@@ -1681,7 +1655,7 @@ arc_push_dummy_call(struct gdbarch  *gdbarch,
                 DEBUG("passing %d bytes on stack\n", total_space);
 
                 sp -= total_space;
-                write_memory (sp, data, total_space);
+                write_memory (sp, data, (int) total_space);
             }
 
             xfree(memory_image);
@@ -1710,7 +1684,7 @@ static void
 arc_print_float_info (struct gdbarch *gdbarch, struct ui_file *file,
                       struct frame_info *frame, const char *args)
 {
-    printf("Software FPU\n");
+    printf(_("Software FPU\n"));
 }
 
 
@@ -1738,9 +1712,9 @@ arc_set_main_name (struct target_ops *objfile, int from_tty)
  *
  * see gdbarch.h for a description of its parameters
  */
-static struct gdbarch *
-arc_gdbarch_init (struct gdbarch_info info,       //
-                  struct gdbarch_list *arches)    // not used, will be empty
+static struct gdbarch*
+arc_gdbarch_init (struct gdbarch_info  info,
+                  struct gdbarch_list* arches)
 {
     /* Allocate the ARC-private target-dependent information structure, and the
      * gdb target-independent information structure.
@@ -1763,22 +1737,16 @@ arc_gdbarch_init (struct gdbarch_info info,       //
     /* Characters are unsigned by default */
     set_gdbarch_char_signed (gdbarch, 0);
 
-    /* ARC_NR_REGS and ARC_NR_PSEUDO_REGS are defined in the tm.h configuration file */
-    set_gdbarch_num_regs              (gdbarch, ARC_NR_REGS);
-    set_gdbarch_num_pseudo_regs       (gdbarch, ARC_NR_PSEUDO_REGS);
-    set_gdbarch_sp_regnum             (gdbarch, ARC_SP_REGNUM);
-    set_gdbarch_register_type         (gdbarch, arc_register_type);
-    set_gdbarch_register_name         (gdbarch, arc_register_name);
-    set_gdbarch_cannot_store_register (gdbarch, arc_cannot_store_register);
-    set_gdbarch_print_float_info      (gdbarch, arc_print_float_info);
+    set_gdbarch_sp_regnum        (gdbarch, ARC_SP_REGNUM);
+    set_gdbarch_register_type    (gdbarch, arc_register_type);
+    set_gdbarch_print_float_info (gdbarch, arc_print_float_info);
 
     /* Advance PC across function entry code. */
     set_gdbarch_skip_prologue (gdbarch, arc_skip_prologue);
 
     /* Hook in the Dwarf-2 frame sniffer. */
-    set_gdbarch_dwarf2_reg_to_regnum (gdbarch, arc_binutils_reg_to_regnum);
-    dwarf2_frame_set_init_reg        (gdbarch, arc_dwarf2_frame_init_reg);
-    frame_unwind_append_sniffer      (gdbarch, dwarf2_frame_sniffer);
+    dwarf2_frame_set_init_reg   (gdbarch, arc_dwarf2_frame_init_reg);
+    frame_unwind_append_sniffer (gdbarch, dwarf2_frame_sniffer);
 
     /* signal frames */
     frame_unwind_append_sniffer (gdbarch, arc_sigtramp_frame_sniffer);
@@ -1803,7 +1771,22 @@ arc_gdbarch_init (struct gdbarch_info info,       //
     set_gdbarch_push_dummy_call     (gdbarch, arc_push_dummy_call);
     set_gdbarch_call_dummy_location (gdbarch, AT_ENTRY_POINT);
 
-    /* Disassembly. */
+    /* Disassembly.
+     * 
+     * N.B. we do not want to call arc_get_disassembler at this point, as we do
+     *      not as yet have an executable file, so do not know whether we want
+     *      the disassembler for the A4 architecture (still supported by the
+     *      opcodes library!) or the one for the ARCompact architecture; also,
+     *      it is better to pass the arc_get_disassembler function a valid bfd
+     *      structure, rather than a faked one, so that it can read the ARC-
+     *      specific sections in the ELF file (for whatever reason...).
+     *
+     *      So just set up a dummy disassembler at this point (gdb requires that
+     *      *some* disassembler is defined for an architecture), and set up a
+     *      callback which will set up the appropriate disassembler once an
+     *      executable file has been selected for debugging.
+     */
+#if 0
     {
         /* the arc libopcodes wants abfd so that it can find out what CPU
            extensions are there */
@@ -1811,8 +1794,11 @@ arc_gdbarch_init (struct gdbarch_info info,       //
 
         abfd.sections = NULL;
 
-        set_gdbarch_print_insn(gdbarch, arcompact_get_disassembler(&abfd));
+        set_gdbarch_print_insn(gdbarch, arc_get_disassembler(&abfd));
     }
+#endif
+    set_gdbarch_print_insn(gdbarch, dummy_disassembler);
+    observer_attach_new_objfile(set_disassembler);
 
     /* Set main_name to _main if necessary.  Ideally we'd want a hook that
      * gets called when symbols are loaded, but it seems there isn't one; so
@@ -1851,21 +1837,21 @@ parse_frame_specification_1 (const char* frame_exp,
     {
         while (TRUE)
         {
-            char *addr_string;
+            char           *addr_string;
             struct cleanup *cleanup;
-            const char *p;
+            const char     *p;
 
             /* Skip leading white space */
             while (isspace (*frame_exp))
                 frame_exp++;
 
-            if (!*frame_exp)
+            if (*frame_exp == '\0')
                 break;
 
             /* Parse the argument, extract it, save it.  */
-            for (p = frame_exp; *p && !isspace (*p); p++);
+            for (p = frame_exp; (*p != '\0') && !isspace (*p); p++);
 
-            addr_string = savestring (frame_exp, p - frame_exp);
+            addr_string = savestring (frame_exp, (size_t) (p - frame_exp));
             frame_exp   = p;
             cleanup     = make_cleanup (xfree, addr_string);
 
@@ -1875,7 +1861,7 @@ parse_frame_specification_1 (const char* frame_exp,
                Instead value_as_long and value_as_address are used.
                This avoids problems with expressions that contain
                side-effects.  */
-            if (numargs >= ARRAY_SIZE (args))
+            if (numargs >= (int) ARRAY_SIZE (args))
                 error (_("Too many args in frame specification"));
 
             args[numargs++] = parse_and_eval (addr_string);
@@ -1888,7 +1874,7 @@ parse_frame_specification_1 (const char* frame_exp,
     if (numargs == 0)
     {
         if (selected_frame_p != NULL)
-          (*selected_frame_p) = 1;
+            (*selected_frame_p) = 1;
         return get_selected_frame (message);
     }
 
@@ -1900,7 +1886,7 @@ parse_frame_specification_1 (const char* frame_exp,
        select a frame relative to current.  */
     if (numargs == 1)
     {
-        int                level = value_as_long (args[0]);
+        int                level = (int) value_as_long (args[0]);
         struct frame_info *fid   = find_relative_frame (get_current_frame (), &level);
 
         if (level == 0)
@@ -1912,7 +1898,7 @@ parse_frame_specification_1 (const char* frame_exp,
     {
         int i;
         for (i = 0; i < numargs; i++)
-            addrs[i] = value_as_address (args[0]);
+            addrs[i] = value_as_address (args[i]);
     }
 
     /* Assume that the single arg[0] is an address, use that to identify
@@ -1958,7 +1944,7 @@ find_variables(struct frame_info* frame,
                Boolean            callee)
 {
     struct block* block = get_frame_block (frame, 0);
-    int           vars  = *count;
+    unsigned int  vars  = *count;
 
     while (block)
     {
@@ -2061,9 +2047,9 @@ add_local_name(char*          line,
         {
             if (var->size > 0 && var->element_size > 0)
             {
-                int offset = location - var->address;
+                int offset = (int) ((long int) location - (long int) var->address);
 
-                if (0 <= offset && offset < var->size)
+                if (0 <= offset && offset < (int) var->size)
                     index = offset / var->element_size;
             }
         }
@@ -2073,25 +2059,25 @@ add_local_name(char*          line,
             int n;
 
             if (var->is_callee)
-                n = sprintf(line, "callee parameter");
+                n = sprintf(line, _("callee parameter"));
             else if (var->is_argument)
-                n = sprintf(line, "parameter");
+                n = sprintf(line, _("parameter"));
             else
-                n = sprintf(line, "local variable");
+                n = sprintf(line, _("local variable"));
 
             line[n] = ' ';
             n++;
-            n += sprintf(line + n, "'%s'",  var->name);
+            n += sprintf(line + n, _("'%s'"),  var->name);
             line[n] = ' ';
 
             if (index >= 0)
             {
-                (void) sprintf(line + n, "[%u]", index);
+                (void) sprintf(line + n, _("[%u]"), index);
                 *is_following_element = (index > 0);
             }
             else if (var->size > BYTES_IN_WORD)
             {
-                (void) sprintf(line + n + 1, "(%u words)",
+                (void) sprintf(line + n + 1, _("(%u words)"),
                                WORDS_OCCUPIED(var->size));
             }
 
@@ -2149,7 +2135,7 @@ identify_frame(struct frame_info* frame)
             if (demangled == NULL)
             {
                 if (func == NULL)
-                    func_name = "<unknown function>";
+                    func_name = _("<unknown function>");
                 else
                     func_name = SYMBOL_PRINT_NAME (func);
             }
@@ -2158,12 +2144,12 @@ identify_frame(struct frame_info* frame)
         }
     }
     else
-        func_name = "<unknown function>";
+        func_name = _("<unknown function>");
 
-    printf_filtered("Frame of function: %s", func_name);
+    printf_filtered(_("Frame of function: %s"), func_name);
     if (sal.symtab)
-        printf_filtered (" (%s:%d)", sal.symtab->filename, sal.line);
-    printf_filtered("\n");
+        printf_filtered(_(" (%s:%d)"), sal.symtab->filename, sal.line);
+    printf_filtered(NEW_LINE);
 
     if (demangled != NULL)
         xfree (demangled);
@@ -2188,41 +2174,41 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
     LocalVariable*     variables;
     unsigned int       num_variables;
 
-    fi = parse_frame_specification_1 (arg, "No stack.", NULL);
+    fi = parse_frame_specification_1 (arg, _("No stack."), NULL);
     gdb_assert(fi != NULL);
 
     /* find out PC, FP and SP for the frame */
     pc = get_frame_pc(fi);
     sp = get_frame_sp(fi);
     get_frame_register(fi, ARC_FP_REGNUM, value);
-    fp = extract_unsigned_integer (value, BYTES_IN_REGISTER);
+    fp = (CORE_ADDR) extract_unsigned_integer (value, BYTES_IN_REGISTER);
 
     DEBUG("*** PC = %x, FP = %x, SP = %x\n", (unsigned int) pc, (unsigned int) fp, (unsigned int) sp);
 
     if (pc == 0)
     {
-        warning("invalid frame");
+        warning(_("invalid frame"));
         return;
     }
 
-    frame_register_unwind (fi, SP_REGNUM, &optimized, &lval, &addr, &realnum, value);
-    old_sp = extract_unsigned_integer (value, BYTES_IN_REGISTER);
+    frame_register_unwind (fi, ARC_SP_REGNUM, &optimized, &lval, &addr, &realnum, value);
+    old_sp = (CORE_ADDR) extract_unsigned_integer (value, BYTES_IN_REGISTER);
 
     variables = find_local_variables(fi, &num_variables);
 
-    printf_filtered("\n");
+    printf_filtered(NEW_LINE);
     identify_frame(fi);
-//  printf_filtered("\n\n*** FRAME: 0x%x .. 0x%x\n\n", (unsigned int) sp, (unsigned int) (old_sp - 1));
+//  printf_filtered(_("\n\n*** FRAME: 0x%x .. 0x%x\n\n"), (unsigned int) sp, (unsigned int) (old_sp - 1));
 
     frame_size = (int) (old_sp - sp);
 
-    frame_contents = xmalloc(frame_size);
+    frame_contents = xmalloc((size_t) frame_size);
 
     if (frame_contents)
     {
         if (target_read_memory(sp, (gdb_byte*) frame_contents, frame_size) == 0)
         {
-            int          numregs    = NUM_REGS + NUM_PSEUDO_REGS;
+            int          numregs    = ARC_TOTAL_REGS;
             int          i          = frame_size / BYTES_IN_WORD - 1;
             unsigned int the_same   = 0;
             Boolean      first_word = TRUE;
@@ -2231,7 +2217,7 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
 
             addr = old_sp - BYTES_IN_WORD;
 
-            printf_filtered("\n");
+            printf_filtered(NEW_LINE);
 
             while (i >= 0)
             {
@@ -2239,23 +2225,23 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
                 char    line[256];
                 int     n;
 
-                (void) memset(line, ' ', sizeof(line));
+                (void) memset(line, (int) ' ', sizeof(line));
 
                 if (addr == sp && fp == sp)
                 {
-                    (void) strcpy(line + 14, "SP/FP ===> ");
+                    (void) strcpy(line + 14, _("SP/FP ===> "));
                     line[25] = ' ';
                     print = TRUE;
                 }
                 else if (addr == sp)
                 {
-                    (void) strcpy(line + 17, "SP ===> ");
+                    (void) strcpy(line + 17, _("SP ===> "));
                     line[25] = ' ';
                     print = TRUE;
                 }
                 else if (addr == fp)
                 {
-                    (void) strcpy(line + 17, "FP ===> ");
+                    (void) strcpy(line + 17, _("FP ===> "));
                     line[25] = ' ';
                     print = TRUE;
                 }
@@ -2270,7 +2256,7 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
                     /* does this location hold a saved register? */
                     for (r = 0; r < numregs; r++)
                     {
-                        if (r != SP_REGNUM &&
+                        if (r != ARC_SP_REGNUM &&
                             gdbarch_register_reggroup_p (current_gdbarch, r, all_reggroup))
                         {
                             CORE_ADDR saved_addr;
@@ -2281,7 +2267,7 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
 
                             if (!optimized && lval == lval_memory && saved_addr == addr)
                             {
-                                (void) sprintf(line + 38, "saved register '%s'", arc_register_name(current_gdbarch, r));
+                                (void) sprintf(line + 38, _("saved register '%s'"), gdbarch_register_name(current_gdbarch, r));
                                 print = TRUE;
                                 break;
                             }
@@ -2308,22 +2294,22 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
 
                 if (print)
                 {
-                    n = sprintf(line, "0x%08X:", (unsigned int) addr);
+                    n = sprintf(line, _("0x%08X:"), (unsigned int) addr);
                     line[n] = ' ';
 
                     n = sprintf(line + 25, "%08X", frame_contents[i]);
                     line[25 + n] = ' ';
 
-                    n = sizeof(line) - 1;
+                    n = (int) sizeof(line) - 1;
                     while (line[n] == ' ') n--;
                     line[n + 1] = '\0';
 
                     if (the_same == 1)
-                        printf_filtered("0x%08X:              %08X\n", (unsigned int) addr + BYTES_IN_WORD, previous_word);
+                        printf_filtered(_("0x%08X:              %08X\n"), (unsigned int) addr + BYTES_IN_WORD, previous_word);
                     else if (the_same > 0)
-                        printf_filtered("... %u words omitted\n", the_same);
+                        printf_filtered(_("... %u words omitted\n"), the_same);
 
-                    printf_filtered("%s\n", line);
+                    printf_filtered(_("%s\n"), line);
                     the_same = 0;
                 }
 
@@ -2334,7 +2320,7 @@ arc_jtag_show_stack_frame_command(char *arg, int from_tty)
                 i--;
             }
 
-            printf_filtered("\n");
+            printf_filtered(NEW_LINE);
         }
 
         xfree(frame_contents);
@@ -2360,45 +2346,6 @@ void arc_initialize_disassembler(struct disassemble_info* info)
 }
 
 
-/*
- * mapping from binutils/gcc register number to GDB register number ("regnum")
- *
- * N.B. registers such as ARC_FP_REGNUM, ARC_FP_REGNUM, etc., actually have
- *      different GDB register numbers in the arc-elf32 and arc-linux-uclibc
- *      configurations of the ARC gdb.
- */
-int arc_binutils_reg_to_regnum (struct gdbarch *gdbarch, int reg)
-{
-    /* from gcc/config/arc/arc.h */
-
-    if (reg >= 0 && reg <= 26)
-        return reg;
-    else if (reg == FRAME_POINTER)      /* fp */
-        return ARC_FP_REGNUM;
-    else if (reg == STACK_POINTER)      /* sp */
-        return ARC_SP_REGNUM;
-    else if (reg == 29)                 /* ilink1 */
-        return ARC_ILINK1_REGNUM;
-    else if (reg == 30)                 /* ilink2 */
-        return ARC_ILINK2_REGNUM;
-    else if (reg == 31)                 /* blink */
-        return ARC_BLINK_REGNUM;
-    else if (reg >= 32 && reg <= 59)    /* reserved */
-        ;
-    else if (reg == 60)                 /* lp_count */
-        return ARC_LP_COUNT_REGNUM;
-    else if (reg == 61)                 /* reserved */
-        ;
-    else if (reg == 62)                 /* no such register */
-        ;
-/* else if (reg == 63)                  /\* PCL *\/ */
-/*      return ARC_RET_REGNUM; */
-
-    warning ("Unmapped register #%d encountered\n", reg);
-    return -1;
-}
-
-
 /* this function is called from gdb */
 void
 _initialize_arc_tdep (void)
@@ -2413,12 +2360,12 @@ _initialize_arc_tdep (void)
 
     /* register ARC-specific commands with gdb */
 
-    add_setshow_boolean_cmd("arc-debug",
+    add_setshow_boolean_cmd(DEBUG_COMMAND,
                             no_class,
                             &arc_debug_target,
-                            "Set whether to print ARC debug messages.\n",
-                            "Show whether to print ARC debug messages.\n",
-                            "If set debug messages are printed.\n",
+                            _("Set whether to print ARC debug messages.\n"),
+                            _("Show whether to print ARC debug messages.\n"),
+                            _("If set debug messages are printed.\n"),
                             NULL,
                             NULL,
                             &setlist,
@@ -2427,9 +2374,9 @@ _initialize_arc_tdep (void)
     (void) add_cmd(SHOW_FRAME_COMMAND,
                    class_obscure,
                    arc_jtag_show_stack_frame_command,
-                   "Display the stack frame with annotation.\n"
-                   SHOW_FRAME_COMMAND_USAGE
-                   "<FRAME> may be the number or address of a frame",
+                   _("Display the stack frame with annotation.\n"
+                     SHOW_FRAME_COMMAND_USAGE
+                     "<FRAME> may be the number or address of a frame.\n"),
                    &cmdlist);
 }
 

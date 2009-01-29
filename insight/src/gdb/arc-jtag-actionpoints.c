@@ -1,10 +1,10 @@
-/* Target dependent code for ARC700, for GDB, the GNU debugger.
+/* Target dependent code for ARC processor family, for GDB, the GNU debugger.
 
    Copyright 2005 Free Software Foundation, Inc.
 
    Contributed by ARC International (www.arc.com)
 
-   Authors:
+   Author:
       Richard Stuckey <richard.stuckey@arc.com>
 
    This file is part of GDB.
@@ -38,15 +38,14 @@
 /*                                                                            */
 /******************************************************************************/
 
-/* system header files */
-#include <assert.h>
-
 /* gdb header files */
 #include "defs.h"
 #include "inferior.h"
+#include "gdb_assert.h"
 
 /* ARC header files */
 #include "arc-jtag-actionpoints.h"
+#include "arc-aux-registers.h"
 #include "arc-jtag.h"
 #include "arc-jtag-ops.h"
 #include "arc-support.h"
@@ -121,41 +120,26 @@ typedef struct arc_actionpoint
 #define AP_QUAD                            0x200
 
 
-/* auxiliary registers for actionpoint 0
- * (there are up to MAX_ACTION_POINTS sets of these)
- */
-#define ARC_HW_AMV0_REGNUM                          0x220
-#define ARC_HW_AMM0_REGNUM                          0x221
-#define ARC_HW_AC0_REGNUM                           0x222
+static unsigned int       num_actionpoints;
+static Boolean            full_target_actionpoints;
+static ARC_ActionPoint    actionpoints[MAX_ACTION_POINTS];
 
-
-static unsigned int    num_actionpoints;
-static Boolean         full_target_actionpoints;
-static ARC_ActionPoint actionpoints[MAX_ACTION_POINTS];
+static ARC_RegisterNumber amv0_regnum;
+static ARC_RegisterNumber amm0_regnum;
+static ARC_RegisterNumber ac0_regnum;
 
 
 /* -------------------------------------------------------------------------- */
 /*                               local macros                                 */
 /* -------------------------------------------------------------------------- */
 
-/* N.B. it must be possible to build this module without the rest of gdb so
- *      that it can be exercised by a stand-alone test driver
- */
-#ifdef STANDALONE_TEST
-#define error(...)             printf(__VA_ARGS__)
-#define warning(...)        {  printf(__VA_ARGS__); printf("\n"); }
-#define printf_filtered(...)   printf(__VA_ARGS__)
-#define internal_error(...)    abort();
-#endif
-
-
 /* The N actionpoint auxiliary registers (where N is 0 .. MAX_ACTION_POINTS - 1)
  * (fortunately, the numbers of the registers are one contiguous block, so
  * a simple addition is sufficient here).
  */
-#define ARC_HW_AMV_REGNUM(n)     (ARC_RegisterNumber) (ARC_HW_AMV0_REGNUM + 3 * (n))
-#define ARC_HW_AMM_REGNUM(n)     (ARC_RegisterNumber) (ARC_HW_AMM0_REGNUM + 3 * (n))
-#define ARC_HW_AC_REGNUM(n)      (ARC_RegisterNumber) (ARC_HW_AC0_REGNUM  + 3 * (n))
+#define ARC_HW_AMV_REGNUM(n)     (ARC_RegisterNumber) (amv0_regnum + 3 * (n))
+#define ARC_HW_AMM_REGNUM(n)     (ARC_RegisterNumber) (amm0_regnum + 3 * (n))
+#define ARC_HW_AC_REGNUM(n)      (ARC_RegisterNumber) (ac0_regnum  + 3 * (n))
 
 // this will give a value in range 0 .. MAX_ACTION_POINTS - 1
 #define AP_INSTANCE(ap)          ((ap) - actionpoints)
@@ -198,11 +182,17 @@ static Boolean is_power_of_two(int       number,
  */
 static Boolean target_has_actionpoints(void)
 {
+    ARC_RegisterNumber   ap_build_regnum;
     ARC_RegisterContents ap_build;
+
+    ap_build_regnum = arc_aux_find_register_number("AP_BUILD", ARC_HW_AP_BUILD_REGNUM);
+    amv0_regnum     = arc_aux_find_register_number("AMV0",     ARC_HW_AMV0_REGNUM);
+    amm0_regnum     = arc_aux_find_register_number("AMM0",     ARC_HW_AMM0_REGNUM);
+    ac0_regnum      = arc_aux_find_register_number("AC0",      ARC_HW_AC0_REGNUM);
 
     num_actionpoints = 0;
 
-    if (arc_read_aux_register (ARC_HW_AP_BUILD_REGNUM, &ap_build))
+    if (arc_read_jtag_aux_register(ap_build_regnum, &ap_build, TRUE))
     {
         DEBUG("AP_BUILD BCR: 0x%08X\n", ap_build);
 
@@ -227,7 +217,7 @@ static Boolean target_has_actionpoints(void)
                      case 0 : num_actionpoints = 2; break;
                      case 1 : num_actionpoints = 4; break;
                      case 2 : num_actionpoints = 8; break;
-                     default: internal_error (__FILE__, __LINE__, "invalid AP_BUILD.TYPE: 0x%X", type);
+                     default: internal_error (__FILE__, __LINE__, _("invalid AP_BUILD.TYPE: 0x%X"), type);
                  }
 
                  /* the next bit specifies whether the processor supports full
@@ -248,7 +238,7 @@ static Boolean target_has_actionpoints(void)
                  return TRUE;
             }
             else
-                warning("ARC processor actionpoint mechanism version (0x%x) is not supported.",
+                warning(_("ARC processor actionpoint mechanism version (0x%x) is not supported."),
                         ap_build & AP_BUILD_VERSION);
         }
     }
@@ -433,20 +423,17 @@ static unsigned int map_actionpoints(ARC_Address  addr,
 
 static Boolean set_actionpoint_on_target (ARC_ActionPoint* actionpoint)
 {
+    unsigned int instance = AP_INSTANCE(actionpoint);
+    Boolean      set;
+
     /* The actionpoint registers are accessible in kernel mode only. */
-    ARC_RegisterContents saved_status32 = arc_clear_status32_user_bit ();
-    unsigned int         instance       = AP_INSTANCE(actionpoint);
+    arc_change_status32(CLEAR_USER_BIT);
 
-//  arc_jtag_ops.jtag_state_machine_debug = TRUE;
+    set = arc_write_jtag_aux_register(ARC_HW_AMV_REGNUM(instance), actionpoint->match_value, TRUE) &&
+          arc_write_jtag_aux_register(ARC_HW_AMM_REGNUM(instance), actionpoint->match_mask,  TRUE) &&
+          arc_write_jtag_aux_register(ARC_HW_AC_REGNUM (instance), actionpoint->control,     TRUE);
 
-    Boolean set =
-        arc_write_aux_register (ARC_HW_AMV_REGNUM(instance), actionpoint->match_value) &&
-        arc_write_aux_register (ARC_HW_AMM_REGNUM(instance), actionpoint->match_mask)  &&
-        arc_write_aux_register (ARC_HW_AC_REGNUM (instance), actionpoint->control);
-
-//  arc_jtag_ops.jtag_state_machine_debug = FALSE;
-
-    arc_restore_status32_user_bit (saved_status32);
+    arc_change_status32(RESTORE_USER_BIT);
 
     return set;
 }
@@ -470,14 +457,16 @@ static Boolean set_actionpoint (ARC_ActionPoint* actionpoint)
 
 static Boolean clear_actionpoint_from_target (ARC_ActionPoint* actionpoint)
 {
+    Boolean cleared;
+
     /* The actionpoint registers are accessible in kernel mode only. */
-    ARC_RegisterContents saved_status32 = arc_clear_status32_user_bit ();
+    arc_change_status32(CLEAR_USER_BIT);
 
-    Boolean cleared =
-        arc_write_aux_register (ARC_HW_AC_REGNUM (AP_INSTANCE(actionpoint)),
-                                AP_TRANSACTION_TYPE_DISABLED);
+    cleared = arc_write_jtag_aux_register(ARC_HW_AC_REGNUM (AP_INSTANCE(actionpoint)),
+                                          AP_TRANSACTION_TYPE_DISABLED,
+                                          TRUE);
 
-    arc_restore_status32_user_bit (saved_status32);
+    arc_change_status32(RESTORE_USER_BIT);
 
     return cleared;
 }
@@ -510,7 +499,7 @@ static int insert_actionpoint (struct bp_target_info *bpt,
                 if (bpt)
                 {
                     bpt->shadow_len  = 0;
-                    bpt->placed_size = actionpoint->length;
+                    bpt->placed_size = (int) actionpoint->length;
                 }
 
                 return SUCCESS;
@@ -519,7 +508,7 @@ static int insert_actionpoint (struct bp_target_info *bpt,
     }
 
     /* failed: no free actionpoints */
-//  warning("no actionpoints available");
+//  warning(_("no actionpoints available"));
     return FAILURE;
 }
 
@@ -733,7 +722,7 @@ static int insert_actionpoint_group (unsigned int         length,
         return SUCCESS;
     }
 
-//  warning("insufficient actionpoints available");
+//  warning(_("insufficient actionpoints available"));
     return FAILURE;
 }
 
@@ -770,8 +759,8 @@ static int insert_range(ARC_RegisterContents  address,
                                         actionpoint_mask,
                                         control);
 
-    warning ("break/watchpoint would require %u linked actionpoints, "
-             "but at most %u actionpoints may be linked together",
+    warning (_("break/watchpoint would require %u linked actionpoints, "
+               "but at most %u actionpoints may be linked together"),
              actionpoints_needed, MAX_ACTION_POINTS_IN_GROUP);
 
     return FAILURE;
@@ -945,7 +934,7 @@ static int arc_debug_insert_watchpoint (CORE_ADDR addr, int length, int type)
         case 2:
             control |= AP_TRANSACTION_TYPE_ACCESS; break;
         default:
-            internal_error (__FILE__, __LINE__, "invalid watchpoint type: %d", type);
+            internal_error (__FILE__, __LINE__, _("invalid watchpoint type: %d"), type);
     }
 
     return insert_range((ARC_RegisterContents) addr,
@@ -1043,7 +1032,7 @@ Boolean arc_restore_actionpoints_after_reset(void)
 }
 
 
-Boolean arc_init_actionpoint_ops(struct target_ops* debug_ops)
+Boolean arc_initialize_actionpoint_ops(struct target_ops* debug_ops)
 {
     if (target_has_actionpoints())
     {
@@ -1072,36 +1061,36 @@ void arc_display_actionpoints(void)
 {
     unsigned int i;
 
-    static const char* targets[8] =
+    char* targets[8] =
     {
-        "Instruction Address",
-        "Instruction Data",
-        "Load/Store Address",
-        "Load/Store Data",
-        "Aux Register Address",
-        "Aux Register Data",
-        "Ext Parameter 0",
-        "Ext Parameter 1"
+        _("Instruction Address"),
+        _("Instruction Data"),
+        _("Load/Store Address"),
+        _("Load/Store Data"),
+        _("Aux Register Address"),
+        _("Aux Register Data"),
+        _("Ext Parameter 0"),
+        _("Ext Parameter 1")
     };
 
-    static const char* transactions[4] =
+    char* transactions[4] =
     {
-        "disabled",
-        "write",
-        "read",
-        "read/write"
+        _("disabled"),
+        _("write"),
+        _("read"),
+        _("read/write")
     };
 
-    static const char* explanations[8] =
+    char* explanations[8] =
     {
-        "execution of instruction at address",
-        "execution of instruction",
-        "load or store of data at address",
-        "load or store of data",
-        "read or write of auxiliary register",
-        "read or write of auxiliary register contents",
-        "value",
-        "value"
+        _("execution of instruction at address"),
+        _("execution of instruction"),
+        _("load or store of data at address"),
+        _("load or store of data"),
+        _("read or write of auxiliary register"),
+        _("read or write of auxiliary register contents"),
+        _("value"),
+        _("value")
     };
 
 
@@ -1118,43 +1107,43 @@ void arc_display_actionpoints(void)
             const char*          target  = targets     [targ];
             const char*          type    = transactions[trans];
             const char*          mode    = ((control & AP_MODE_MASK) ==
-                                             AP_MODE_TRIGGER_OUTSIDE_RANGE) ? "outside range" : "in range";
+                                             AP_MODE_TRIGGER_OUTSIDE_RANGE) ? _("outside range") : _("in range");
             const char*          action  = ((control & AP_ACTION_MASK) == 
-                                             AP_ACTION_BREAK) ? "break" : "raise exception";
+                                             AP_ACTION_BREAK) ? _("break") : _("raise exception");
             const char*          usage;
 
             switch (actionpoint->usage)
             {
-                case SINGLE: usage = "         "; break;
-                case PAIR_0: usage = " (Pair 0)"; break;
-                case PAIR_1: usage = " (Pair 1)"; break;
-                case QUAD_0: usage = " (Quad 0)"; break;
-                case QUAD_1: usage = " (Quad 1)"; break;
-                case QUAD_2: usage = " (Quad 2)"; break;
-                case QUAD_3: usage = " (Quad 3)"; break;
+                case SINGLE: usage = _("         "); break;
+                case PAIR_0: usage = _(" (Pair 0)"); break;
+                case PAIR_1: usage = _(" (Pair 1)"); break;
+                case QUAD_0: usage = _(" (Quad 0)"); break;
+                case QUAD_1: usage = _(" (Quad 1)"); break;
+                case QUAD_2: usage = _(" (Quad 2)"); break;
+                case QUAD_3: usage = _(" (Quad 3)"); break;
                 default:
-                    internal_error (__FILE__, __LINE__, "invalid AP usage: %u", actionpoint->usage);
+                    internal_error (__FILE__, __LINE__, _("invalid AP usage: %u"), actionpoint->usage);
                     return;
             }
 
-            printf_filtered("AP %u%s :: ", i, usage);
+            printf_filtered(_("AP %u%s :: "), i, usage);
 
-            printf_filtered(                     "value    : %08X\n",                actionpoint->match_value);
-            printf_filtered(    "                 mask     : %08X\n",                actionpoint->match_mask);
+            printf_filtered(                     _("value    : %08X\n"),                 actionpoint->match_value);
+            printf_filtered(    _("                 mask     : %08X\n"),                 actionpoint->match_mask);
             if ((control & AP_TRANSACTION_TYPE_MASK) == AP_TRANSACTION_TYPE_DISABLED)
-                printf_filtered("                 control  : %08X disabled\n", actionpoint->control);
+                printf_filtered(_("                 control  : %08X disabled\n"),        actionpoint->control);
             else
-                printf_filtered("                 control  : %08X %s, %s on %s %s\n", actionpoint->control, target, action, type, mode);
+                printf_filtered(_("                 control  : %08X %s, %s on %s %s\n"), actionpoint->control, target, action, type, mode);
             if (actionpoint->triggered)
             {
                 const char* explain = explanations[targ];
 
-                printf_filtered("                 triggered by %s %08x\n", explain, actionpoint->point);
+                printf_filtered(_("                 triggered by %s %08x\n"), explain,   actionpoint->point);
             }
         }
         else
         {
-            printf_filtered("AP %u          :: not in use\n", i);
+            printf_filtered(_("AP %u          :: not in use\n"), i);
         }
     }
 }
@@ -1162,11 +1151,18 @@ void arc_display_actionpoints(void)
 
 void arc_target_halted(void)
 {
-    ARC_RegisterContents debug;
+    ARC_AuxRegisterDefinition* def = arc_find_aux_register_by_name("DEBUG");
+    ARC_RegisterContents       debug;
+    ARC_RegisterNumber         debug_regnum;
 
     ENTERMSG;
 
-    if (arc_read_aux_register(ARC_HW_DEBUG_REGNUM, &debug))
+    if (def == NULL)
+        error(_("There is no auxiliary register description for the DEBUG register"));
+
+    debug_regnum = arc_aux_hw_register_number(def);
+
+    if (arc_read_jtag_aux_register(debug_regnum, &debug, TRUE))
     {
         /* if the bit indicating that an actionpoint has halted the processor is
          * set
@@ -1199,11 +1195,12 @@ void arc_target_halted(void)
                          * updated with the address to which access has caused
                          * the actionpoint to trigger
                          */
-                        (void) arc_read_aux_register(ARC_HW_AMV_REGNUM(AP_INSTANCE(actionpoint)),
-                                                     &actionpoint->point);
+                        (void) arc_read_jtag_aux_register(ARC_HW_AMV_REGNUM(AP_INSTANCE(actionpoint)),
+                                                          &actionpoint->point,
+                                                          TRUE);
                     }
                     else
-                        internal_error (__FILE__, __LINE__, "actionpoint %u triggered but not set", i);
+                        internal_error (__FILE__, __LINE__, _("actionpoint %u triggered but not set"), i);
                 }
 
                 ASR >>= 1;

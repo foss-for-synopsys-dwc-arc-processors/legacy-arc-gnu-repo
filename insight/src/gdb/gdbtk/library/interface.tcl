@@ -1133,13 +1133,22 @@ proc set_target {} {
       update
       set dialog_title "GDB"
       set debugger_name "GDB"
-      tk_messageBox -icon error -title $dialog_title -type ok \
-	-message "$msg\n\n$debugger_name cannot connect to the target board\
-using [lindex $gdb_target_cmd 1].\nVerify that the board is securely connected and, if\
+# ARC 24/11/08
+# change 1 to 0 in lindex
+# check for target being simulator
+      set target [lindex $gdb_target_cmd 0]
+      if {$target == "sim" } {
+        set message "$msg\n\n$debugger_name cannot connect to the simulator.\
+\nSelect an executable file to be debugged first."
+      } else {
+           set message "$msg\n\n$debugger_name cannot connect to the target board\
+using $target.\nVerify that the board is securely connected and, if\
 necessary,\nmodify the port setting with the debugger preferences."
+      }
+      tk_messageBox -icon error -title $dialog_title -type ok -message $message
       return ERROR
     }
-    
+
     if {![catch {pref get gdb/load/$gdb_target_name-after_attaching} aa] && $aa != ""} {
       if {[catch {gdb_cmd $aa} err]} {
 	catch {[ManagedWin::find Console] insert $err err_tag}

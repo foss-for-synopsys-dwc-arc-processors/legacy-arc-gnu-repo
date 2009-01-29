@@ -23,7 +23,6 @@
 #include <sys/time.h>
 #include "gdb/target-io/arc.h"
 
-
 #define TRAP_FLUSH_CACHE 12
 
 /* The semantic code invokes this for invalid (unrecognized) instructions.  */
@@ -87,7 +86,7 @@ arc_core_signal (SIM_DESC sd, SIM_CPU *current_cpu, sim_cia cia,
 	default:
 	  abort ();
 	}
-
+	    
       m32rbf_h_cr_set (current_cpu, H_CR_BPC, cia);
 
       sim_engine_restart (CPU_STATE (current_cpu), current_cpu, NULL,
@@ -222,9 +221,7 @@ arc_breakpoint (SIM_CPU *current_cpu, PCADDR pc, int insn_len)
 {
   SIM_DESC sd = CPU_STATE (current_cpu);
 
-
-    sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
- /*  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGNONE);*/
+  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
 }
 
 /* If the generic simulator call said ENOSYS, then let's try the
@@ -251,7 +248,7 @@ arc_syscall (host_callback *cb, CB_SYSCALL *s)
 
       if (s->arg1 == 0)
 	s->result = current_cpu->endbrk;
-      else if (s->arg1 <= sd->heap_end)
+      else if (s->arg1 <= sd->memory.heap_end)
 	current_cpu->endbrk = s->arg1;
       else
 	{

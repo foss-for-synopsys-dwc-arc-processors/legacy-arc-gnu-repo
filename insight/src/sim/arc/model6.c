@@ -5811,6 +5811,25 @@ model_ARC600_lr_L_s12_ (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
+model_ARC600_lr_L_u6_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
 model_ARC600_sr_L_r_r___RC_ (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_st_abs.f
@@ -5833,6 +5852,25 @@ static int
 model_ARC600_sr_L_s12_ (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_sr_L_u6_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8395,6 +8433,481 @@ model_ARC600_push_s_blink (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
+model_ARC600_mullw_L_s12__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mullw_ccu6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mullw_L_u6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mullw_L_r_r__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mullw_cc__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_maclw_L_s12__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_maclw_ccu6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_maclw_L_u6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_maclw_L_r_r__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_maclw_cc__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machlw_L_s12__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machlw_ccu6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machlw_L_u6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machlw_L_r_r__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machlw_cc__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mululw_L_s12__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mululw_ccu6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mululw_L_u6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mululw_L_r_r__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_mululw_cc__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machulw_L_s12__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machulw_ccu6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machulw_L_u6__RA_ (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machulw_L_r_r__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_machulw_cc__RA__RC (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
 model_ARC600_current_loop_end (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.fmt_empty.f
@@ -8415,6 +8928,25 @@ model_ARC600_current_loop_end (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_ARC600_current_loop_end_after_branch (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.fmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    INT in_b = -1;
+    INT in_c = -1;
+    INT out_a = -1;
+    cycles += arc600f_model_ARC600_u_exec (current_cpu, idesc, 0, referenced, in_b, in_c, out_a);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_ARC600_arc600_current_loop_end_after_branch (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.fmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -8748,8 +9280,10 @@ static const INSN_TIMING ARC600_timing[] = {
   { ARC600F_INSN_FLAG_CC__RC, model_ARC600_flag_cc__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_LR_L_R_R___RC_, model_ARC600_lr_L_r_r___RC_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_LR_L_S12_, model_ARC600_lr_L_s12_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_LR_L_U6_, model_ARC600_lr_L_u6_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_SR_L_R_R___RC_, model_ARC600_sr_L_r_r___RC_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_SR_L_S12_, model_ARC600_sr_L_s12_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_SR_L_U6_, model_ARC600_sr_L_u6_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_ASL_L_R_R__RC, model_ARC600_asl_L_r_r__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_ASL_L_U6_, model_ARC600_asl_L_u6_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_I16_GO_ASL_S_GO, model_ARC600_I16_GO_ASL_s_go, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
@@ -8884,8 +9418,34 @@ static const INSN_TIMING ARC600_timing[] = {
   { ARC600F_INSN_POP_S_BLINK, model_ARC600_pop_s_blink, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_PUSH_S_B, model_ARC600_push_s_b, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_PUSH_S_BLINK, model_ARC600_push_s_blink, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULLW_L_S12__RA_, model_ARC600_mullw_L_s12__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULLW_CCU6__RA_, model_ARC600_mullw_ccu6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULLW_L_U6__RA_, model_ARC600_mullw_L_u6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULLW_L_R_R__RA__RC, model_ARC600_mullw_L_r_r__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULLW_CC__RA__RC, model_ARC600_mullw_cc__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACLW_L_S12__RA_, model_ARC600_maclw_L_s12__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACLW_CCU6__RA_, model_ARC600_maclw_ccu6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACLW_L_U6__RA_, model_ARC600_maclw_L_u6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACLW_L_R_R__RA__RC, model_ARC600_maclw_L_r_r__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACLW_CC__RA__RC, model_ARC600_maclw_cc__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHLW_L_S12__RA_, model_ARC600_machlw_L_s12__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHLW_CCU6__RA_, model_ARC600_machlw_ccu6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHLW_L_U6__RA_, model_ARC600_machlw_L_u6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHLW_L_R_R__RA__RC, model_ARC600_machlw_L_r_r__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHLW_CC__RA__RC, model_ARC600_machlw_cc__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULULW_L_S12__RA_, model_ARC600_mululw_L_s12__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULULW_CCU6__RA_, model_ARC600_mululw_ccu6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULULW_L_U6__RA_, model_ARC600_mululw_L_u6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULULW_L_R_R__RA__RC, model_ARC600_mululw_L_r_r__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MULULW_CC__RA__RC, model_ARC600_mululw_cc__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHULW_L_S12__RA_, model_ARC600_machulw_L_s12__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHULW_CCU6__RA_, model_ARC600_machulw_ccu6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHULW_L_U6__RA_, model_ARC600_machulw_L_u6__RA_, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHULW_L_R_R__RA__RC, model_ARC600_machulw_L_r_r__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_MACHULW_CC__RA__RC, model_ARC600_machulw_cc__RA__RC, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_CURRENT_LOOP_END, model_ARC600_current_loop_end, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
   { ARC600F_INSN_CURRENT_LOOP_END_AFTER_BRANCH, model_ARC600_current_loop_end_after_branch, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
+  { ARC600F_INSN_ARC600_CURRENT_LOOP_END_AFTER_BRANCH, model_ARC600_arc600_current_loop_end_after_branch, { { (int) UNIT_ARC600_U_EXEC, 1, 1 } } },
 };
 
 #endif /* WITH_PROFILE_MODEL_P */

@@ -1,7 +1,63 @@
-2007-11-29  Irfan Rafiq     <irfan.rafiq@arc.com>
+2008-09-18  J"orn Rennecke  <joern.rennecke@arc.com>
 
-	* sim-if.c: Fix for building arc-linux-uclibc version.
-	
+	* sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+
+	* sim-if.c (init_stack): Round memory up to multiple of 32 bytes.
+
+2008-09-16  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* decode5,c, decode6,c, decode7.c, sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+
+2008-09-13  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+
+2008-09-12  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+
+2008-09-12  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* decode5.c, decode6.c decode7.c, sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+	* decode5.h, decode6.h, decode7.h: Likweise.
+	* model5.c, model6.c, model7.c: Likewise.
+
+2008-09-11  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* decode5.c, decode6.c decode7.c, sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+	* decode5.h, decode6.h, decode7.h: Likweise.
+	* model5.c, model6.c, model7.c: Likewise.
+
+2008-07-14  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* decode5.c, decode6.c, decode7.c, sem5.c, sem6.c, sem7.c: Regenerate.
+	* decode5.h, decode6.h, decode7.h: : Likewise.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+	* cpu5.h, cpu6.h, cpu7.h, model5.c, model6.c, model7.c: Likewise.
+
+2008-03-28  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* decode5.c, decode6.c, decode7.c, sem5.c, sem6.c, sem7.c: Regenerate.
+	* decode5.h, decode6.h, decode7.h: : Likewise.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+	* model5.c, model6.c, model7.c: Likewise.
+	* mloop6.in (xextract-pbb): Model special ARC600 behaviour
+	for branches at loop end.
+
+2008-02-12  J"orn Rennecke  <joern.rennecke@arc.com>
+
+	* mloop5.in (xextract-pbb): Interpret at least one insn.
+	* mloop6.in (xextract-pbb): Likewise.
+	* mloop7.in (xextract-pbb): Likewise.
+	* sem5.c, sem6.c, sem7.c: Regenerate.
+	* sem5-switch.c, sem6-switch.c, sem7-switch.c: Likewise.
+
 2007-10-25  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* decode5.c, decode6.c, decode7.c: Regenerate.

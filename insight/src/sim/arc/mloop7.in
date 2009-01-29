@@ -172,7 +172,7 @@ cat <<EOF
   /* Reserve two slots for a delay slot insn and zero overhead loop.  */
   max_insns -= 2;
   if (max_insns < 1)
-  	max_insns = 1;
+    max_insns = 1;
   while (max_insns > 0)
     {
       UHI high = GETIMEMUHI (current_cpu, pc);

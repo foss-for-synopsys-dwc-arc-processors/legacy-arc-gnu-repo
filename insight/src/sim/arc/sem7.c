@@ -8069,17 +8069,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (GTSI (GET_H_CR (FLD (f_op_B)), FLD (f_s12))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_s12));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 8);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = GESI (FLD (f_s12), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_s12), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8130,17 +8144,31 @@ if (GET_H_QCONDB (FLD (f_cond_Q))) {
   tmp_result = (GTSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_u6));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = GESI (FLD (f_u6), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8191,17 +8219,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (GTSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_u6));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 8);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = GESI (FLD (f_u6), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8249,17 +8291,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (GTSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)))) ? (GET_H_CR (FLD (f_op_B))) : (GET_H_CR (FLD (f_op_C)));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = GESI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8310,17 +8366,31 @@ if (GET_H_QCONDB (FLD (f_cond_Q))) {
   tmp_result = (GTSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)))) ? (GET_H_CR (FLD (f_op_B))) : (GET_H_CR (FLD (f_op_C)));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 11);
+    written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = GESI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8371,17 +8441,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (LTSI (GET_H_CR (FLD (f_op_B)), FLD (f_s12))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_s12));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 8);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = LESI (FLD (f_s12), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_s12), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8432,17 +8516,31 @@ if (GET_H_QCONDB (FLD (f_cond_Q))) {
   tmp_result = (LTSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_u6));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = LESI (FLD (f_u6), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8493,17 +8591,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (LTSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6))) ? (GET_H_CR (FLD (f_op_B))) : (FLD (f_u6));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 8);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = LESI (FLD (f_u6), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), FLD (f_u6), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8551,17 +8663,31 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   tmp_result = (LTSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)))) ? (GET_H_CR (FLD (f_op_B))) : (GET_H_CR (FLD (f_op_C)));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 9);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = LESI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -8612,17 +8738,31 @@ if (GET_H_QCONDB (FLD (f_cond_Q))) {
   tmp_result = (LTSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)))) ? (GET_H_CR (FLD (f_op_B))) : (GET_H_CR (FLD (f_op_C)));
 if (FLD (f_F)) {
 {
+{
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 10);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 11);
+    written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = LESI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_B)));
+    CPU (h_cbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
+  }
+  {
+    BI opval = SUBOFSI (GET_H_CR (FLD (f_op_B)), GET_H_CR (FLD (f_op_C)), 0);
+    CPU (h_vbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 }
 }
@@ -17551,7 +17691,7 @@ if (ANDIF (GESI (SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT
   {
     SI opval = SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT) 0)]));
     SET_H_AUXR (((UINT) 33), opval);
-    written |= (1 << 11);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
   }
 if (CPU (h_ubit)) {
@@ -17564,21 +17704,23 @@ if (tmp_count) {
   {
     UHI opval = tmp_count;
     SETMEMUHI (current_cpu, pc, tmp_countp, opval);
-    written |= (1 << 14);
+    written |= (1 << 15);
     TRACE_RESULT (current_cpu, abuf, "memory", 'x', opval);
   }
 }
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (NEBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -17587,14 +17729,16 @@ if (tmp_count) {
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (NEBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -17603,25 +17747,25 @@ if (tmp_count) {
   {
     SI opval = pc;
     SET_H_CR (((UINT) 29), opval);
-    written |= (1 << 12);
+    written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
   }
   {
     SI opval = GET_H_STATUS32 (((UINT) 0));
     SET_H_AUXR (((UINT) 11), opval);
-    written |= (1 << 10);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
   }
   {
     BI opval = 0;
     CPU (h_e1) = opval;
-    written |= (1 << 13);
+    written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "e1", 'x', opval);
   }
   {
     USI opval = ADDSI (GET_H_AUXR (((UINT) 37)), 24);
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
 }
@@ -17631,14 +17775,16 @@ if (tmp_count) {
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (NEBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -17666,7 +17812,7 @@ if (ANDIF (GESI (SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT
   {
     SI opval = SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT) 0)]));
     SET_H_AUXR (((UINT) 33), opval);
-    written |= (1 << 11);
+    written |= (1 << 12);
     TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
   }
 if (CPU (h_ubit)) {
@@ -17679,21 +17825,23 @@ if (tmp_count) {
   {
     UHI opval = tmp_count;
     SETMEMUHI (current_cpu, pc, tmp_countp, opval);
-    written |= (1 << 14);
+    written |= (1 << 15);
     TRACE_RESULT (current_cpu, abuf, "memory", 'x', opval);
   }
 }
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (EQBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -17702,14 +17850,16 @@ if (tmp_count) {
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (EQBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -17718,25 +17868,25 @@ if (tmp_count) {
   {
     SI opval = pc;
     SET_H_CR (((UINT) 29), opval);
-    written |= (1 << 12);
+    written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
   }
   {
     SI opval = GET_H_STATUS32 (((UINT) 0));
     SET_H_AUXR (((UINT) 11), opval);
-    written |= (1 << 10);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
   }
   {
     BI opval = 0;
     CPU (h_e1) = opval;
-    written |= (1 << 13);
+    written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "e1", 'x', opval);
   }
   {
     USI opval = ADDSI (GET_H_AUXR (((UINT) 37)), 24);
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
 }
@@ -17746,14 +17896,16 @@ if (tmp_count) {
 {
   SI tmp_result;
 ((void) 0); /*nop*/
+if (EQBI (CPU (h_zbit), 0)) {
 {
 ((void) 0); /*nop*/
   {
     USI opval = GET_H_R31 ();
     SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
-    written |= (1 << 15);
+    written |= (1 << 16);
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
+}
 }
 }
 }
@@ -19232,7 +19384,7 @@ if (tmp_count) {
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
   {
-    SI opval = ADDSI (pc, 4);
+    SI opval = ADDSI (pc, 2);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -19253,7 +19405,7 @@ if (tmp_count) {
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
   {
-    SI opval = ADDSI (pc, 4);
+    SI opval = ADDSI (pc, 2);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -19302,7 +19454,7 @@ if (tmp_count) {
     TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
   }
   {
-    SI opval = ADDSI (pc, 4);
+    SI opval = ADDSI (pc, 2);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 13);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -20671,17 +20823,17 @@ if (tmp_count) {
 ((void) 0); /*nop*/
 {
   HI tmp_nword;
-  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 2));
 if (ANDHI (ANDHI (tmp_nword, SRAHI (tmp_nword, 1)), 40960)) {
   {
-    SI opval = ADDSI (pc, 6);
+    SI opval = ADDSI (pc, 4);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
   }
 } else {
   {
-    SI opval = ADDSI (pc, 8);
+    SI opval = ADDSI (pc, 6);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -20705,17 +20857,17 @@ if (ANDHI (ANDHI (tmp_nword, SRAHI (tmp_nword, 1)), 40960)) {
 ((void) 0); /*nop*/
 {
   HI tmp_nword;
-  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 2));
 if (ANDHI (ANDHI (tmp_nword, SRAHI (tmp_nword, 1)), 40960)) {
   {
-    SI opval = ADDSI (pc, 6);
+    SI opval = ADDSI (pc, 4);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
   }
 } else {
   {
-    SI opval = ADDSI (pc, 8);
+    SI opval = ADDSI (pc, 6);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -20767,17 +20919,17 @@ if (ANDHI (ANDHI (tmp_nword, SRAHI (tmp_nword, 1)), 40960)) {
 ((void) 0); /*nop*/
 {
   HI tmp_nword;
-  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_nword = GETMEMHI (current_cpu, pc, ADDSI (pc, 2));
 if (ANDHI (ANDHI (tmp_nword, SRAHI (tmp_nword, 1)), 40960)) {
   {
-    SI opval = ADDSI (pc, 6);
+    SI opval = ADDSI (pc, 4);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
   }
 } else {
   {
-    SI opval = ADDSI (pc, 8);
+    SI opval = ADDSI (pc, 6);
     SET_H_CR (((UINT) 31), opval);
     written |= (1 << 14);
     TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
@@ -21494,6 +21646,44 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
 #undef FLD
 }
 
+/* lr_L_u6 : lr$_L$F0 $RB,[$U6] */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,lr_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  {
+    SI opval = GET_H_AUXR (FLD (f_u6));
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  return vpc;
+#undef FLD
+}
+
 /* sr_L_r_r [$RC]: sr$_L$F0 $RB,[$RC] */
 
 static SEM_PC
@@ -21565,6 +21755,46 @@ CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
   {
     SI opval = GET_H_CR (FLD (f_op_B));
     SET_H_AUXR (FLD (f_s12), opval);
+    TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
+  }
+}
+
+  SEM_BRANCH_FINI (vpc);
+  return vpc;
+#undef FLD
+}
+
+/* sr_L_u6 : sr$_L$F0 $RB,[$U6] */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,sr_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_BRANCH_INIT
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  {
+    SI opval = GET_H_CR (FLD (f_op_B));
+    SET_H_AUXR (FLD (f_u6), opval);
     TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
   }
 }
@@ -21661,7 +21891,20 @@ SEM_FN_NAME (arc700f,asl_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ADDSI (FLD (f_u6), FLD (f_u6));
 if (FLD (f_F)) {
 {
@@ -21669,26 +21912,26 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = ADDOFSI (FLD (f_u6), FLD (f_u6), 0);
     CPU (h_vbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
   {
     BI opval = ADDCFSI (FLD (f_u6), FLD (f_u6), 0);
     CPU (h_cbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -21815,7 +22058,20 @@ SEM_FN_NAME (arc700f,asr_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = SRASI (FLD (f_u6), 1);
 if (FLD (f_F)) {
 {
@@ -21823,20 +22079,20 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = ANDSI (FLD (f_u6), 1);
     CPU (h_cbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -21963,7 +22219,20 @@ SEM_FN_NAME (arc700f,lsr_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = SRLSI (FLD (f_u6), 1);
 if (FLD (f_F)) {
 {
@@ -21971,20 +22240,20 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = ANDSI (FLD (f_u6), 1);
     CPU (h_cbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -22111,7 +22380,20 @@ SEM_FN_NAME (arc700f,ror_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ORSI (SRLSI (FLD (f_u6), 1), SLLSI (FLD (f_u6), 31));
 if (FLD (f_F)) {
 {
@@ -22119,20 +22401,20 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = ANDSI (FLD (f_u6), 1);
     CPU (h_cbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -22230,7 +22512,20 @@ SEM_FN_NAME (arc700f,rrc_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ORSI (SRLSI (FLD (f_u6), 1), SLLSI (ZEXTBISI (CPU (h_cbit)), 31));
 if (FLD (f_F)) {
 {
@@ -22238,20 +22533,20 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = ANDSI (FLD (f_u6), 1);
     CPU (h_cbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -22341,20 +22636,33 @@ SEM_FN_NAME (arc700f,sexb_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = EXTQISI ((FLD (f_u6)));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -22473,20 +22781,33 @@ SEM_FN_NAME (arc700f,sexw_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = EXTHISI ((FLD (f_u6)));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -22605,20 +22926,33 @@ SEM_FN_NAME (arc700f,extb_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ZEXTQISI ((FLD (f_u6)));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -22737,20 +23071,33 @@ SEM_FN_NAME (arc700f,extw_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ZEXTHISI ((FLD (f_u6)));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -22883,7 +23230,20 @@ SEM_FN_NAME (arc700f,abs_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ABSSI (({   SI tmp_res;
   tmp_res = FLD (f_u6);
 ; tmp_res; }));
@@ -22892,25 +23252,25 @@ if (FLD (f_F)) {
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
   {
     BI opval = LTSI ((FLD (f_u6)), 0);
     CPU (h_cbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
   {
     BI opval = EQSI (FLD (f_u6), 0x80000000);
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
   {
     BI opval = CPU (h_vbit);
     CPU (h_nbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
 }
@@ -23031,20 +23391,33 @@ SEM_FN_NAME (arc700f,not_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = INVSI (FLD (f_u6));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -23171,7 +23544,20 @@ SEM_FN_NAME (arc700f,rlc_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = ORSI (SLLSI (FLD (f_u6), 1), CPU (h_cbit));
 if (FLD (f_F)) {
 {
@@ -23179,20 +23565,20 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = SRLSI (FLD (f_u6), 31);
     CPU (h_cbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
   }
 }
@@ -23625,13 +24011,7 @@ if (FLD (f_F)) {
   }
 }
   {
-    BI opval = ADDCFSI (FLD (f_s12), FLD (f_s12), 0);
-    CPU (h_cbit) = opval;
-    written |= (1 << 8);
-    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
-  }
-  {
-    BI opval = ((EQSI (ANDSI (FLD (f_s12), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (31, ANDSI (FLD (f_s12), 31))), 1)));
+    BI opval = ((EQSI (ANDSI (FLD (f_s12), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (32, ANDSI (FLD (f_s12), 31))), 1)));
     CPU (h_cbit) = opval;
     written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
@@ -23700,13 +24080,7 @@ if (FLD (f_F)) {
   }
 }
   {
-    BI opval = ADDCFSI (FLD (f_u6), FLD (f_u6), 0);
-    CPU (h_cbit) = opval;
-    written |= (1 << 9);
-    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
-  }
-  {
-    BI opval = ((EQSI (ANDSI (FLD (f_u6), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (31, ANDSI (FLD (f_u6), 31))), 1)));
+    BI opval = ((EQSI (ANDSI (FLD (f_u6), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (32, ANDSI (FLD (f_u6), 31))), 1)));
     CPU (h_cbit) = opval;
     written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
@@ -23775,13 +24149,7 @@ if (FLD (f_F)) {
   }
 }
   {
-    BI opval = ADDCFSI (FLD (f_u6), FLD (f_u6), 0);
-    CPU (h_cbit) = opval;
-    written |= (1 << 8);
-    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
-  }
-  {
-    BI opval = ((EQSI (ANDSI (FLD (f_u6), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (31, ANDSI (FLD (f_u6), 31))), 1)));
+    BI opval = ((EQSI (ANDSI (FLD (f_u6), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (32, ANDSI (FLD (f_u6), 31))), 1)));
     CPU (h_cbit) = opval;
     written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
@@ -23847,13 +24215,7 @@ if (FLD (f_F)) {
   }
 }
   {
-    BI opval = ADDCFSI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_C)), 0);
-    CPU (h_cbit) = opval;
-    written |= (1 << 9);
-    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
-  }
-  {
-    BI opval = ((EQSI (ANDSI (GET_H_CR (FLD (f_op_C)), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (31, ANDSI (GET_H_CR (FLD (f_op_C)), 31))), 1)));
+    BI opval = ((EQSI (ANDSI (GET_H_CR (FLD (f_op_C)), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (32, ANDSI (GET_H_CR (FLD (f_op_C)), 31))), 1)));
     CPU (h_cbit) = opval;
     written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
@@ -23922,13 +24284,7 @@ if (FLD (f_F)) {
   }
 }
   {
-    BI opval = ADDCFSI (GET_H_CR (FLD (f_op_C)), GET_H_CR (FLD (f_op_C)), 0);
-    CPU (h_cbit) = opval;
-    written |= (1 << 10);
-    TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
-  }
-  {
-    BI opval = ((EQSI (ANDSI (GET_H_CR (FLD (f_op_C)), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (31, ANDSI (GET_H_CR (FLD (f_op_C)), 31))), 1)));
+    BI opval = ((EQSI (ANDSI (GET_H_CR (FLD (f_op_C)), 31), 0)) ? (0) : (ANDSI (SRLSI (GET_H_CR (FLD (f_op_B)), SUBSI (32, ANDSI (GET_H_CR (FLD (f_op_C)), 31))), 1)));
     CPU (h_cbit) = opval;
     written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "cbit", 'x', opval);
@@ -28892,20 +29248,33 @@ SEM_FN_NAME (arc700f,swap_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (RORSI (FLD (f_u6), 16));
 if (FLD (f_F)) {
 {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -29019,7 +29388,20 @@ SEM_FN_NAME (arc700f,norm_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (({   SI tmp_val;
   SI tmp_bits;
   tmp_val = ((GESI ((FLD (f_u6)), 0)) ? ((FLD (f_u6))) : (INVSI ((FLD (f_u6)))));
@@ -29050,13 +29432,13 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (FLD (f_u6), 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (FLD (f_u6), 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -29170,7 +29552,20 @@ SEM_FN_NAME (arc700f,rnd16_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (SRLSI (({   DI tmp_tmp;
   tmp_tmp = ADDDI (EXTSIDI (32768), EXTSIDI (FLD (f_u6)));
 ; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); }), 16));
@@ -29180,33 +29575,33 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = tmp_cur_s1bit;
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 if (tmp_cur_s1bit) {
   {
     BI opval = 1;
     CPU (h_s1bit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
   }
   {
     BI opval = 1;
     CPU (h_s2bit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
   }
 }
@@ -29321,7 +29716,20 @@ SEM_FN_NAME (arc700f,abssw_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (({   SI tmp_tmp;
   tmp_tmp = ABSSI (EXTHISI ((FLD (f_u6))));
 ; (GTSI (tmp_tmp, 32767)) ? (  tmp_cur_s1bit = 1, 32767) : (LTSI (tmp_tmp, -32768)) ? (  tmp_cur_s1bit = 1, -32768) : (tmp_tmp); }));
@@ -29331,33 +29739,33 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = tmp_cur_s1bit;
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 if (tmp_cur_s1bit) {
   {
     BI opval = 1;
     CPU (h_s1bit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
   }
   {
     BI opval = 1;
     CPU (h_s2bit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
   }
 }
@@ -29472,7 +29880,20 @@ SEM_FN_NAME (arc700f,abss_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (((GESI ((FLD (f_u6)), 0)) ? (FLD (f_u6)) : (({   DI tmp_tmp;
   tmp_tmp = SUBDI (EXTSIDI (0), EXTSIDI (FLD (f_u6)));
 ; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); }))));
@@ -29482,33 +29903,33 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = tmp_cur_s1bit;
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 if (tmp_cur_s1bit) {
   {
     BI opval = 1;
     CPU (h_s1bit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
   }
   {
     BI opval = 1;
     CPU (h_s2bit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
   }
 }
@@ -29623,7 +30044,20 @@ SEM_FN_NAME (arc700f,negsw_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (({   SI tmp_tmp;
   tmp_tmp = EXTHISI ((FLD (f_u6)));
 ; (GTSI (tmp_tmp, 32767)) ? (  tmp_cur_s1bit = 1, 32767) : (LTSI (tmp_tmp, -32768)) ? (  tmp_cur_s1bit = 1, -32768) : (tmp_tmp); }));
@@ -29633,33 +30067,33 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = tmp_cur_s1bit;
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 if (tmp_cur_s1bit) {
   {
     BI opval = 1;
     CPU (h_s1bit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
   }
   {
     BI opval = 1;
     CPU (h_s2bit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
   }
 }
@@ -29774,7 +30208,20 @@ SEM_FN_NAME (arc700f,negs_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (({   DI tmp_tmp;
   tmp_tmp = SUBDI (EXTSIDI (0), EXTSIDI (FLD (f_u6)));
 ; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); }));
@@ -29784,33 +30231,33 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 7);
+    written |= (1 << 11);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
   {
     BI opval = tmp_cur_s1bit;
     CPU (h_vbit) = opval;
-    written |= (1 << 6);
+    written |= (1 << 10);
     TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
   }
 if (tmp_cur_s1bit) {
   {
     BI opval = 1;
     CPU (h_s1bit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
   }
   {
     BI opval = 1;
     CPU (h_s2bit) = opval;
-    written |= (1 << 5);
+    written |= (1 << 9);
     TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
   }
 }
@@ -29925,7 +30372,20 @@ SEM_FN_NAME (arc700f,normw_L_u6_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SI tmp_result;
   BI tmp_cur_s1bit;
   BI tmp_cur_s2bit;
-((void) 0); /*nop*/
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
   tmp_result = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (({   SI tmp_val;
   SI tmp_bits;
   tmp_val = ((GESI (ORSI (SLLSI (FLD (f_u6), 16), ANDSI (FLD (f_u6), 65535)), 0)) ? (ORSI (SLLSI (FLD (f_u6), 16), ANDSI (FLD (f_u6), 65535))) : (INVSI (ORSI (SLLSI (FLD (f_u6), 16), ANDSI (FLD (f_u6), 65535)))));
@@ -29956,13 +30416,13 @@ if (FLD (f_F)) {
   {
     BI opval = LTSI (tmp_result, 0);
     CPU (h_nbit) = opval;
-    written |= (1 << 3);
+    written |= (1 << 7);
     TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
   }
   {
     BI opval = EQSI (tmp_result, 0);
     CPU (h_zbit) = opval;
-    written |= (1 << 4);
+    written |= (1 << 8);
     TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
   }
 }
@@ -30125,6 +30585,2561 @@ SEM_FN_NAME (arc700f,push_s_blink) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
+/* mullw_L_s12 $RA,: mullw$_L$F $RB,$RB,$s12 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mullw_L_s12__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_s12), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mullw_ccu6 $RA,: mullw$Qcondi$F $RB,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mullw_ccu6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mullw_L_u6 $RA,: mullw$_L$F $RA,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mullw_L_u6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mullw_L_r_r $RA,$RC: mullw$_L$F $RA,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mullw_L_r_r__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mullw_cc $RA,$RC: mullw$Qcondi$F $RB,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mullw_cc__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* maclw_L_s12 $RA,: maclw$_L$F $RB,$RB,$s12 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,maclw_L_s12__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  SI tmp_SItmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_s12), 65535))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   {
+    BI opval = ANDBI (CPU (h_vbit), SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+; if (NEBI (CPU (h_vbit), 0)) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   tmp_SItmp = ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp));
+;   tmp_cur_s1bit = ORBI (tmp_cur_s1bit, CPU (h_vbit));
+; tmp_SItmp; });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* maclw_ccu6 $RA,: maclw$Qcondi$F $RB,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,maclw_ccu6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  SI tmp_SItmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   {
+    BI opval = ANDBI (CPU (h_vbit), SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+; if (NEBI (CPU (h_vbit), 0)) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   tmp_SItmp = ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp));
+;   tmp_cur_s1bit = ORBI (tmp_cur_s1bit, CPU (h_vbit));
+; tmp_SItmp; });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* maclw_L_u6 $RA,: maclw$_L$F $RA,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,maclw_L_u6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  SI tmp_SItmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   {
+    BI opval = ANDBI (CPU (h_vbit), SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+; if (NEBI (CPU (h_vbit), 0)) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   tmp_SItmp = ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp));
+;   tmp_cur_s1bit = ORBI (tmp_cur_s1bit, CPU (h_vbit));
+; tmp_SItmp; });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* maclw_L_r_r $RA,$RC: maclw$_L$F $RA,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,maclw_L_r_r__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  SI tmp_SItmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   {
+    BI opval = ANDBI (CPU (h_vbit), SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+; if (NEBI (CPU (h_vbit), 0)) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   tmp_SItmp = ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp));
+;   tmp_cur_s1bit = ORBI (tmp_cur_s1bit, CPU (h_vbit));
+; tmp_SItmp; });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* maclw_cc $RA,$RC: maclw$Qcondi$F $RB,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,maclw_cc__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  SI tmp_SItmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   {
+    BI opval = ANDBI (CPU (h_vbit), SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+; if (NEBI (CPU (h_vbit), 0)) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   tmp_SItmp = ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp));
+;   tmp_cur_s1bit = ORBI (tmp_cur_s1bit, CPU (h_vbit));
+; tmp_SItmp; });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machlw_L_s12 $RA,: machlw$_L$F $RB,$RB,$s12 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machlw_L_s12__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_s12), -65536))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = ANDBI (CPU (h_vbit), XORDI (tmp_old, tmp_tmp));
+; if (tmp_cur_s1bit) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machlw_ccu6 $RA,: machlw$Qcondi$F $RB,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machlw_ccu6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), -65536))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = ANDBI (CPU (h_vbit), XORDI (tmp_old, tmp_tmp));
+; if (tmp_cur_s1bit) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machlw_L_u6 $RA,: machlw$_L$F $RA,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machlw_L_u6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (FLD (f_u6), -65536))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = ANDBI (CPU (h_vbit), XORDI (tmp_old, tmp_tmp));
+; if (tmp_cur_s1bit) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machlw_L_r_r $RA,$RC: machlw$_L$F $RA,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machlw_L_r_r__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), -65536))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = ANDBI (CPU (h_vbit), XORDI (tmp_old, tmp_tmp));
+; if (tmp_cur_s1bit) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machlw_cc $RA,$RC: machlw$Qcondi$F $RB,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machlw_cc__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (EXTSIDI (GET_H_CR (FLD (f_op_B))), EXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), -65536))));
+;   {
+    BI opval = NOTDI (SRLDI (XORDI (tmp_old, tmp_tmp), 63));
+    CPU (h_vbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = ANDBI (CPU (h_vbit), XORDI (tmp_old, tmp_tmp));
+; if (tmp_cur_s1bit) {
+  tmp_tmp = XORDI (SRADI (tmp_old, 63), SRLSI (-1, 1));
+}
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mululw_L_s12 $RA,: mululw$_L$F $RB,$RB,$s12 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mululw_L_s12__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_s12), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mululw_ccu6 $RA,: mululw$Qcondi$F $RB,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mululw_ccu6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 8);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mululw_L_u6 $RA,: mululw$_L$F $RA,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mululw_L_u6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_u6), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mululw_L_r_r $RA,$RC: mululw$_L$F $RA,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mululw_L_r_r__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* mululw_cc $RA,$RC: mululw$Qcondi$F $RB,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,mululw_cc__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_tmp;
+  tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), 65535))));
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; ((GTDI (tmp_tmp, 2147483647)) ? (  tmp_cur_s1bit = 1, 2147483647) : (LTDI (tmp_tmp, ADDSI (-2147483647, -1))) ? (  tmp_cur_s1bit = 1, ADDSI (-2147483647, -1)) : (  tmp_cur_s1bit = 0, tmp_tmp)); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 9);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machulw_L_s12 $RA,: machulw$_L$F $RB,$RB,$s12 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machulw_L_s12__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_s12__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_s12), -65536))));
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = (GTUDI (tmp_old, tmp_tmp)) ? ((  tmp_tmp = -1, 1)) : (0);
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machulw_ccu6 $RA,: machulw$Qcondi$F $RB,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machulw_ccu6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_ccu6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_u6), -65536))));
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = (GTUDI (tmp_old, tmp_tmp)) ? ((  tmp_tmp = -1, 1)) : (0);
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 10);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machulw_L_u6 $RA,: machulw$_L$F $RA,$RB,$U6 */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machulw_L_u6__RA_) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_u6__RA_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (EQSI (FLD (f_op_B), 62)) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (EQSI (FLD (f_op_B), 63)) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (FLD (f_u6), -65536))));
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = (GTUDI (tmp_old, tmp_tmp)) ? ((  tmp_tmp = -1, 1)) : (0);
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machulw_L_r_r $RA,$RC: machulw$_L$F $RA,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machulw_L_r_r__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_add_L_r_r__RA__RC.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), -65536))));
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = (GTUDI (tmp_old, tmp_tmp)) ? ((  tmp_tmp = -1, 1)) : (0);
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_A), opval);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
+/* machulw_cc $RA,$RC: machulw$Qcondi$F $RB,$RB,$RC */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,machulw_cc__RA__RC) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_j_cc___RC_noilink_.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+{
+if (ORBI (EQSI (FLD (f_op_B), 62), EQSI (FLD (f_op_C), 62))) {
+{
+  HI tmp_high;
+  HI tmp_low;
+  tmp_high = GETMEMHI (current_cpu, pc, ADDSI (pc, 4));
+  tmp_low = GETMEMHI (current_cpu, pc, ADDSI (pc, ADDSI (4, 2)));
+CPU (h_cr[((UINT) 62)]) = ORSI (SLLSI (ZEXTHISI (tmp_high), 16), ZEXTHISI (tmp_low));
+}
+}
+if (ORBI (EQSI (FLD (f_op_B), 63), EQSI (FLD (f_op_C), 63))) {
+CPU (h_cr[((UINT) 63)]) = ANDSI (pc, -4);
+}
+}
+if (GET_H_QCONDB (FLD (f_cond_Q))) {
+{
+  SI tmp_result;
+  BI tmp_cur_s1bit;
+  BI tmp_cur_s2bit;
+((void) 0); /*nop*/
+  tmp_result = ({   DI tmp_old;
+  DI tmp_tmp;
+  tmp_old = ADDDI (SLLDI (ZEXTSIDI (GET_H_CR (((UINT) 56))), 32), ZEXTSIDI (GET_H_CR (((UINT) 57))));
+;   tmp_tmp = (0) ? ((cgen_rtx_error (current_cpu, "invalid insn"), 0)) : (MULDI (ZEXTSIDI (GET_H_CR (FLD (f_op_B))), ZEXTSIDI (ANDSI (GET_H_CR (FLD (f_op_C)), -65536))));
+;   tmp_tmp = ADDDI (tmp_old, tmp_tmp);
+;   tmp_cur_s1bit = (GTUDI (tmp_old, tmp_tmp)) ? ((  tmp_tmp = -1, 1)) : (0);
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 1);
+    SET_H_CR (((UINT) 57), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+;   {
+    SI opval = SUBWORDDISI (tmp_tmp, 0);
+    SET_H_CR (((UINT) 56), opval);
+    written |= (1 << 12);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+; SUBWORDDISI (tmp_tmp, 0); });
+if (FLD (f_F)) {
+{
+{
+  {
+    BI opval = LTSI (tmp_result, 0);
+    CPU (h_nbit) = opval;
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "nbit", 'x', opval);
+  }
+  {
+    BI opval = EQSI (tmp_result, 0);
+    CPU (h_zbit) = opval;
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "zbit", 'x', opval);
+  }
+}
+  {
+    BI opval = tmp_cur_s1bit;
+    CPU (h_vbit) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "vbit", 'x', opval);
+  }
+if (tmp_cur_s1bit) {
+  {
+    BI opval = 1;
+    CPU (h_s1bit) = opval;
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "s1bit", 'x', opval);
+  }
+  {
+    BI opval = 1;
+    CPU (h_s2bit) = opval;
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "s2bit", 'x', opval);
+  }
+}
+}
+}
+  {
+    SI opval = tmp_result;
+    SET_H_CR (FLD (f_op_B), opval);
+    written |= (1 << 11);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
+}
+}
+
+  abuf->written = written;
+  return vpc;
+#undef FLD
+}
+
 /* current_loop_end:  */
 
 static SEM_PC
@@ -30256,6 +33271,134 @@ npc = pbb_br_npc; br_type = pbb_br_type;
 #else
 npc = CPU_PBB_BR_NPC (current_cpu); br_type = CPU_PBB_BR_TYPE (current_cpu);
 #endif
+}
+ else if (ANDBI (EQSI (pc, GET_H_AUXR (((UINT) 3))), NOTBI (CPU (h_lbit)))) {
+{
+  {
+    SI opval = ADDSI (GET_H_CR (((UINT) 60)), -1);
+    SET_H_CR (((UINT) 60), opval);
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+if (GET_H_CR (((UINT) 60))) {
+if (ANDIF (GESI (SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT) 0)])), 0), ANDIF (CPU (h_e1), ANDSI (GET_H_AUXR (((UINT) 34)), 1)))) {
+{
+  {
+    SI opval = SUBSI (CPU_INSN_COUNT (current_cpu), CPU (h_timer_expire[((UINT) 0)]));
+    SET_H_AUXR (((UINT) 33), opval);
+    written |= (1 << 14);
+    TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
+  }
+if (CPU (h_ubit)) {
+{
+  SI tmp_countp;
+  UHI tmp_count;
+  tmp_countp = ADDSI (ANDSI (SRLSI (GET_H_AUXR (((UINT) 2)), 1), -2), CPU (h_prof_offset[((UINT) 0)]));
+  tmp_count = ADDHI (GETMEMUHI (current_cpu, pc, tmp_countp), 1);
+if (tmp_count) {
+  {
+    UHI opval = tmp_count;
+    SETMEMUHI (current_cpu, pc, tmp_countp, opval);
+    written |= (1 << 18);
+    TRACE_RESULT (current_cpu, abuf, "memory", 'x', opval);
+  }
+}
+  {
+    USI opval = GET_H_AUXR (((UINT) 2));
+    SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
+  }
+}
+}
+ else if (0) {
+  {
+    USI opval = GET_H_AUXR (((UINT) 2));
+    SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
+  }
+}
+ else {
+{
+  {
+    SI opval = GET_H_AUXR (((UINT) 2));
+    SET_H_CR (((UINT) 29), opval);
+    written |= (1 << 15);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+  {
+    SI opval = GET_H_STATUS32 (((UINT) 0));
+    SET_H_AUXR (((UINT) 11), opval);
+    written |= (1 << 13);
+    TRACE_RESULT (current_cpu, abuf, "auxr", 'x', opval);
+  }
+  {
+    BI opval = 0;
+    CPU (h_e1) = opval;
+    written |= (1 << 17);
+    TRACE_RESULT (current_cpu, abuf, "e1", 'x', opval);
+  }
+  {
+    USI opval = ADDSI (GET_H_AUXR (((UINT) 37)), 24);
+    SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
+  }
+}
+}
+}
+} else {
+  {
+    USI opval = GET_H_AUXR (((UINT) 2));
+    SEM_BRANCH_VIA_ADDR (current_cpu, sem_arg, opval, vpc);
+    written |= (1 << 19);
+    TRACE_RESULT (current_cpu, abuf, "pc", 'x', opval);
+  }
+}
+}
+}
+}
+
+  abuf->written = written;
+  SEM_BRANCH_FINI (vpc);
+  return vpc;
+#undef FLD
+}
+
+/* arc600_current_loop_end_after_branch:  */
+
+static SEM_PC
+SEM_FN_NAME (arc700f,arc600_current_loop_end_after_branch) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.fmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_BRANCH_INIT
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+if (
+#ifdef SEM_IN_SWITCH
+pbb_br_type != SEM_BRANCH_UNTAKEN
+#else
+CPU_PBB_BR_NPC (current_cpu) != SEM_BRANCH_UNTAKEN
+#endif
+) {
+{
+
+#ifdef SEM_IN_SWITCH
+npc = pbb_br_npc; br_type = pbb_br_type;
+#else
+npc = CPU_PBB_BR_NPC (current_cpu); br_type = CPU_PBB_BR_TYPE (current_cpu);
+#endif
+  {
+    SI opval = ADDSI (GET_H_CR (((UINT) 60)), -1);
+    SET_H_CR (((UINT) 60), opval);
+    written |= (1 << 16);
+    TRACE_RESULT (current_cpu, abuf, "cr", 'x', opval);
+  }
+}
 }
  else if (ANDBI (EQSI (pc, GET_H_AUXR (((UINT) 3))), NOTBI (CPU (h_lbit)))) {
 {
@@ -30664,8 +33807,10 @@ static const struct sem_fn_desc sem_fns[] = {
   { ARC700F_INSN_FLAG_CC__RC, SEM_FN_NAME (arc700f,flag_cc__RC) },
   { ARC700F_INSN_LR_L_R_R___RC_, SEM_FN_NAME (arc700f,lr_L_r_r___RC_) },
   { ARC700F_INSN_LR_L_S12_, SEM_FN_NAME (arc700f,lr_L_s12_) },
+  { ARC700F_INSN_LR_L_U6_, SEM_FN_NAME (arc700f,lr_L_u6_) },
   { ARC700F_INSN_SR_L_R_R___RC_, SEM_FN_NAME (arc700f,sr_L_r_r___RC_) },
   { ARC700F_INSN_SR_L_S12_, SEM_FN_NAME (arc700f,sr_L_s12_) },
+  { ARC700F_INSN_SR_L_U6_, SEM_FN_NAME (arc700f,sr_L_u6_) },
   { ARC700F_INSN_ASL_L_R_R__RC, SEM_FN_NAME (arc700f,asl_L_r_r__RC) },
   { ARC700F_INSN_ASL_L_U6_, SEM_FN_NAME (arc700f,asl_L_u6_) },
   { ARC700F_INSN_I16_GO_ASL_S_GO, SEM_FN_NAME (arc700f,I16_GO_ASL_s_go) },
@@ -30802,8 +33947,34 @@ static const struct sem_fn_desc sem_fns[] = {
   { ARC700F_INSN_POP_S_BLINK, SEM_FN_NAME (arc700f,pop_s_blink) },
   { ARC700F_INSN_PUSH_S_B, SEM_FN_NAME (arc700f,push_s_b) },
   { ARC700F_INSN_PUSH_S_BLINK, SEM_FN_NAME (arc700f,push_s_blink) },
+  { ARC700F_INSN_MULLW_L_S12__RA_, SEM_FN_NAME (arc700f,mullw_L_s12__RA_) },
+  { ARC700F_INSN_MULLW_CCU6__RA_, SEM_FN_NAME (arc700f,mullw_ccu6__RA_) },
+  { ARC700F_INSN_MULLW_L_U6__RA_, SEM_FN_NAME (arc700f,mullw_L_u6__RA_) },
+  { ARC700F_INSN_MULLW_L_R_R__RA__RC, SEM_FN_NAME (arc700f,mullw_L_r_r__RA__RC) },
+  { ARC700F_INSN_MULLW_CC__RA__RC, SEM_FN_NAME (arc700f,mullw_cc__RA__RC) },
+  { ARC700F_INSN_MACLW_L_S12__RA_, SEM_FN_NAME (arc700f,maclw_L_s12__RA_) },
+  { ARC700F_INSN_MACLW_CCU6__RA_, SEM_FN_NAME (arc700f,maclw_ccu6__RA_) },
+  { ARC700F_INSN_MACLW_L_U6__RA_, SEM_FN_NAME (arc700f,maclw_L_u6__RA_) },
+  { ARC700F_INSN_MACLW_L_R_R__RA__RC, SEM_FN_NAME (arc700f,maclw_L_r_r__RA__RC) },
+  { ARC700F_INSN_MACLW_CC__RA__RC, SEM_FN_NAME (arc700f,maclw_cc__RA__RC) },
+  { ARC700F_INSN_MACHLW_L_S12__RA_, SEM_FN_NAME (arc700f,machlw_L_s12__RA_) },
+  { ARC700F_INSN_MACHLW_CCU6__RA_, SEM_FN_NAME (arc700f,machlw_ccu6__RA_) },
+  { ARC700F_INSN_MACHLW_L_U6__RA_, SEM_FN_NAME (arc700f,machlw_L_u6__RA_) },
+  { ARC700F_INSN_MACHLW_L_R_R__RA__RC, SEM_FN_NAME (arc700f,machlw_L_r_r__RA__RC) },
+  { ARC700F_INSN_MACHLW_CC__RA__RC, SEM_FN_NAME (arc700f,machlw_cc__RA__RC) },
+  { ARC700F_INSN_MULULW_L_S12__RA_, SEM_FN_NAME (arc700f,mululw_L_s12__RA_) },
+  { ARC700F_INSN_MULULW_CCU6__RA_, SEM_FN_NAME (arc700f,mululw_ccu6__RA_) },
+  { ARC700F_INSN_MULULW_L_U6__RA_, SEM_FN_NAME (arc700f,mululw_L_u6__RA_) },
+  { ARC700F_INSN_MULULW_L_R_R__RA__RC, SEM_FN_NAME (arc700f,mululw_L_r_r__RA__RC) },
+  { ARC700F_INSN_MULULW_CC__RA__RC, SEM_FN_NAME (arc700f,mululw_cc__RA__RC) },
+  { ARC700F_INSN_MACHULW_L_S12__RA_, SEM_FN_NAME (arc700f,machulw_L_s12__RA_) },
+  { ARC700F_INSN_MACHULW_CCU6__RA_, SEM_FN_NAME (arc700f,machulw_ccu6__RA_) },
+  { ARC700F_INSN_MACHULW_L_U6__RA_, SEM_FN_NAME (arc700f,machulw_L_u6__RA_) },
+  { ARC700F_INSN_MACHULW_L_R_R__RA__RC, SEM_FN_NAME (arc700f,machulw_L_r_r__RA__RC) },
+  { ARC700F_INSN_MACHULW_CC__RA__RC, SEM_FN_NAME (arc700f,machulw_cc__RA__RC) },
   { ARC700F_INSN_CURRENT_LOOP_END, SEM_FN_NAME (arc700f,current_loop_end) },
   { ARC700F_INSN_CURRENT_LOOP_END_AFTER_BRANCH, SEM_FN_NAME (arc700f,current_loop_end_after_branch) },
+  { ARC700F_INSN_ARC600_CURRENT_LOOP_END_AFTER_BRANCH, SEM_FN_NAME (arc700f,arc600_current_loop_end_after_branch) },
   { 0, 0 }
 };
 

@@ -169,10 +169,10 @@ cat <<EOF
   int icount = 0;
   PCADDR loop_end = @cpu@_h_auxr_get (current_cpu, 3);
 
-  /* Reserve one slot for a delay slot insn or zero overhead loop.  */
-  max_insns--;
+  /* Reserve two slots for a delay slot insn and zero overhead loop.  */
+  max_insns -= 2;
   if (max_insns < 1)
-  	max_insns = 1;
+    max_insns = 1;
   while (max_insns > 0)
     {
       UHI high = GETIMEMUHI (current_cpu, pc);
@@ -239,14 +239,16 @@ cat <<EOF
 	  if (CGEN_ATTR_VALUE (NULL, idesc->attrs, CGEN_INSN_DELAY_SLOT))
 	    max_insns = 1;
 	  else
-	    break;
+	    max_insns = 0;
 	}
       /* Handle zero overhead loops.  ARC 600 and ARC 700 suppress
 	 zero overhead loops if a branch is pending.  */
-      else if (pc == loop_end && !_cti_sc)
+      if (pc == loop_end)
 	{
 	  const IDESC *id =
-	    & CPU_IDESC (current_cpu) [@CPU@_INSN_CURRENT_LOOP_END];
+	    & CPU_IDESC (current_cpu)
+	      [_cti_sc ? @CPU@_INSN_ARC600_CURRENT_LOOP_END_AFTER_BRANCH
+	       : @CPU@_INSN_CURRENT_LOOP_END];
 
 	  SEM_SET_CODE (&sc->argbuf, id, FAST_P);
 	  sc->argbuf.idesc = id;
