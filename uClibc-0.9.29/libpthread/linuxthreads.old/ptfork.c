@@ -92,14 +92,19 @@ pid_t __fork(void)
   parent = pthread_atfork_parent;
   __pthread_mutex_unlock(&pthread_atfork_lock);
   pthread_call_handlers(prepare);
+  __MALLOC_LOCK;
   pid = __libc_fork();
   if (pid == 0) {
+    __pthread_mutex_unlock(&__malloc_lock);
     __pthread_reset_main_thread();
     __fresetlockfiles();
     pthread_call_handlers(child);
-  } else {
-    pthread_call_handlers(parent);
-  }
+    return 0;
+  } 
+
+  __MALLOC_UNLOCK;
+  pthread_call_handlers(parent);
+  
   return pid;
 }
 strong_alias(__fork,fork)
