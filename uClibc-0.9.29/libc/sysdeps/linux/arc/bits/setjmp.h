@@ -23,12 +23,10 @@
 #endif
 
 #ifndef _ASM
-/* Jump buffer contains r4-r9, fp, sp and pc.  Other registers are not
-   saved.  */
-typedef int __jmp_buf[36];
-#endif /* _ASM */
+typedef int __jmp_buf[13+1+1+1];    //r13-r25, fp, sp, blink
+#endif
 
-#define __JMP_BUF_SP 	28
+#define __JMP_BUF_SP 	(1+13)
 
 /* Test if longjmp to JMPBUF would unwind the frame
    containing a local variable at ADDRESS.  */

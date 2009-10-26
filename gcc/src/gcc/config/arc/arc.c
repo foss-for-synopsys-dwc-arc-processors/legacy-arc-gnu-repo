@@ -1018,9 +1018,11 @@ arc_conditional_register_usage (void)
       else if (i < 60)
         arc_regno_reg_class[i]
 	  = (fixed_regs[i]
-	      ? (TEST_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], i)
-		 ? CHEAP_CORE_REGS : ALL_CORE_REGS)
-	      : WRITABLE_CORE_REGS);
+            ? (TEST_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], i)
+               ? CHEAP_CORE_REGS : ALL_CORE_REGS)
+            : ((TARGET_ARC700
+                && TEST_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], i))
+               ? CHEAP_CORE_REGS : WRITABLE_CORE_REGS));
       else
         {
           arc_regno_reg_class[i] = NO_REGS;

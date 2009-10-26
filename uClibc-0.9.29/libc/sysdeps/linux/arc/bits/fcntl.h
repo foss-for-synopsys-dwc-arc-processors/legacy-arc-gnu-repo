@@ -46,6 +46,7 @@
 # define O_NOFOLLOW	0100000	/* Do not follow links.	 */
 # define O_DIRECT	0200000	/* Direct disk access.	*/
 # define O_STREAMING	04000000/* streaming access */
+# define O_NOATIME      01000000
 #endif
 
 #ifdef __USE_LARGEFILE64

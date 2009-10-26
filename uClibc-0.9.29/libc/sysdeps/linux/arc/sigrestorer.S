@@ -1,5 +1,3 @@
-/* FIXME: implement properly if needed for ARC. */
-
 /* Copyright (C) 1999 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -18,21 +16,28 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
+#define __ASSEMBLY__    /* kernel build system expects __ASSEMBLY__
+                            uclibc uses __ASSEMBLER__
+                         */
 #include <sys/syscall.h>
 
-/* If no SA_RESTORER function was specified by the application we use
-   one of these.  This avoids the need for the kernel to synthesise a return
-   instruction on the stack, which would involve expensive cache flushes. */
-
+/*  vineetg: July 2009
+    uClibc to provide sigreturn stub, rather than kernel synthesising it on
+    user stack at runtime, fiddlign with PTE/TLB flags and expensive
+    Cache line flushes
+*/
+     
 .globl __default_sa_restorer;
 .type __default_sa_restorer, @function
 .align 4;
 __default_sa_restorer:
-; 	ld r9, [__NR_sigreturn]
-	lsr r9, r9
-	lsr r9, r9
-	jal.nd [r9]
+ 	mov r8, __NR_sigreturn
+    trap0
+    nop
+    nop
 
+.size __default_sa_restorer, .-__default_sa_restorer
+libc_hidden_def(__default_sa_restorer)
 
 #ifdef __NR_rt_sigreturn
 
@@ -40,9 +45,10 @@ __default_sa_restorer:
 .type __default_rt_sa_restorer, @function
 .align 4;
 __default_rt_sa_restorer:
-; 	ld r9, [__NR_rt_sigreturn]
-	lsr r9, r9
-	lsr r9, r9
-	jal.nd [r9]
-
+ 	mov r8, __NR_rt_sigreturn
+    trap0
+    nop
+    nop
+.size __default_rt_sa_restorer, .-__default_rt_sa_restorer
+libc_hidden_def(__default_rt_sa_restorer)
 #endif

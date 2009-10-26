@@ -7,9 +7,9 @@
 
 ASFLAGS=$(CFLAGS)
 
-CSRC := brk.c syscall.c
+CSRC := brk.c syscall.c sigaction.c
 
-SSRC := \
+SSRC := sigrestorer.S \
 	__longjmp.S vfork.S clone.S setjmp.S bsd-setjmp.S \
 	bsd-_setjmp.S
 

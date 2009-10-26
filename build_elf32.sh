@@ -12,6 +12,7 @@
 INSTALLDIR=$1
 
 #build binutils
+mkdir -p binutils/build gcc/build insight/build
 cd binutils/build
 ../src/configure --prefix=$INSTALLDIR --target=arc-elf32 --disable-werror  > ../../log.txt 2>> ../../log.txt
 make  >> ../../log.txt 2>> ../../log.txt

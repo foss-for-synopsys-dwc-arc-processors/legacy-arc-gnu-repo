@@ -26,6 +26,8 @@ struct statfs
   {
     __SWORD_TYPE f_type;
     __SWORD_TYPE f_bsize;
+    __SWORD_TYPE f_frsize;
+    __SWORD_TYPE __pad;
 
 #ifndef __USE_FILE_OFFSET64
     __fsblkcnt_t f_blocks;
@@ -35,8 +37,6 @@ struct statfs
     __fsfilcnt_t f_ffree;
 
 #else
-    __SWORD_TYPE f_frsize;
-    __SWORD_TYPE __pad;
     __fsblkcnt64_t f_blocks;
     __fsblkcnt64_t f_bfree;
     __fsfilcnt64_t f_files;

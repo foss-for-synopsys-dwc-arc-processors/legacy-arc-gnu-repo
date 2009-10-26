@@ -26,30 +26,34 @@
 .type ___longjmp, @function
 .align 4;
 
+;@ r0 = jump buffer from which regs will be restored
+;@ r1 = value that setjmp( ) will return due to this longjmp
+
 ___longjmp:
 __longjmp:
-	mov	r26, r0		; save jmp_buf pointer
+
+	ld_s    r13,  [r0]
+	ld_s	r14,  [r0,4]
+	ld	    r15,  [r0,8]
+	ld	    r16,  [r0,12]
+	ld      r17,  [r0,16]
+	ld      r18,  [r0,20]
+	ld      r19,  [r0,24]
+	ld      r20,  [r0,28]
+	ld 	    r21,  [r0,32]
+	ld 	    r22,  [r0,36]
+	ld 	    r23,  [r0,40]
+	ld 	    r24,  [r0,44]
+	ld 	    r25,  [r0,48]
+
+	ld      blink,[r0,60]   ; load it early enough to not stall the pipeline
+	ld      fp,   [r0,52]
+	ld      sp,   [r0,56]
+
+	mov.f	r0, r1		; get the setjmp return value(due to longjmp) in place
 	
-	mov.f	r0, r1		; get the return value in place
-	nop
- 	add.z	r0, r0, 1	; cant let setjmp return zero
+	j.d	    [blink]     ; to caller of setjmp location, right after the call
+    mov.z   r0, 1       ; can't let setjmp return 0 when it is due to longjmp
 
-	; stupid, stupid, stupid assembler... ' not allowed in comments! (can't above)
-
-	; load the regs
-	ld	r4,  [r26]
-	ld.a	r5,  [r26, 4]
-	ld.a	r6,  [r26, 4]
-	ld.a	r7,  [r26, 4]
-	ld.a	r8,  [r26, 4]
-	ld.a	r9,  [r26, 4]
-
-	ld.a	fp, [r26, 4]	; the fp
-	ld.a	sp, [r26, 4]	; the sp
-
-	ld.a	blink, [r26, 4]
-	add	r26, r26, 4	; increment r26 to make it point to the saved blink
-	
-	j.nd	[blink]
 .size ___longjmp,.-___longjmp;
 libc_hidden_def(__longjmp)
