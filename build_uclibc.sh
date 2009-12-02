@@ -103,7 +103,7 @@ echo "#-------------------------------------------------------------------" >> u
 echo "#configure and build uClibc" >> uclibc_log.txt
 echo "Start building uClibc!"
 echo "..."
-cd uClibc-0.9.30
+cd uClibc-0.9.29
  # Preparing a known working uclibc configuration.
  sed -e "s#%LINUX%#$LINUXDIR#" -e "s#%INSTALL%#$INSTALLDIR#"< arc_config > .config
 
@@ -119,11 +119,11 @@ fi
 make install >> ../uclibc_log.txt 2>&1
 
 #copy the dynamic linker and make soft links
-cp lib/ld-uClibc-0.9.30.so $INSTALLDIR/arc-linux-uclibc/lib
+cp lib/ld-uClibc-0.9.29.so $INSTALLDIR/arc-linux-uclibc/lib
 pushd . > /dev/zero 2> /dev/zero
 cd $INSTALLDIR/arc-linux-uclibc/lib
-ln -s ld-uClibc-0.9.30.so ld-uClibc.so
-ln -s ld-uClibc-0.9.30.so ld-uClibc.so.0
+ln -s ld-uClibc-0.9.29.so ld-uClibc.so
+ln -s ld-uClibc-0.9.29.so ld-uClibc.so.0
 popd > /dev/zero 2> /dev/zero
 cd ..
 
