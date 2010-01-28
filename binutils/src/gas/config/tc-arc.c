@@ -6101,8 +6101,11 @@ tc_arc_fix_adjustable (fixP)
 {
 
   /* Prevent all adjustments to global symbols. */
+  if (S_IS_EXTERNAL (fixP->fx_addsy))
+    return 0;
   if (S_IS_WEAK (fixP->fx_addsy))
     return 0;
+
   /* adjust_reloc_syms doesn't know about the GOT */
   if (fixP->fx_r_type == BFD_RELOC_ARC_GOTPC32
       || fixP->fx_r_type == BFD_RELOC_ARC_PLT32)

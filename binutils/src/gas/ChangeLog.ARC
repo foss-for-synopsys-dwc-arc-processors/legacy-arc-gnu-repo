@@ -1,3 +1,8 @@
+2010-01-25  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
+
+	* config/tc-arc.c (tc_arc_fix_adjustable): Make sure we don't
+	adjust extern symbols either, in addition to weak.
+
 2008-04-09  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/tc-arc.c (arc_generate_extinst32_operand_strings): Fix
