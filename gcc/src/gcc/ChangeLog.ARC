@@ -1,3 +1,25 @@
+2010-01-27  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
+
+	* config/arc/arc.md ("*commutative_binary_comparison_result_used"): 
+	Use the 'W' constraint since MULT is one of the possible
+	commutative operators.
+	* config/arc/fpx.md: In both define_peephole2 using
+	arc_dpfp_operator, specify "W" register class for the destination
+	operand.
+
+2010-01-22  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
+
+	* config/arc/constraints.md (MPY_WRITABLE_CORE_REGS): Define for 'W'.
+	* config/arc/arc.h (enum reg_class): Add MPY_WRITABLE_CORE_REGS.
+	(REG_CLASS_NAMES): Add "MPY_WRITABLE_CORE_REGS".
+	(REG_CLASS_CONTENTS): Define similar to 'w' but with the bit for
+	register 60 changed to 0.
+	* config/arc/arc.md (mulsi3_700): Change constraint from 'w' to 'W'.
+	Adjust each instruction's line to have a more helpful comment.
+	* config/arc/predicates.md (mpy_dest_reg_operand): Define using
+	MPY_WRITABLE_CORE_REGS as its bounds to make sure it cannot
+	use LP_COUNT.
+
 2008-10-10  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* config/arc/arc.md (*add_n): Fix length of c/c/Cal alternative.

@@ -680,6 +680,7 @@ enum reg_class
    AC16_BASE_REGS,  		/* 'e' */
    SIBCALL_REGS,		/* "Rsc" */
    GENERAL_REGS,		/* 'r' */
+   MPY_WRITABLE_CORE_REGS,	/* 'W' */
    WRITABLE_CORE_REGS,		/* 'w' */
    CHEAP_CORE_REGS,		/* 'c' */
    ALL_CORE_REGS,		/* 'Rac' */
@@ -706,6 +707,7 @@ enum reg_class
   "AC16_BASE_REGS",       \
   "SIBCALL_REGS",	  \
   "GENERAL_REGS",      	  \
+  "MPY_WRITABLE_CORE_REGS",   \
   "WRITABLE_CORE_REGS",   \
   "CHEAP_CORE_REGS",	  \
   "ALL_CORE_REGS",	  \
@@ -732,6 +734,7 @@ enum reg_class
   {0x1000f00f, 0x00000000, 0x00000000, 0x00000000, 0x00000000},	     /* 'e', r0-r3, r12-r15, sp */	\
   {0x1c001fff, 0x10000000, 0x00000000, 0x00000000, 0x00000000},    /* "Rsc", r0-r12 and lp_count */ \
   {0x9fffffff, 0xc0000000, 0x00000000, 0x00000000, 0x00000000},      /* 'r', r0-r28, blink, ap and pcl */	\
+  {0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000000},      /* 'W',  r0-r31 */ \
   {0xffffffff, 0x10000000, 0x00000000, 0x00000000, 0x00000000},      /* 'w', r0-r31, r60 */ \
   {0xffffffff, 0xdfffffff, 0x00000000, 0x00000000, 0x00000000},      /* 'c', r0-r60, ap, pcl */ \
   {0xffffffff, 0xdfffffff, 0x00000000, 0x00000000, 0x00000000},      /* 'Rac', r0-r60, ap, pcl */ \

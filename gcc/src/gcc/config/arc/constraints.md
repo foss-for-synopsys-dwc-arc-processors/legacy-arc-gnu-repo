@@ -40,6 +40,9 @@
 (define_register_constraint "w" "WRITABLE_CORE_REGS"
   "writable core register: @code{r0}-@code{r31}, @code{r60}, nonfixed core register")
 
+(define_register_constraint "W" "MPY_WRITABLE_CORE_REGS"
+  "writable core register except @code{LP_COUNT} (@code{r60}): @code{r0}-@code{r31}, nonfixed core register")
+
 (define_register_constraint "l" "LPCOUNT_REG"
   "@internal
    Loop count register @code{r60}")

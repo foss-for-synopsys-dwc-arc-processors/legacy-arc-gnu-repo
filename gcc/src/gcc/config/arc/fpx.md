@@ -371,7 +371,7 @@
 ;;       {regpair2_or_limmreg24} and D3
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define_peephole2
-  [(parallel [(set (match_operand:DF 0 "register_operand"          "")
+  [(parallel [(set (match_operand:DF 0 "register_operand"          "W")
 	(match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 			   (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))
@@ -473,7 +473,7 @@
 ;;       {regpair2_or_limmreg24} and D3
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define_peephole2
-  [(parallel [(set (match_operand:DF 0 "register_operand"          "")
+  [(parallel [(set (match_operand:DF 0 "register_operand"          "W")
 		   (match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 				      (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))

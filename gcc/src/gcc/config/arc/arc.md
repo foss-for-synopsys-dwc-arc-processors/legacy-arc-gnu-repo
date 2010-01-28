@@ -649,7 +649,11 @@
 	     [(match_operand:SI 1 "register_operand" "c,0,c")
 	      (match_operand:SI 2 "nonmemory_operand" "cL,I,?Cal")])
 	   (const_int 0)]))
-   (set (match_operand:SI 0 "register_operand" "=w,w,w")
+	; Make sure to use the W class to not touch LP_COUNT; note this
+	; means the other commutative operators plus, ior, xor, and,
+	; and ss_plus will not be able to touch LP_COUNT either,
+	; even though it's technically supposed to be allowed for them.
+   (set (match_operand:SI 0 "register_operand" "=W,W,W")
 	(match_dup 4))]
   ""
   "%O4.f %0,%1,%2"
@@ -1734,16 +1738,16 @@
    (set_attr "cond" "nocond,canuse, nocond, canuse")])
 
 (define_insn "mulsi3_700"
- [(set (match_operand:SI 0 "dest_reg_operand"            "=w, w, w,  w,  w")
+ [(set (match_operand:SI 0 "mpy_dest_reg_operand"        "=W, W, W,  W,  W")
         (mult:SI (match_operand:SI 1 "register_operand"  " 0, 0, 0,  c,  c")
                  (match_operand:SI 2 "nonmemory_operand" "cL, I, J, cL, Cal")))]
 "TARGET_ARC700 && !TARGET_NOMPY_SET"
 "@
-  mpy%? %0,%1,%2 ;; mulsi3-1
-  mpy %0,%1,%2 ;; mulsi3-1
-  mpy%? %0,%1,%2 ;; mulsi3-1
-  mpy %0,%1,%2 ;; mulsi3-1
-  mpy %0,%1,%S2 ;; mulsi3-2"
+  mpy%? %0,%1,%2 ;; mulsi3_700-1a
+  mpy %0,%1,%2 ;; mulsi3_700-1b
+  mpy%? %0,%1,%2 ;; mulsi3_700-1c
+  mpy %0,%1,%2 ;; mulsi3_700-1d
+  mpy %0,%1,%S2 ;; mulsi3_700-2"
   [(set_attr "length" "4,4,8,4,8")
   (set_attr "type" "multi,multi,multi,multi, multi")
   (set_attr "cond" "canuse,nocond,canuse,nocond,nocond")])
