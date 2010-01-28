@@ -705,6 +705,7 @@ int __pthread_compare_and_swap(long * ptr, long oldval, long newval,
 static void __pthread_acquire(int * spinlock)
 {
   int cnt = 0;
+  int total_cnt=0;
   struct timespec tm;
 
   READ_MEMORY_BARRIER();
@@ -714,10 +715,15 @@ static void __pthread_acquire(int * spinlock)
       sched_yield();
       cnt++;
     } else {
+      if (total_cnt++ > 5000) {
+	puts("pthread_mutex lockup detected\n");
+	total_cnt=0;
+      }
       tm.tv_sec = 0;
       tm.tv_nsec = SPIN_SLEEP_DURATION;
       nanosleep(&tm, NULL);
       cnt = 0;
     }
   }
+  //  getsid(0xABCD);
 }
