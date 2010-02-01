@@ -1,3 +1,9 @@
+2010-01-29  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.c (arc_conditional_register_usage): If
+	-ffixed-lp_count, make sure LP_COUNT is not available in any
+	register class, nor does it have any acceptable regno mode.
+
 2010-01-27  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
 
 	* config/arc/arc.md ("*commutative_binary_comparison_result_used"): 

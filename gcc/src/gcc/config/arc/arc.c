@@ -1003,7 +1003,23 @@ arc_conditional_register_usage (void)
     {
       for (regno = 32; regno <= 60; regno++)
 	CLEAR_HARD_REG_BIT (reg_class_contents[CHEAP_CORE_REGS], regno);
+
+      /* If they have used -ffixed-lp_count, make sure it takes
+         effect. */
+      if (fixed_regs[LP_COUNT])
+      {
+	CLEAR_HARD_REG_BIT (reg_class_contents[LPCOUNT_REG], LP_COUNT);
+	CLEAR_HARD_REG_BIT (reg_class_contents[SIBCALL_REGS], LP_COUNT);
+	CLEAR_HARD_REG_BIT (reg_class_contents[WRITABLE_CORE_REGS], LP_COUNT);
+
+	/* Instead of taking out SF_MODE like below, forbit it
+	   outright. */
+	arc_hard_regno_mode_ok[60] = 0;
+      }
+      else
+      {
       arc_hard_regno_mode_ok[60] = 1 << (int) S_MODE;
+    }
     }
 
   for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
