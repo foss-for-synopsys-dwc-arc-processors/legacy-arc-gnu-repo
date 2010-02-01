@@ -2134,7 +2134,7 @@ elf_arc_relocate_section (bfd *output_bfd,
 	    h = elf_link_hash_lookup (elf_hash_table (info), "__SDATA_BEGIN__",
 				      FALSE, FALSE, TRUE);
 	    
-	    if (h->root.type == bfd_link_hash_undefined)
+	    if (h == NULL || h->root.type == bfd_link_hash_undefined)
 	    {
 	      (*_bfd_error_handler)("Error: Linker symbol __SDATA_BEGIN__ not found");
 	      bfd_set_error (bfd_error_bad_value);

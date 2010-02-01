@@ -1,3 +1,8 @@
+2010-01-29  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
+
+	* elf32-arc.c (elf_arc_relocate_section): Handle the result of
+	elf_link_hash_lookup being a null pointer.
+
 2008-02-27  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* elf32-arc.c (BFD_DEBUG_PIC): Simplify change between debug /
