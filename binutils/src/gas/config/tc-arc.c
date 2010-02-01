@@ -42,6 +42,8 @@ extern int cond_p;
 
 extern int arc_get_mach (char *);
 extern int arc_insn_not_jl (arc_insn);
+extern int arc_test_wb(void);
+
 extern int arc_get_noshortcut_flag (void);
 static void arc_set_ext_seg (enum ExtOperType, int, int, int);
 
@@ -308,7 +310,7 @@ arc700_special_symtype current_special_sym_flag;
 			 (SUB_OPCODE (x) <= 0x24))
 
 #define BLcc_INSN(x)    ((MAJOR_OPCODE (x) == 0x1) && \
-			 ((x & 00010000) == 0))
+			 ((x & 0x00010000) == 0))
 
 #define LP_INSN(x)	((MAJOR_OPCODE (x) == 0x4) && \
 			 (SUB_OPCODE (x) == 0x28))
@@ -409,9 +411,13 @@ instruction slot.");
 	as_bad ("An instruction of this type may not be executed in this \
 instruction slot.");
       
-      /* This takes care of LP other_loop in insn and insn-1.  */
+      /* This takes care of LP other_loop in insn and insn-1. 
+       * Also check for single intervening instruction without a long
+       * immediate operand.
+       */
       if (LP_INSN (lt->prev_two_insns[PREV_INSN_1].insn) ||
-	  LP_INSN (lt->prev_two_insns[PREV_INSN_2].insn))
+	  (LP_INSN (lt->prev_two_insns[PREV_INSN_2].insn) &&
+           !lt->prev_two_insns[PREV_INSN_1].limm))
 	as_bad ("An instruction of this type may not be executed in this \
 instruction slot.");
 
@@ -1418,9 +1424,9 @@ arc_extoper (int opertype)
       else
 	{
 	  /* If its not there, add it.  */
-	  symbol_table_insert (symbol_create (name, reg_section,
-					      (valueT) &ext_oper->operand,
-					      &zero_address_frag));
+//	  symbol_table_insert (symbol_create (name, reg_section,
+//					      (valueT) &ext_oper->operand,
+//					      &zero_address_frag));
 	}
     }
 
@@ -1812,6 +1818,7 @@ const struct attributes ac_suffixclass[] = {
   { "SCALE_3"    ,  7, AC_SIMD_SCALE_3},
   { "SCALE_4"    ,  7, AC_SIMD_SCALE_4},
   { "ENCODE_LIMM", 11, AC_SIMD_ENCODE_LIMM},
+  { "EXTENDED_MULTIPLY", 17, AC_EXTENDED_MULTIPLY},
   { "EXTENDED",     8, AC_SIMD_EXTENDED},
   { "EXTEND2",      7, AC_SIMD_EXTEND2},
   { "EXTEND3",      7, AC_SIMD_EXTEND3},
@@ -1823,7 +1830,8 @@ const struct attributes ac_suffixclass[] = {
   { "ENCODE_SETLM",12, AC_SIMD_SETLM},
   { "EXTEND1",      7, AC_SIMD_EXTEND1},
   { "ENCODE_KREG", 11, AC_SIMD_KREG},
-  { "ENCODE_U16", 10, AC_SIMD_ENCODE_U16}
+  { "ENCODE_U16",  10, AC_SIMD_ENCODE_U16},
+  { "ENCODE_ZR",    9, AC_SIMD_ENCODE_ZR}
 };
 
 #define AC_MAXSUFFIXCLASS (sizeof (ac_suffixclass) / sizeof (struct attributes))
@@ -2568,6 +2576,8 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
               strcpy (op2, "%{,");
 	  if (suffix_class & AC_SIMD_ENCODE_U6)
 	    strcpy (op3, "%u");
+	  if (suffix_class & AC_SIMD_ENCODE_ZR)
+	    strcpy (op3, "%\25");
 	  if (suffix_class & AC_SIMD_ENCODE_U8)
 	    strcpy (op3, "%?");
 	  if (suffix_class & AC_SIMD_ENCODE_S12)
@@ -2591,6 +2601,8 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
               extended_register_format[1] = 'c';
               strcpy (op2, "%B");
               }
+	  if (suffix_class & AC_SIMD_ENCODE_ZR)
+	    strcpy (op3, ",%\25");
  	  if (suffix_class & AC_SIMD_ENCODE_U8) 
  	    strcpy (op3, ",%?"); 
  	  if (suffix_class & AC_SIMD_ENCODE_S12) 
@@ -2622,8 +2634,14 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
                     }
                 if(syntax_class&AC_SIMD_SYNTAX_VC0)
                     strcpy(op2,"%C");
-                if(suffix_class&AC_SIMD_ENCODE_LIMM)
+                if(suffix_class & AC_SIMD_ENCODE_LIMM){
                     strcpy(op2,"%L");
+                    suffix_class |= AC_SIMD_ZERVC;
+                    }
+                if(syntax_class & AC_SIMD_SYNTAX_VL0){
+                    suffix_class |= AC_SIMD_ZERVC;
+                    strcpy(op2,"%L");
+                    }
                 if(suffix_class & AC_SIMD_ENCODE_S12)
                     strcpy(op2,"%\14");
                 nop = 2;
@@ -2650,8 +2668,10 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
                     strcpy(op3, "%u");
                 if(suffix_class & AC_SIMD_ENCODE_U16)
                     strcpy(op3, "%\20");
-                if(suffix_class &AC_SIMD_ENCODE_LIMM)
+                if(suffix_class & AC_SIMD_ENCODE_LIMM){
+                    suffix_class |= AC_SIMD_ZERVC;
                     strcpy(op3, "%L");
+		}
                 if(syntax_class & AC_SIMD_SYNTAX_VVC){
                     extended_register_format[1] = 'c';
                     strcpy(op3, "%C");
@@ -2666,8 +2686,10 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
                         }
                     if(syntax_class & AC_SIMD_SYNTAX_VU0)
                         strcpy(op2, "%u");
-                    if(syntax_class & AC_SIMD_SYNTAX_VL0)
+                    if(syntax_class & AC_SIMD_SYNTAX_VL0){
+                        suffix_class |= AC_SIMD_ZERVC;
                         strcpy(op2, "%L");
+                     }
                     if(syntax_class_modifiers & AC_SIMD_IREGB){
                         if(suffix_class & AC_SIMD_KREG){
                             extended_register_format[1] = 'k';
@@ -2854,7 +2876,9 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
                 extended_register_format[1] = '0';
                 strcpy(op2,"%?");
                 }
-            if(suffix_class & AC_SIMD_ENCODE_LIMM){
+            if(suffix_class & AC_SIMD_ENCODE_LIMM)
+                {
+                suffix_class |= AC_SIMD_ZERVC;
                 strcpy(op2,"%L");
                 extended_register_format[1] = '0';
                 }
@@ -3521,7 +3545,9 @@ arc_ac_extinst (ignore)
       p = frag_more (1);
       *p = sub_opcode;
       p = frag_more (1);
-      *p = (syntax_class | syntax_class_modifiers);
+      *p = syntax_class 
+          | (syntax_class_modifiers & (AC_OP1_DEST_IGNORED 
+                                       | AC_OP1_MUST_BE_IMM)? 0x10:0);
       break;
   case 2:
       demand_empty_rest_of_line();
@@ -4558,6 +4584,7 @@ md_assemble (char *str)
   int lm_present;
   arc_insn insn;
   long insn2;
+  long convert_scaled;
   static int init_tables_p = 0;
   current_special_sym_flag = NO_TYPE;
   char insn_name[64]={0};
@@ -4641,6 +4668,7 @@ md_assemble (char *str)
       arc_opcode_init_insert ();
       insn = opcode->value;
       insn2 = opcode->value2;
+      convert_scaled = 0;
       lm_present = 0;
       fc = 0;
       num_suf.value = 0;
@@ -4760,6 +4788,10 @@ md_assemble (char *str)
 		  if (*s != '.'&&*s != '!')
 		    break;
 		  ++s;
+                if(!negflg && *s == '!'){
+                    negflg = 1;
+                    ++s;
+                    }
 		}
 	      else
 		{
@@ -4795,8 +4827,9 @@ md_assemble (char *str)
                   if(*syn == ']' || *(syn+3) == ']'){
                       restore = str;
                       if(*str == '.' || *str == '!')str++;
-                      if((*str == 'i' || *str == 'I') && (*(str+1) >= '0' && 
-                                                      *(str+1)<='9')){
+                      if(*str == '.' || *str == '!')str++;
+                      if((*str == 'i' || *str == 'I') && (*(str+1) >= '0' 
+                                 && *(str+1)<='9')){
                           str++;
                           sum = 0;
                               if(*str  ==  '1'){
@@ -4809,7 +4842,7 @@ md_assemble (char *str)
                                   }
                               sum = sum & 0xf;
                               if(negflg)
-                                  sum |= 0x20; //negation flag
+                                  sum |= 0x40; //negation flag
                               suf = &num_suf;
                               varsuf = &num_suf;
                               varsuf->value = sum;
@@ -5222,8 +5255,61 @@ md_assemble (char *str)
 			    match_failed = 1;
 			  break;
 			case 'o':
-			  if ((value < -256) || (value > 255))
+                            if ((value < -256) || (value > 255)){
 			    match_failed = 1;
+/* Test for instruction convertable to scaled load/store instruction 
+ * This is necessary to mesh with MetaWare which automagically converts
+ * suitable unscaled signed nine bit load/stores that are out of range to
+ * in range scaled loads/stores.
+ * If the scaled/writeback field mask 0x18 for store and 0x600 for load is
+ * zero the instruction is suitable for conversion.
+ * No conversion is done if the address constant is in range to begin with.
+ * No conversion is done if the short constant is not even or the long 
+ *  constant is not a multiple of four.
+ */ 
+
+/* test and convert load */
+                                if( (insn >> 27) == 0x2 
+                                    && ((insn & 0x600) >> 9) == 0 
+                                    && arc_test_wb() == 0)
+                                    {
+                                    if(((insn>>7)&3) == 2 && (value & 1) == 0 
+                                       && value >= -512 && value <= 511)
+                                        {     
+                                        match_failed = 0;
+                                        convert_scaled = 0x600;
+                                        value = value >> 1;
+                                        }
+                                    if(((insn >> 7) & 3) == 0 
+                                       && (value & 3) == 0  && value >=-1024 
+                                       && value <=1023 && arc_test_wb()==0)
+                                        {     
+                                        match_failed = 0;
+                                        convert_scaled = 0x600;
+                                        value = value >>2;
+                                        }
+                                    }
+/* test and convert store */
+                                if( (insn>>27) == 0x3 
+                                    && ((insn & 0x18)>>3) == 0 
+                                    && arc_test_wb() == 0)
+                                    {
+                                    if(((insn>>1)&3) == 2 && (value&1) == 0 
+                                       && value >=-512 && value <= 511 )
+                                        {
+                                        match_failed = 0;
+                                        convert_scaled = 0x18;
+                                        value = value >> 1;
+                                        }
+                                    if(((insn>>1)&3) == 0 && (value&3) == 0 
+                                       && value >=-1024 && value <= 1023)
+                                        {
+                                        match_failed = 0;
+                                        convert_scaled = 0x18;
+                                        value = value >> 2;
+                                        }
+                                    } /* end if((insn>>27)==0x3 &&...) */
+                                } /* end if( (value<-256) || (value>255) )*/
 			  break;
 			case 'e':
 			  if ((value < 0) || (value > 7))
@@ -5267,6 +5353,10 @@ md_assemble (char *str)
 			  break;
                         case '\24':
                             if((value > 0x3fff) || (value <-(0x3fff)))
+                                match_failed = 1;
+                            break;
+                        case '\25':
+                            if(value !=0)
                                 match_failed = 1;
                             break;
                         case '\20':
@@ -5345,7 +5435,7 @@ md_assemble (char *str)
 			      ;
 			    } /* end switch (opcode->flags&&(ARC_SIMD_SCALE1...))*/
 /* for compatibility with corner cases of MetaWare assembler allow to -128 */
-			  if ((value < -128) || (value > 255)){
+			  if ((value < 0) || (value > 255)){
 			    match_failed = 1;
                               }
 			  break;
@@ -5601,12 +5691,17 @@ md_assemble (char *str)
 				      char *orig_line = input_line_pointer;
 				      expressionS new_exp;
 
-				      input_line_pointer = str + 1;
+                                      char savedchar;
+
+                                      savedchar = *(str - 1);
+                                      *(str - 1) = '0';
+                                      input_line_pointer = str - 1;
 				      expression (&new_exp);
+                                      *(str - 1) = savedchar;
 				      if (new_exp.X_op == O_constant)
 					{
 					  exp.X_add_number
-					    += new_exp.X_add_number;
+                                              += (new_exp.X_add_number);
 					  str = input_line_pointer;
 					}
 				      //     if (input_line_pointer != str)
@@ -5728,6 +5823,7 @@ md_assemble (char *str)
 	      else
 		insn |= (value & ((1 << operand->bits) - 1)) << operand->shift;
 
+              insn |= convert_scaled;
 	      ++syn;
 	    }
 	} /* end for(str=start,...) */
@@ -5743,6 +5839,10 @@ md_assemble (char *str)
           if(!lm_present && !(opcode->flags & AC_SIMD_SETLM))
               insn2 |= (0xff << 15);
           if(opcode->flags & ARC_SIMD_ZERVA){
+              long limm_p, limm;
+              limm_p = arc_opcode_limm_p (&limm);
+              if(limm_p)
+                  insn2 = insn2+(limm&0x7fff);
               operand = &arc_operands[arc_operand_map[zer_rega.type]];
               if(operand->insert){
 		  insn = (*operand->insert) (insn,&insn2, operand, mods,
@@ -5750,14 +5850,21 @@ md_assemble (char *str)
                   }
               else
                   {
-                  insn |= ((zer_rega.value & ((1 << operand->bits) - 1)) <<
-                      operand->shift);
+                  insn |= ((zer_rega.value & ((1 << operand->bits) - 1)) 
+                           <<  operand->shift);
                   }
 
               }
-          if(opcode->flags & ARC_SIMD_ZERVB){
+          if(opcode->flags & ARC_SIMD_ZERVB)
+              {
+              long limm_p, limm;
+              limm_p = arc_opcode_limm_p (&limm);
+              if(limm_p)
+                  insn2 = insn2+(limm&0x7fff);
               operand = &arc_operands[arc_operand_map[zer_regb.type]];
-              if(operand->insert){
+              insn2 = insn2+(limm&0x7fff);
+              if(operand->insert)
+                  {
 		  insn = (*operand->insert) (insn,&insn2, operand, mods,
 					     &zer_regb, (long)zer_regb.value, &errmsg);
                   }
@@ -5769,7 +5876,12 @@ md_assemble (char *str)
 
 
               }
-          if(opcode->flags & ARC_SIMD_ZERVC){
+          if(opcode->flags & ARC_SIMD_ZERVC)
+              {
+              long limm_p, limm;
+              limm_p = arc_opcode_limm_p (&limm);
+              if(limm_p)
+                  insn2 = insn2+(limm&0x7fff);
               operand = &arc_operands[arc_operand_map[zer_regc.type]];
               if(operand->insert){
 		  insn = (*operand->insert) (insn,&insn2, operand, mods,
@@ -6032,7 +6144,7 @@ md_assemble (char *str)
 		{
 		  /* If limm is needed */
 		  if ((operand->flags & ARC_OPERAND_LIMM)
-		      && (!(fixups[i].modifier_flags & ARC_MOD_SDASYM) || ac_add_reg_sdasym_insn (insn)))
+		      && (!(fixups[i].modifier_flags & ARC_MOD_SDASYM) || ac_add_reg_sdasym_insn (insn) || reloc_type == BFD_RELOC_ARC_GOTPC32))
 		    {
 		      offset = 2;
 		    }
@@ -6045,7 +6157,7 @@ md_assemble (char *str)
 		{
 		  /* If limm is needed */
 		  if ((operand->flags & ARC_OPERAND_LIMM)
-		      && (!(fixups[i].modifier_flags & ARC_MOD_SDASYM) || ac_add_reg_sdasym_insn (insn)))
+		      && (!(fixups[i].modifier_flags & ARC_MOD_SDASYM) || ac_add_reg_sdasym_insn (insn) || reloc_type == BFD_RELOC_ARC_GOTPC32))
 		    offset = 4;
 		}
 

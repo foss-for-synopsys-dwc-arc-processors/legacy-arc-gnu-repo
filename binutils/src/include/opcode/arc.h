@@ -149,7 +149,8 @@ struct arc_opcode {
 #define AC_SIMD_EXTEND1         (AC_SIMD_SETLM          << 1)
 #define AC_SIMD_KREG            (AC_SIMD_EXTEND1        << 1)
 #define AC_SIMD_ENCODE_U16      (AC_SIMD_KREG           << 1)
-
+#define AC_SIMD_ENCODE_ZR       (AC_SIMD_ENCODE_U16     << 1)
+#define AC_EXTENDED_MULTIPLY    AC_SIMD_EXTENDED
 
 #define I(x) (((unsigned) (x) & 31) << 27)
 #define A(x) (((unsigned) (x) & ARC_MASK_REG) << ARC_SHIFT_REGA)
@@ -472,3 +473,4 @@ extern int ac_add_reg_sdasym_insn (arc_insn);
 extern int ac_get_load_sdasym_insn_type (arc_insn, int);
 extern int ac_get_store_sdasym_insn_type (arc_insn, int);
 extern int arc_limm_fixup_adjust (arc_insn);
+extern int arc_test_wb (void);

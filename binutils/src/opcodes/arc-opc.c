@@ -452,7 +452,8 @@ const struct arc_operand arc_operands_a4[] =
  '\21' SIMD_I_UU16         high order 8 of 16 bit unsigned
  '\22' SIMD_I_UL16         low order 8 of 16 bit unsigned
  '\23' SIMD_DISCARDED      value not used
- '\24' SIMD_I_S15          simd 15 big signed field 
+ '\24' SIMD_I_S15          simd 15 bit signed field 
+ '\25' SIMD_I_ZR           zero constant value field
    
 
 
@@ -820,6 +821,8 @@ const struct arc_operand arc_operands_ac[] =
   { '\23', 6, ARC_SHIFT_REGC_AC, ARC_OPERAND_SIGNED|ARC_OPERAND_ERROR, insert_null, 0 },
 #define SIMD_I_S15   (SIMD_DISCARDED+1)
   { '\24', 6, ARC_SHIFT_REGC_AC, ARC_OPERAND_SIGNED|ARC_OPERAND_ERROR, insert_s15, 0 },
+#define SIMD_I_ZERO   (SIMD_SIMD_I_S15+1)
+  { '\25', 6, ARC_SHIFT_REGC_AC, ARC_OPERAND_SIGNED|ARC_OPERAND_ERROR, 0, 0 },
 /* end of list place holder */
   { 0, 0, 0, 0, 0, 0 }
 };
@@ -863,14 +866,14 @@ insert_u8  (arc_insn insn, long * insn2 ATTRIBUTE_UNUSED,
  * bits in the C operand position.  The most significant six bits go to the
  * bottom of ex.  
  * insn    Top half of instruction.
- * insn2   Bottom half of instruction.
+ * ex      Bottom half of instruction.
  * operand unused.
  * reg     irrevent, only used for register operands.
  * value   Signed twelve bit number.
  * errmsg  error message.
  */
 static arc_insn
-insert_s12  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
+insert_s12  (arc_insn insn,  long *ex,
             const struct arc_operand *operand ATTRIBUTE_UNUSED,
             int mods ATTRIBUTE_UNUSED,
             const struct arc_operand_value *reg ATTRIBUTE_UNUSED,
@@ -882,7 +885,7 @@ insert_s12  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
   long msb6;
   long lsb6;
 
-  msb6 = (value >> 6) & 0x3f;
+  msb6 = (value >> 6) & 0x3ff;
   lsb6 = (value & 0x3f) << 6 ;
 
   insn |= lsb6;
@@ -895,14 +898,14 @@ insert_s12  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
  * bits in the C operand position.  The most significant six bits go to the
  * bottom of ex.  
  * insn    Top half of instruction.
- * insn2   Bottom half of instruction.
+ * ex      Bottom half of instruction.
  * operand unused.
  * reg     irrevent, only used for register operands.
  * value   Signed twelve bit number.
  * errmsg  error message.
  */
 static arc_insn
-insert_u16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
+insert_u16  (arc_insn insn, long *ex,
             const struct arc_operand *operand ATTRIBUTE_UNUSED,
             int mods ATTRIBUTE_UNUSED,
             const struct arc_operand_value *reg ATTRIBUTE_UNUSED,
@@ -927,14 +930,14 @@ insert_u16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
  * bits in the C operand position.  The most significant six bits go to the
  * bottom of ex.  
  * insn    Top half of instruction.
- * insn2   Bottom half of instruction.
+ * ex      Bottom half of instruction.
  * operand unused.
  * reg     irrevent, only used for register operands.
  * value   Signed twelve bit number.
  * errmsg  error message.
  */
 static arc_insn
-insert_uu16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
+insert_uu16  (arc_insn insn, long *ex,
             const struct arc_operand *operand ATTRIBUTE_UNUSED,
             int mods ATTRIBUTE_UNUSED,
             const struct arc_operand_value *reg ATTRIBUTE_UNUSED,
@@ -956,14 +959,14 @@ insert_uu16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
  * bits in the C operand position.  The most significant six bits go to the
  * bottom of ex.  
  * insn    Top half of instruction.
- * insn2   Bottom half of instruction.
+ * ex      Bottom half of instruction.
  * operand unused.
  * reg     irrevent, only used for register operands.
  * value   Signed twelve bit number.
  * errmsg  error message.
  */
 static arc_insn
-insert_ul16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
+insert_ul16  (arc_insn insn, long *ex,
             const struct arc_operand *operand ATTRIBUTE_UNUSED,
             int mods ATTRIBUTE_UNUSED,
             const struct arc_operand_value *reg ATTRIBUTE_UNUSED,
@@ -986,14 +989,14 @@ insert_ul16  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
 /* Insert 15 bits of signed number into a 64 bit instruction.
  * insn is top 32 bits of instruction and is unchanged.
  * insn    Top half of instruction.
- * insn2   Bottom half of instruction, receives value in lower 15 bits.
+ * ex      Bottom half of instruction, receives value in lower 15 bits.
  * operand unused.
  * reg     irrevent, only used for register operands.
  * value   Signed twelve bit number.
  * errmsg  error message.
  */
 static arc_insn
-insert_s15  (arc_insn insn, long *ex ATTRIBUTE_UNUSED,
+insert_s15  (arc_insn insn, long *ex,
             const struct arc_operand *operand ATTRIBUTE_UNUSED,
             int mods ATTRIBUTE_UNUSED,
             const struct arc_operand_value *reg ATTRIBUTE_UNUSED,
@@ -2433,6 +2436,8 @@ struct arc_opcode arc_opcodes[] = {
   { "bic%.q%.f %a,%b,%c%F%S%L",	I(-1), I(14), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "b%q%.n %B", I(-1),	I(4), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   { "bl%q%.n %B", I(-1), I(5), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
+  { "b%.q%.n %B", I(-1),	I(4), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
+  { "bl.%q%.n %B", I(-1), I(5), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   { "brk", 0x1ffffe00, 0x1ffffe00, ARC_MACH_ARC4, 0, 0 ,0,0},
   { "extb%.q%.f %a,%b%F%S%L", I(-1)|C(-1), I(3)|C(7), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "extw%.q%.f %a,%b%F%S%L", I(-1)|C(-1), I(3)|C(8), ARC_MACH_ARC4, 0, 0 ,0,0},
@@ -2441,10 +2446,13 @@ struct arc_opcode arc_opcodes[] = {
   /* %Q: force cond_p=1 --> no shimm values */
   /* This insn allows an optional flags spec.  */
   { "j%q%Q%.n%.f %b%F%J,%j", I(-1)|A(-1)|C(-1)|R(-1,7,1), I(7)|A(0)|C(0)|R(0,7,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
+  { "j%q%Q%.n%.f %b%F%J,%j", I(-1)|A(-1)|C(-1)|R(-1,7,1), I(7)|A(0)|C(0)|R(0,7,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   { "j%.q%Q%.n%.f %b%F%J", I(-1)|A(-1)|C(-1)|R(-1,7,1), I(7)|A(0)|C(0)|R(0,7,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   /* This insn allows an optional flags spec.  */
   { "jl%q%Q%.n%.f %b%F%J,%j", I(-1)|A(-1)|C(-1)|R(-1,7,1)|R(-1,9,1), I(7)|A(0)|C(0)|R(0,7,1)|R(1,9,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
+  { "jl%.q%Q%.n%.f %b%F%J,%j", I(-1)|A(-1)|C(-1)|R(-1,7,1)|R(-1,9,1), I(7)|A(0)|C(0)|R(0,7,1)|R(1,9,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   { "jl%q%Q%.n%.f %b%F%J", I(-1)|A(-1)|C(-1)|R(-1,7,1)|R(-1,9,1), I(7)|A(0)|C(0)|R(0,7,1)|R(1,9,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
+  { "jl%.q%Q%.n%.f %b%F%J", I(-1)|A(-1)|C(-1)|R(-1,7,1)|R(-1,9,1), I(7)|A(0)|C(0)|R(0,7,1)|R(1,9,1), ARC_MACH_ARC4 | ARC_OPCODE_COND_BRANCH, 0, 0 ,0,0},
   /* Put opcode 1 ld insns first so shimm gets prefered over limm.  */
   /* "[%b]" is before "[%b,%o]" so 0 offsets don't get printed.  */
   { "ld%Z%.X%.W%.E %a,[%s]%S%L%1", I(-1)|R(-1,13,1)|R(-1,0,511), I(1)|R(0,13,1)|R(0,0,511), ARC_MACH_ARC4, 0, 0 ,0,0},
@@ -2452,6 +2460,7 @@ struct arc_opcode arc_opcodes[] = {
   { "ld%z%.x%.w%.e %a,[%s,%O]%S%L%1", I(-1)|R(-1,4,1)|R(-1,6,7), I(0)|R(0,4,1)|R(0,6,7), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "ld%Z%.X%.W%.E %a,[%s,%O]%S%L%3", I(-1)|R(-1,13,1),	I(1)|R(0,13,1), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "lp%q%.n %B", I(-1), I(6), ARC_MACH_ARC4, 0, 0 ,0,0},
+  { "lp%.q%.n %B", I(-1), I(6), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "lr %a,[%Ab]%S%L", I(-1)|C(-1), I(1)|C(0x10), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "lsr%.q%.f %a,%b%F%S%L", I(-1)|C(-1), I(3)|C(2), ARC_MACH_ARC4, 0, 0 ,0,0},
   { "or%.q%.f %a,%b,%c%F%S%L", I(-1), I(13), ARC_MACH_ARC4, 0, 0 ,0,0},
@@ -2481,22 +2490,26 @@ struct arc_opcode arc_opcodes[] = {
   { "adc%.f %A,%B,%C%F", 0xf8ff0000, 0x20010000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f %A,%B,%u%F", 0xf8ff0000, 0x20410000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f %#,%B,%K%F", 0xf8ff0000, 0x20810000, ARCOMPACT, 0, 0 ,0,0},
+  { "adc%.f %#,%K,%B%F", 0xf8ff0000, 0x20810000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20010f80, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q %A,%L,%C%F", 0xffff7000, 0x26017000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q %A,%L,%u%F", 0xffff7000, 0x26417000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26017f80, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c10000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.q%.f %#,%B,%u%F", 0xf8ff00f0, 0x20c10020, ARCOMPACT, 0, 0 ,0,0},
+  { "adc%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c10000, ARCOMPACT, 0, 0 ,0,0},
+  { "adc%.q%.f %#,%u,%B%F", 0xf8ff00f0, 0x20c10020, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.q%.f%Q %#,%B,%L%F", 0xf8ff0ff0, 0x20c10f80, ARCOMPACT, 0, 0 ,0,0},
+  { "adc%.q%.f%Q %#,%L,%B%F", 0xf8ff0ff0, 0x20c10f80, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f 0,%B,%C%F", 0xf8ff00ff, 0x2001003e, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f 0,%B,%u%F", 0xf8ff003f, 0x2041003e, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20010fbe, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q 0,%L,%C%F", 0xffff703f, 0x2601703e, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.f%Q 0,%L,%u%F", 0xffff703f, 0x2641703e, ARCOMPACT, 0, 0 ,0,0},
-  { "adc%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26017fbe, ARCOMPACT, 0, 0, 0, 0},
+  { "adc%.f%Q 0,%L,%K%F", 0xffff7000, 0x26817000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c17000, ARCOMPACT, 0, 0 ,0,0},
   { "adc%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c17020, ARCOMPACT, 0, 0 ,0,0},
-  { "adc%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c17f80, ARCOMPACT, 0, 0, 0, 0 },
+  { "adc%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c17f80, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f %A,%B,%C%F", 0xf8ff0000, 0x20000000, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f %A,%B,%u%F", 0xf8ff0000, 0x20400000, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f %#,%B,%K%F", 0xf8ff0000, 0x20800000, ARCOMPACT, 0, 0 ,0,0},
@@ -2507,16 +2520,19 @@ struct arc_opcode arc_opcodes[] = {
   { "add%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26007f80, ARCOMPACT, 0, 0 ,0,0},
   { "add%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c00000, ARCOMPACT, 0, 0 ,0,0},
   { "add%.q%.f %#,%B,%u%F", 0xf8ff00f0, 0x20c00020, ARCOMPACT, 0, 0 ,0,0},
+  { "add%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c00000, ARCOMPACT, 0, 0 ,0,0},
+  { "add%.q%.f %#,%u,%B%F", 0xf8ff00f0, 0x20c00020, ARCOMPACT, 0, 0 ,0,0},
   { "add%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c00f80, ARCOMPACT, 0, 0 ,0,0},
+  { "add%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20c00f80, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f 0,%B,%C%F", 0xf8ff003f, 0x2000003e, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f 0,%B,%u%F", 0xf8ff003f, 0x2040003e, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20000fbe, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f%Q 0,%L,%C%F", 0xffff703f, 0x2600703e, ARCOMPACT, 0, 0 ,0,0},
   { "add%.f%Q 0,%L,%u%F", 0xffff703f, 0x2640703e, ARCOMPACT, 0, 0 ,0,0},
-  { "add%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26007fbe, ARCOMPACT, 0, 0, 0, 0 },
+  { "add%.f%Q 0,%L,%K%F", 0xffff7000, 0x26807000, ARCOMPACT, 0, 0 ,0,0},
   { "add%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c07000, ARCOMPACT, 0, 0 ,0,0},
   { "add%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c07020, ARCOMPACT, 0, 0 ,0,0},
-  { "add%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c07f80, ARCOMPACT, 0, 0 ,0,0},
+  { "add%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c07f80, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.f %A,%B,%C%F", 0xf8ff0000, 0x20140000, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.f %A,%B,%u%F", 0xf8ff0000, 0x20540000, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.f %#,%B,%K%F", 0xf8ff0000, 0x20940000, ARCOMPACT, 0, 0 ,0,0},
@@ -2532,10 +2548,10 @@ struct arc_opcode arc_opcodes[] = {
   { "add1%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20140fbe, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.f%Q 0,%L,%C%F", 0xffff703f, 0x2614703e, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.f%Q 0,%L,%u%F", 0xffff703f, 0x2654703e, ARCOMPACT, 0, 0 ,0,0},
-  { "add1%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26147fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "add1%.f%Q 0,%L,%K%F", 0xffff7000, 0x26947000, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d47000, ARCOMPACT, 0, 0 ,0,0},
   { "add1%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d47020, ARCOMPACT, 0, 0 ,0,0},
-  { "add1%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d47f80, ARCOMPACT, 0, 0 ,0,0},
+  { "add1%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d47f80, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.f %A,%B,%C%F", 0xf8ff0000, 0x20150000, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.f %A,%B,%u%F", 0xf8ff0000, 0x20550000, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.f %#,%B,%K%F", 0xf8ff0000, 0x20950000, ARCOMPACT, 0, 0 ,0,0},
@@ -2551,10 +2567,10 @@ struct arc_opcode arc_opcodes[] = {
   { "add2%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20150fbe, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.f%Q 0,%L,%C%F", 0xffff703f, 0x2615703e, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.f%Q 0,%L,%u%F", 0xffff703f, 0x2655703e, ARCOMPACT, 0, 0 ,0,0},
-  { "add2%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26157fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "add2%.f%Q 0,%L,%K%F", 0xffff7000, 0x26957000, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d57000, ARCOMPACT, 0, 0 ,0,0},
   { "add2%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d57020, ARCOMPACT, 0, 0 ,0,0},
-  { "add2%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d57f80, ARCOMPACT, 0, 0 ,0,0},
+  { "add2%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d57f80, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.f %A,%B,%C%F", 0xf8ff0000, 0x20160000, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.f %A,%B,%u%F", 0xf8ff0000, 0x20560000, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.f %#,%B,%K%F", 0xf8ff0000, 0x20960000, ARCOMPACT, 0, 0 ,0,0},
@@ -2569,11 +2585,11 @@ struct arc_opcode arc_opcodes[] = {
   { "add3%.f 0,%B,%u%F", 0xf8ff003f, 0x2056003e, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20160fbe, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.f%Q 0,%L,%C%F", 0xffff703f, 0x2616703e, ARCOMPACT, 0, 0 ,0,0},
-  { "add3%.f%Q 0,%L,%u%F", 0xffff703f, 0x2656703e, ARCOMPACT, 0, 0 ,0,0},
-  { "add3%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26167fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "add3%.f%Q 0,%L,%u%F", 0xffff7000, 0x26967000, ARCOMPACT, 0, 0 ,0,0},
+  { "add3%.f%Q 0,%L,%K%F", 0xffff7000, 0x26967000, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d67000, ARCOMPACT, 0, 0 ,0,0},
   { "add3%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d67020, ARCOMPACT, 0, 0 ,0,0},
-  { "add3%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d67f80, ARCOMPACT, 0, 0 ,0,0},
+  { "add3%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d67f80, ARCOMPACT, 0, 0 ,0,0},
 
   { "and%.f %A,%B,%C%F", 0xf8ff0000, 0x20040000, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f %A,%B,%u%F", 0xf8ff0000, 0x20440000, ARCOMPACT, 0, 0 ,0,0},
@@ -2583,17 +2599,20 @@ struct arc_opcode arc_opcodes[] = {
   { "and%.f%Q %A,%L,%u%F", 0xffff7000, 0x26447000, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26047f80, ARCOMPACT, 0, 0 ,0,0},
   { "and%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c40000, ARCOMPACT, 0, 0 ,0,0},
+  { "and%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c40000, ARCOMPACT, 0, 0 ,0,0},
   { "and%.q%.f %#,%B,%u%F", 0xf8ff00f0, 0x20c40020, ARCOMPACT, 0, 0 ,0,0},
+  { "and%.q%.f %#,%u,%B%F", 0xf8ff00f0, 0x20c40020, ARCOMPACT, 0, 0 ,0,0},
   { "and%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c40f80, ARCOMPACT, 0, 0 ,0,0},
+  { "and%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20c40f80, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f 0,%B,%C%F", 0xf8ff003f, 0x2004003e, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f 0,%B,%u%F", 0xf8ff003f, 0x2044003e, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20040fbe, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f%Q 0,%L,%C%F", 0xffff703f, 0x2604703e, ARCOMPACT, 0, 0 ,0,0},
   { "and%.f%Q 0,%L,%u%F", 0xffff703f, 0x2644703e, ARCOMPACT, 0, 0 ,0,0},
-  { "and%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26047fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "and%.f%Q 0,%L,%K%F", 0xffff7000, 0x26847000, ARCOMPACT, 0, 0 ,0,0},
   { "and%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c47000, ARCOMPACT, 0, 0 ,0,0},
   { "and%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c47020, ARCOMPACT, 0, 0 ,0,0},
-  { "and%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c47f80, ARCOMPACT, 0, 0 ,0,0},
+  { "and%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c47f80, ARCOMPACT, 0, 0 ,0,0},
 
   { "asl%.f %A,%B,%C%F", 0xf8ff0000, 0x28000000, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f %A,%B,%u%F", 0xf8ff0000, 0x28400000, ARCOMPACT, 0, 0 ,0,0},
@@ -2604,13 +2623,14 @@ struct arc_opcode arc_opcodes[] = {
   { "asl%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x2e007f80, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x28c00000, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x28c00020, ARCOMPACT, 0, 0 ,0,0},
+  { "asl%.q%.f %#,%B%F", 0xf8ff0fc0, 0x28c00060, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x28c00f80, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f 0,%B,%C%F", 0xf8ff003f, 0x2800003e, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f 0,%B,%u%F", 0xf8ff003f, 0x2840003e, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x28000fbe, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f%Q 0,%L,%C%F", 0xffff703f, 0x2e00703e, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.f%Q 0,%L,%u%F", 0xffff703f, 0x2e40703e, ARCOMPACT, 0, 0 ,0,0},
-  { "asl%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2e007fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "asl%.f%Q 0,%L,%K%F", 0xffff7000, 0x2e807000, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x2ec07000, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x2ec07020, ARCOMPACT, 0, 0 ,0,0},
   { "asl%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x2ec07f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2636,7 +2656,7 @@ struct arc_opcode arc_opcodes[] = {
   { "asr%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x28020fbe, ARCOMPACT, 0, 0 ,0,0},
   { "asr%.f%Q 0,%L,%C%F", 0xffff703f, 0x2e02703e, ARCOMPACT, 0, 0 ,0,0},
   { "asr%.f%Q 0,%L,%u%F", 0xffff703f, 0x2e42703e, ARCOMPACT, 0, 0 ,0,0},
-  { "asr%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2e027fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "asr%.f%Q 0,%L,%K%F", 0xffff7000, 0x2e827000, ARCOMPACT, 0, 0 ,0,0},
   { "asr%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x2ec27000, ARCOMPACT, 0, 0 ,0,0},
   { "asr%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x2ec27020, ARCOMPACT, 0, 0 ,0,0},
   { "asr%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x2ec27f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2672,7 +2692,7 @@ struct arc_opcode arc_opcodes[] = {
   { "bclr%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20100fbe, ARCOMPACT, 0, 0 ,0,0},
   { "bclr%.f%Q 0,%L,%C%F", 0xffff703f, 0x2610703e, ARCOMPACT, 0, 0 ,0,0},
   { "bclr%.f%Q 0,%L,%u%F", 0xffff703f, 0x2650703e, ARCOMPACT, 0, 0 ,0,0},
-  { "bclr%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26107fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "bclr%.f%Q 0,%L,%K%F", 0xffff7000, 0x26907000, ARCOMPACT, 0, 0 ,0,0},
   { "bclr%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d07000, ARCOMPACT, 0, 0 ,0,0},
   { "bclr%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d07020, ARCOMPACT, 0, 0 ,0,0},
   { "bclr%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d07f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2682,7 +2702,7 @@ struct arc_opcode arc_opcodes[] = {
   { "bic%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20060f80, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.f%Q %A,%L,%C%F", 0xffff7000, 0x26067000, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.f%Q %A,%L,%u%F", 0xffff7000, 0x26467000, ARCOMPACT, 0, 0 ,0,0},
-  { "bic%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26067f80, ARCOMPACT, 0, 0 ,0,0},
+  { "bic%.f%Q %A,%L,%K%F", 0xffff7000, 0x26067000, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c60000, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20c60020, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c60f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2691,12 +2711,13 @@ struct arc_opcode arc_opcodes[] = {
   { "bic%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20060fbe, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.f%Q 0,%L,%C%F", 0xffff703f, 0x2606703e, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.f%Q 0,%L,%u%F", 0xffff703f, 0x2646703e, ARCOMPACT, 0, 0 ,0,0},
-  { "bic%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26067fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "bic%.f%Q 0,%L,%K%F", 0xffff7000, 0x26867000, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c67000, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c67020, ARCOMPACT, 0, 0 ,0,0},
   { "bic%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c67f80, ARCOMPACT, 0, 0 ,0,0},
   { "bl%.n %H", 0xf8030030, 0x08020000, ARCOMPACT, 0, 0 ,0,0},
   { "bl%q%.n %h", 0xf803003f, 0x08000000, ARCOMPACT, 0, 0 ,0,0},
+  { "bl%.q%.n %h", 0xf803003f, 0x08000000, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.f %A,%B,%C%F", 0xf8ff0000, 0x20130000, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.f %A,%B,%u%F", 0xf8ff0000, 0x20530000, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.f %#,%B,%K%F", 0xf8ff0000, 0x20930000, ARCOMPACT, 0, 0 ,0,0},
@@ -2712,7 +2733,7 @@ struct arc_opcode arc_opcodes[] = {
   { "bmsk%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20130fbe, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.f%Q 0,%L,%C%F", 0xffff703f, 0x2613703e, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.f%Q 0,%L,%u%F", 0xffff703f, 0x2653703e, ARCOMPACT, 0, 0 ,0,0},
-  { "bmsk%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26137fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "bmsk%.f%Q 0,%L,%K%F", 0xffff7000, 0x26937000, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d37000, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d37020, ARCOMPACT, 0, 0 ,0,0},
   { "bmsk%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d37f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2790,7 +2811,7 @@ struct arc_opcode arc_opcodes[] = {
   { "bset%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x200f0fbe, ARCOMPACT, 0, 0 ,0,0},
   { "bset%.f%Q 0,%L,%C%F", 0xffff703f, 0x260f703e, ARCOMPACT, 0, 0 ,0,0},
   { "bset%.f%Q 0,%L,%u%F", 0xffff703f, 0x264f703e, ARCOMPACT, 0, 0 ,0,0},
-  { "bset%.f%Q 0,%L,%L%F", 0xffff7fff, 0x260f7fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "bset%.f%Q 0,%L,%K%F", 0xffff7000, 0x268f7000, ARCOMPACT, 0, 0 ,0,0},
   { "bset%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26cf7000, ARCOMPACT, 0, 0 ,0,0},
   { "bset%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26cf7020, ARCOMPACT, 0, 0 ,0,0},
   { "bset%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26cf7f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2815,30 +2836,46 @@ struct arc_opcode arc_opcodes[] = {
   { "bxor%.f%Q %A,%L,%u%F", 0xffff7000, 0x26527000, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26127f80, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20d20000, ARCOMPACT, 0, 0 ,0,0},
+  { "bxor%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20d20000, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20d20020, ARCOMPACT, 0, 0 ,0,0},
+  { "bxor%.q%.f %#,%u,%B%F", 0xf8ff0020, 0x20d20020, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20d20f80, ARCOMPACT, 0, 0 ,0,0},
+  { "bxor%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20d20f80, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f 0,%B,%C%F", 0xf8ff003f, 0x2012003e, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f 0,%B,%u%F", 0xf8ff003f, 0x2052003e, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20120fbe, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f%Q 0,%L,%C%F", 0xffff703f, 0x2612703e, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.f%Q 0,%L,%u%F", 0xffff703f, 0x2652703e, ARCOMPACT, 0, 0 ,0,0},
-  { "bxor%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26127fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "bxor%.f%Q 0,%L,%K%F", 0xffff7000, 0x26927000, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d27000, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d27020, ARCOMPACT, 0, 0 ,0,0},
   { "bxor%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d27f80, ARCOMPACT, 0, 0 ,0,0},
   { "cmp %B,%C", 0xf8ff803f, 0x200c8000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f %B,%C", 0xf8ff803f, 0x200c8000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp %B,%u", 0xf8ff803f, 0x204c8000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f %B,%u", 0xf8ff803f, 0x204c8000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp %B,%K", 0xf8ff8000, 0x208c8000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f %B,%K", 0xf8ff8000, 0x208c8000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%Q %B,%L", 0xf8ff8000, 0x200c8f80, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f%Q %B,%L", 0xf8ff8000, 0x200c8f80, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%Q %L,%C", 0xfffff03f, 0x260cf000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f%Q %L,%C", 0xfffff03f, 0x260cf000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%Q %L,%u", 0xfffff03f, 0x264cf000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f%Q %L,%u", 0xfffff03f, 0x264cf000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%Q %L,%L", 0xffffffff, 0x260cff80, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.f%Q %L,%L", 0xffffffff, 0x260cff80, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q %B,%C", 0xf8ff8020, 0x20cc8000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f %B,%C", 0xf8ff8020, 0x20cc8000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q %B,%u", 0xf8ff8020, 0x20cc8020, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f %B,%u", 0xf8ff8020, 0x20cc8020, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q%Q %B,%L", 0xf8ff8fe0, 0x20cc8f80, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f%Q %B,%L", 0xf8ff8fe0, 0x20cc8f80, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q%Q %L,%C", 0xfffff020, 0x26ccf000, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f%Q %L,%C", 0xfffff020, 0x26ccf000, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q%Q %L,%u", 0xfffff020, 0x26ccf020, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f%Q %L,%u", 0xfffff020, 0x26ccf020, ARCOMPACT, 0, 0 ,0,0},
   { "cmp%.q%Q %L,%L", 0xffffffe0, 0x26ccff80, ARCOMPACT, 0, 0 ,0,0},
+  { "cmp%.q%.f%Q %L,%L", 0xffffffe0, 0x26ccff80, ARCOMPACT, 0, 0 ,0,0},
 
   /* ARC A700 extension for Atomic Exchange */
   { "ex%.V %#,[%C]%^",0xf8ff003f,0x202f000C,ARC_MACH_ARC7,0,0,0,0},
@@ -2858,19 +2895,12 @@ struct arc_opcode arc_opcodes[] = {
   { "extw%.f 0,%u%F", 0xffff703f, 0x266f7008, ARCOMPACT, 0, 0 ,0,0},
   { "extw%.f%Q 0,%L%F", 0xffff7fff, 0x262f7f88, ARCOMPACT, 0, 0 ,0,0},
 
-  /* The flag pattern for arcompact have to be changed */
-#if 0
-  { "flag %C", 0xfffff03f, 0x20290000, ARCOMPACT, 0, 0 },
-  { "flag %u", 0xfffff03f, 0x20690000, ARCOMPACT, 0, 0 },
-  { "flag %K", 0xfffff000, 0x20a90000, ARCOMPACT, 0, 0 },
-  { "flag%Q %L", 0xffffffff, 0x20290f80, ARCOMPACT, 0, 0 },
-  { "flag%.q %C", 0xfffff020, 0x20e90000, ARCOMPACT, 0, 0 },
-  { "flag%.q %u", 0xfffff020, 0x20e90020, ARCOMPACT, 0, 0 },
-  { "flag%.q%Q %L", 0xffffffe0, 0x20e90f80, ARCOMPACT, 0, 0 },
-#endif
-  { "flag%.q %C", 0xfffff020, 0x20e90000, ARCOMPACT, 0, 0, 0, 0 },
-  { "flag%.q %u", 0xfffff020, 0x20e90020, ARCOMPACT, 0, 0, 0, 0 },
+  { "flag %u", 0xfffff020, 0x20690000, ARCOMPACT, 0, 0 ,0,0},
+  { "flag %C", 0xfffff020, 0x20290000, ARCOMPACT, 0, 0 ,0,0},
+  { "flag%.q%Q %C", 0xfffff020, 0x20e90000, ARCOMPACT, 0, 0 ,0,0},
+  { "flag%.q%Q %u", 0xfffff020, 0x20e90020, ARCOMPACT, 0, 0 ,0,0},
   { "flag %K", 0xfffff000, 0x20a90000, ARCOMPACT, 0, 0, 0, 0 },
+  { "flag %L", 0xffffffff, 0x20290f80, ARCOMPACT, 0, 0 ,0,0},
   { "flag%.q%Q %L", 0xffffffe0, 0x20e90f80, ARCOMPACT, 0, 0, 0, 0 },
 
   { "j%.N [%C]", 0xfffef03f, 0x20200000, ARCOMPACT, 0, 0 ,0,0},
@@ -2884,6 +2914,11 @@ struct arc_opcode arc_opcodes[] = {
   { "j%q%Q %L", 0xffffffe0, 0x20e00f80, ARCOMPACT, 0, 0 ,0,0},
   { "j%q%.f [%7]", 0xffffffe0, 0x20e08740, ARCOMPACT, 0, 0 ,0,0},
   { "j%q%.f [%8]", 0xffffffe0, 0x20e08780, ARCOMPACT, 0, 0 ,0,0},
+  { "j%.q%.N [%C]", 0xfffef020, 0x20e00000, ARCOMPACT, 0, 0 ,0,0},
+  { "j%.q%.N %u", 0xfffef020, 0x20e00020, ARCOMPACT, 0, 0 ,0,0},
+  { "j%.q%Q %L", 0xffffffe0, 0x20e00f80, ARCOMPACT, 0, 0 ,0,0},
+  { "j%.q%.f [%7]", 0xffffffe0, 0x20e08740, ARCOMPACT, 0, 0 ,0,0},
+  { "j%.q%.f [%8]", 0xffffffe0, 0x20e08780, ARCOMPACT, 0, 0 ,0,0},
   { "jl%.N [%C]", 0xfffef03f, 0x20220000, ARCOMPACT, 0, 0 ,0,0},
   { "jl%.N %u", 0xfffef03f, 0x20620000, ARCOMPACT, 0, 0 ,0,0},
   { "jl%.N %K", 0xfffef000, 0x20a20000, ARCOMPACT, 0, 0 ,0,0},
@@ -2891,6 +2926,9 @@ struct arc_opcode arc_opcodes[] = {
   { "jl%q%.N [%C]", 0xfffef020, 0x20e20000, ARCOMPACT, 0, 0 ,0,0},
   { "jl%q%.N %u", 0xfffef020, 0x20e20020, ARCOMPACT, 0, 0 ,0,0},
   { "jl%q%Q %L", 0xffffffe0, 0x20e20f80, ARCOMPACT, 0, 0 ,0,0},
+  { "jl%.q%.N [%C]", 0xfffef020, 0x20e20000, ARCOMPACT, 0, 0 ,0,0},
+  { "jl%.q%.N %u", 0xfffef020, 0x20e20020, ARCOMPACT, 0, 0 ,0,0},
+  { "jl%.q%Q %L", 0xffffffe0, 0x20e20f80, ARCOMPACT, 0, 0 ,0,0},
 
   /* Prefetch equivalent with ld<.aa> 0,[b,s9] / [b,limm] / [limm]
      / [b,c] / [limm,c]
@@ -2906,14 +2944,14 @@ struct arc_opcode arc_opcodes[] = {
   { "pf [%L]%3", 0xff0079ff, 0x1600703e, ARC_MACH_ARC7, 0, 0 ,0,0},
 
 
-  { "ld%.p 0,[%g,%C]%1", 0xf83f803f, 0x2030003e, ARC_MACH_ARC7, 0, 0 ,0,0},
+  { "ld%.P 0,[%g,%C]%1", 0xf83f803f, 0x2030003e, ARC_MACH_ARC7, 0, 0 ,0,0},
   { "prefetch%.p [%g,%C]%1", 0xf83f803f, 0x2030003e, ARC_MACH_ARC7, 0, 0 ,0,0},
-  { "pf%.p [%g,%C]%1", 0xf83f803f, 0x2030003e, ARC_MACH_ARC7, 0, 0 ,0,0},
+  { "pf%.P [%g,%C]%1", 0xf83f803f, 0x2030003e, ARC_MACH_ARC7, 0, 0 ,0,0},
 
 
-  { "ld%.p 0,[%g,%L]%1", 0xf83f8fff, 0x20300fbe, ARC_MACH_ARC7, 0, 0 ,0,0},
+  { "ld%.P 0,[%g,%L]%1", 0xf83f8fff, 0x20300fbe, ARC_MACH_ARC7, 0, 0 ,0,0},
   { "prefetch%.p [%g,%L]%1", 0xf83f8fff, 0x20300fbe, ARC_MACH_ARC7, 0, 0 ,0,0},
-  { "pf%.p [%g,%L]%1", 0xf83f8fff, 0x20300fbe, ARC_MACH_ARC7, 0, 0 ,0,0},
+  { "pf%.P [%g,%L]%1", 0xf83f8fff, 0x20300fbe, ARC_MACH_ARC7, 0, 0 ,0,0},
 
   { "ld 0,[%L,%C]%1", 0xff3ff03f, 0x2630703e, ARC_MACH_ARC7, 0, 0 ,0,0},
   { "prefetch [%L,%C]%1", 0xff3ff03f, 0x2630703e, ARC_MACH_ARC7, 0, 0 ,0,0},
@@ -2921,19 +2959,29 @@ struct arc_opcode arc_opcodes[] = {
 
   /* load instruction opcodes */
   { "ld%T%.X%.P%.V %A,[%g,%C]%1", 0xf8380000, 0x20300000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%T%.P%.X%.V %A,[%g,%C]%1", 0xf8380000, 0x20300000, ARCOMPACT, 0, 0 ,0,0},
   { "ld%t%.x%.p%.v %A,[%g]%1", 0xf8ff8000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.p%.x%.v %A,[%g]%1", 0xf8ff8000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
   { "ld%t%.x%.p%.v %A,[%g,%o]%1", 0xf8000000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
-  { "ld%t%.x%.p%.v %A,[%g,%[L]%1", 0xf8000000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.p%.x%.v %A,[%g,%o]%1", 0xf8000000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.x%.P%.v %A,[%g,%[L]%1", 0xf8000000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.P%.x%.v %A,[%g,%[L]%1", 0xf8000000, 0x10000000, ARCOMPACT, 0, 0 ,0,0},
   { "ld%T%.X%.P%.V%Q %A,[%g,%L]%1", 0xf8380fc0, 0x20300f80, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%T%.P%.X%.V%Q %A,[%g,%L]%1", 0xf8380fc0, 0x20300f80, ARCOMPACT, 0, 0 ,0,0},
   { "ld%T%.X%.&%.V%Q %A,[%L,%C]%1", 0xfff87000, 0x26307000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%T%.&%.X%.V%Q %A,[%L,%C]%1", 0xfff87000, 0x26307000, ARCOMPACT, 0, 0 ,0,0},
   { "ld%t%.x%.v%Q %A,[%L,%o]%1", 0xfff87000, 0x16007000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.v%.x%Q %A,[%L,%o]%1", 0xfff87000, 0x16007000, ARCOMPACT, 0, 0 ,0,0},
   { "ld%T%.X%.V%Q %A,[%L,%L]%1", 0xfff87fc0, 0x26307f80, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%T%.V%.X%Q %A,[%L,%L]%1", 0xfff87fc0, 0x26307f80, ARCOMPACT, 0, 0 ,0,0},
   { "ld%t%.x%.v%Q %A,[%L]%3", 0xfffff600, 0x16007000, ARCOMPACT, 0, 0 ,0,0},
+  { "ld%t%.v%.x%Q %A,[%L]%3", 0xfffff600, 0x16007000, ARCOMPACT, 0, 0 ,0,0},
 
 
 
   { "lp %Y", 0xfffff000, 0x20a80000, ARCOMPACT, 0, 0 ,0,0},
   { "lp%q %y", 0xfffff020, 0x20e80020, ARCOMPACT, 0, 0 ,0,0},
+  { "lp%.q %y", 0xfffff020, 0x20e80020, ARCOMPACT, 0, 0 ,0,0},
 
   { "lr %#,[%C]", 0xf8ff803f, 0x202a0000, ARCOMPACT, 0, 0 ,0,0},
   { "lr %#,[%GC]", 0xf8ff8000, 0x20aa0000, ARCOMPACT, 0, 0 ,0,0},
@@ -2954,11 +3002,11 @@ struct arc_opcode arc_opcodes[] = {
   { "lsl%.f 0,%B,%u%F", 0xf8ff003f, 0x2840003e, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x28000fbe, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f%Q 0,%L,%C%F", 0xffff703f, 0x2e00703e, ARCOMPACT, 0, 0 ,0,0},
+  { "lsl%.f%Q 0,%L,%K%F", 0xffff003f, 0x2e807000, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f%Q 0,%L,%u%F", 0xffff703f, 0x2e40703e, ARCOMPACT, 0, 0 ,0,0},
-  { "lsl%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2e007fbe, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x2ec07000, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x2ec07020, ARCOMPACT, 0, 0 ,0,0},
-  { "lsl%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x2ec07f80, ARCOMPACT, 0, 0 ,0,0},
+  { "lsl%.q%.f%Q 0,%L,%u%F", 0xffff7fe0, 0x2ec07f80, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f %#,%C%F", 0xf8ff003f, 0x202f0000, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f %#,%u%F", 0xf8ff003f, 0x206f0000, ARCOMPACT, 0, 0 ,0,0},
   { "lsl%.f%Q %#,%L%F", 0xf8ff0fff, 0x202f0f80, ARCOMPACT, 0, 0 ,0,0},
@@ -2981,7 +3029,7 @@ struct arc_opcode arc_opcodes[] = {
   { "lsr%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x28010fbe, ARCOMPACT, 0, 0 ,0,0},
   { "lsr%.f%Q 0,%L,%C%F", 0xffff703f, 0x2e01703e, ARCOMPACT, 0, 0 ,0,0},
   { "lsr%.f%Q 0,%L,%u%F", 0xffff703f, 0x2e41703e, ARCOMPACT, 0, 0 ,0,0},
-  { "lsr%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2e017fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "lsr%.f%Q 0,%L,%K%F", 0xffff003f, 0x2e817000, ARCOMPACT, 0, 0 ,0,0},
   { "lsr%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x2ec17000, ARCOMPACT, 0, 0 ,0,0},
   { "lsr%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x2ec17020, ARCOMPACT, 0, 0 ,0,0},
   { "lsr%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x2ec17f80, ARCOMPACT, 0, 0 ,0,0},
@@ -3006,10 +3054,10 @@ struct arc_opcode arc_opcodes[] = {
   { "max%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20080fbe, ARCOMPACT, 0, 0 ,0,0},
   { "max%.f%Q 0,%L,%C%F", 0xffff703f, 0x2608703e, ARCOMPACT, 0, 0 ,0,0},
   { "max%.f%Q 0,%L,%u%F", 0xffff703f, 0x2648703e, ARCOMPACT, 0, 0 ,0,0},
-  { "max%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26087fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "max%.f%Q 0,%L,%K%F", 0xffff7fff, 0x26887000, ARCOMPACT, 0, 0 ,0,0},
   { "max%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c87000, ARCOMPACT, 0, 0 ,0,0},
   { "max%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c87020, ARCOMPACT, 0, 0 ,0,0},
-  { "max%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c87f80, ARCOMPACT, 0, 0 ,0,0},
+  { "max%.q%.f%Q 0,%L,%K%F", 0xffff7fe0, 0x26c87f80, ARCOMPACT, 0, 0 ,0,0},
   { "min%.f %A,%B,%C%F", 0xf8ff0000, 0x20090000, ARCOMPACT, 0, 0 ,0,0},
   { "min%.f %A,%B,%u%F", 0xf8ff0000, 0x20490000, ARCOMPACT, 0, 0 ,0,0},
   { "min%.f %#,%B,%K%F", 0xf8ff0000, 0x20890000, ARCOMPACT, 0, 0 ,0,0},
@@ -3025,10 +3073,10 @@ struct arc_opcode arc_opcodes[] = {
   { "min%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20090fbe, ARCOMPACT, 0, 0 ,0,0},
   { "min%.f%Q 0,%L,%C%F", 0xffff703f, 0x2609703e, ARCOMPACT, 0, 0 ,0,0},
   { "min%.f%Q 0,%L,%u%F", 0xffff703f, 0x2649703e, ARCOMPACT, 0, 0 ,0,0},
-  { "min%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26097fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "min%.f%Q 0,%L,%K%F", 0xffff003f, 0x26897000, ARCOMPACT, 0, 0 ,0,0},
   { "min%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c97000, ARCOMPACT, 0, 0 ,0,0},
   { "min%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c97020, ARCOMPACT, 0, 0 ,0,0},
-  { "min%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c97f80, ARCOMPACT, 0, 0 ,0,0},
+  { "min%.q%.f%Q 0,%L,%K%F", 0xffff7fe0, 0x26c97f80, ARCOMPACT, 0, 0 ,0,0},
 
   { "mov%.f %#,%C%F", 0xf8ff003f, 0x200A0000, ARCOMPACT, 0, 0 ,0,0},
   { "mov%.f %#,%u%F", 0xf8ff003f, 0x204a0000, ARCOMPACT, 0, 0 ,0,0},
@@ -3074,30 +3122,39 @@ struct arc_opcode arc_opcodes[] = {
   { "or%.f%Q %A,%L,%u%F", 0xffff7000, 0x26457000, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26057f80, ARCOMPACT, 0, 0 ,0,0},
   { "or%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c50000, ARCOMPACT, 0, 0 ,0,0},
+  { "or%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c50000, ARCOMPACT, 0, 0 ,0,0},
   { "or%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20c50020, ARCOMPACT, 0, 0 ,0,0},
+  { "or%.q%.f %#,%u,%B%F", 0xf8ff0020, 0x20c50020, ARCOMPACT, 0, 0 ,0,0},
   { "or%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c50f80, ARCOMPACT, 0, 0 ,0,0},
+  { "or%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20c50f80, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f 0,%B,%C%F", 0xf8ff003f, 0x2005003e, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f 0,%B,%u%F", 0xf8ff003f, 0x2045003e, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f%Q 0,%B,%L%F", 0xf8ff8fff, 0x20050fbe, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f%Q 0,%L,%C%F", 0xffff703f, 0x2605703e, ARCOMPACT, 0, 0 ,0,0},
   { "or%.f%Q 0,%L,%u%F", 0xffff703f, 0x2645703e, ARCOMPACT, 0, 0 ,0,0},
-  { "or%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26057fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "or%.f%Q 0,%L,%K%F", 0xffff7fff, 0x26857000, ARCOMPACT, 0, 0 ,0,0},
   { "or%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c57000, ARCOMPACT, 0, 0 ,0,0},
   { "or%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c57020, ARCOMPACT, 0, 0 ,0,0},
-  { "or%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c57f80, ARCOMPACT, 0, 0 ,0,0},
+  { "or%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c57f80, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp %B,%C", 0xf8ff803f, 0x200d8000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp %B,%u", 0xf8ff803f, 0x204d8000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp %B,%K", 0xf8ff8000, 0x208d8000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%Q %B,%L", 0xf8ff8000, 0x200d8f80, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%Q %L,%C", 0xfffff03f, 0x260df000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%Q %L,%u", 0xfffff03f, 0x264df000, ARCOMPACT, 0, 0 ,0,0},
-  { "rcmp%Q %L,%L", 0xffffffff, 0x260dff80, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%Q %L,%K", 0xfffff000, 0x268df000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q %B,%C", 0xf8ff8020, 0x20cd8000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q %B,%u", 0xf8ff8020, 0x20cd8020, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f %B,%C", 0xf8ff8020, 0x20cd8000, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f %B,%u", 0xf8ff8020, 0x20cd8020, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q%Q %B,%L", 0xf8ff8fe0, 0x20cd8f80, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q%Q %L,%C", 0xfffff020, 0x26cdf000, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q%Q %L,%u", 0xfffff020, 0x26cdf020, ARCOMPACT, 0, 0 ,0,0},
   { "rcmp%.q%Q %L,%L", 0xffffffff, 0x26cdff80, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f%Q %B,%L", 0xf8ff8fe0, 0x20cd8f80, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f%Q %L,%C", 0xfffff020, 0x26cdf000, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f%Q %L,%u", 0xfffff020, 0x26cdf020, ARCOMPACT, 0, 0 ,0,0},
+  { "rcmp%.q%.f%Q %L,%L", 0xffffffff, 0x268df780, ARCOMPACT, 0, 0 ,0,0},
 
   { "rlc%.f %#,%C%F", 0xf8ff003f, 0x202f000b, ARCOMPACT, 0, 0 ,0,0},
   { "rlc%.f %#,%u%F", 0xf8ff003f, 0x206f000b, ARCOMPACT, 0, 0 ,0,0},
@@ -3120,10 +3177,10 @@ struct arc_opcode arc_opcodes[] = {
   { "ror%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x28030fbe, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.f%Q 0,%L,%C%F", 0xffff703f, 0x2e03703e, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.f%Q 0,%L,%u%F", 0xffff703f, 0x2e43703e, ARCOMPACT, 0, 0 ,0,0},
-  { "ror%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2e037fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "ror%.f%Q 0,%L,%K%F", 0xffff0000, 0x2e837000, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x2ec37000, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x2ec37020, ARCOMPACT, 0, 0 ,0,0},
-  { "ror%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x2ec37f80, ARCOMPACT, 0, 0 ,0,0},
+  { "ror%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x2ec37f80, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.f %#,%C%F", 0xf8ff003f, 0x202f0003, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.f %#,%u%F", 0xf8ff003f, 0x206f0003, ARCOMPACT, 0, 0 ,0,0},
   { "ror%.f%Q %#,%L%F", 0xf8ff0fff, 0x202f0f83, ARCOMPACT, 0, 0 ,0,0},
@@ -3146,15 +3203,19 @@ struct arc_opcode arc_opcodes[] = {
   { "rsub%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20ce0000, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20ce0020, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20ce0f80, ARCOMPACT, 0, 0 ,0,0},
+/* commute sub to do the following three operations */
+  { "rsub%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c20000, ARCOMPACT, 0, 0 ,0,0},
+  { "rsub%.q%.f %#,%u,%B%F", 0xf8ff0020, 0x20c20020, ARCOMPACT, 0, 0 ,0,0},
+  { "rsub%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20c20f80, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.f 0,%B,%C%F", 0xf8ff003f, 0x200e003e, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.f 0,%B,%u%F", 0xf8ff003f, 0x204e003e, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x200e0fbe, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.f%Q 0,%L,%C%F", 0xffff703f, 0x260e703e, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.f%Q 0,%L,%u%F", 0xffff703f, 0x264e703e, ARCOMPACT, 0, 0 ,0,0},
-  { "rsub%.f%Q 0,%L,%L%F", 0xffff7fff, 0x260e7fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "rsub%.f%Q 0,%L,%K%F", 0xffff7000, 0x268e7000, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26ce7000, ARCOMPACT, 0, 0 ,0,0},
   { "rsub%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26ce7020, ARCOMPACT, 0, 0 ,0,0},
-  { "rsub%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26ce7f80, ARCOMPACT, 0, 0 ,0,0},
+  { "rsub%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26ce7f80, ARCOMPACT, 0, 0 ,0,0},
 
   /* Return from Interrupt or Exception  .New A700 instruction */
   { "rtie",0xffffffff,0x242F003F,ARC_MACH_ARC7,0,0,0,0},
@@ -3165,7 +3226,7 @@ struct arc_opcode arc_opcodes[] = {
   { "sbc%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20030f80, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.f%Q %A,%L,%C%F", 0xffff7000, 0x26037000, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.f%Q %A,%L,%u%F", 0xffff7000, 0x26437000, ARCOMPACT, 0, 0 ,0,0},
-  { "sbc%.f%Q %A,%L,%L%F", 0xffff7000, 0x26037f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sbc%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26837f80, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c30000, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20c30020, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c30f80, ARCOMPACT, 0, 0 ,0,0},
@@ -3174,10 +3235,10 @@ struct arc_opcode arc_opcodes[] = {
   { "sbc%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20030fbe, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.f%Q 0,%L,%C%F", 0xffff703f, 0x2603703e, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.f%Q 0,%L,%u%F", 0xffff703f, 0x2643703e, ARCOMPACT, 0, 0 ,0,0},
-  { "sbc%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26037fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "sbc%.f%Q 0,%L,%K%F", 0xffff7000, 0x26837000, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c37000, ARCOMPACT, 0, 0 ,0,0},
   { "sbc%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c37020, ARCOMPACT, 0, 0 ,0,0},
-  { "sbc%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c37f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sbc%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c37f80, ARCOMPACT, 0, 0 ,0,0},
   { "sexb%.f %#,%C%F", 0xf8ff003f, 0x202f0005, ARCOMPACT, 0, 0 ,0,0},
   { "sexb%.f %#,%u%F", 0xf8ff003f, 0x206f0005, ARCOMPACT, 0, 0 ,0,0},
   { "sexb%.f%Q %#,%L%F", 0xf8ff0fff, 0x202f0f85, ARCOMPACT, 0, 0 ,0,0},
@@ -3199,13 +3260,14 @@ struct arc_opcode arc_opcodes[] = {
   { "sleep", 0xffffffff, 0x216f003f, ARCOMPACT, 0, 0 ,0,0},
 
   { "sr %B,[%C]", 0xf8ff803f, 0x202b0000, ARCOMPACT, 0, 0 ,0,0},
-  { "sr %B,[%GC]", 0xf8ff8000, 0x20ab0000, ARCOMPACT, 0, 0 ,0,0},
+  { "sr %B,[%u]", 0xf8ff8000, 0x206b0000, ARCOMPACT, 0, 0 ,0,0},
   { "sr %B,[%K]", 0xf8ff8000, 0x20ab0000, ARCOMPACT, 0, 0 ,0,0},
+  { "sr %B,[%GC]", 0xf8ff8000, 0x20ab0000, ARCOMPACT, 0, 0 ,0,0},
   { "sr%Q %B,[%L]", 0xf8ff8fff, 0x202b0f80, ARCOMPACT, 0, 0 ,0,0},
   { "sr%Q %L,[%C]", 0xfffff03f, 0x262b7000, ARCOMPACT, 0, 0 ,0,0},
-  { "sr%Q %L,[%GC]", 0xfffff000, 0x26ab7000, ARCOMPACT, 0, 0 ,0,0},
+  { "sr%Q %L,[%u]", 0xfffff000, 0x266b7000, ARCOMPACT, 0, 0 ,0,0},
   { "sr%Q %L,[%K]", 0xfffff000, 0x26ab7000, ARCOMPACT, 0, 0 ,0,0},
-  { "sr%Q %L,[%L]", 0xffffffff, 0x262b7f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sr%Q %L,[%GC]", 0xfffff000, 0x26ab7000, ARCOMPACT, 0, 0 ,0,0},
   { "st%z%.w%.D %C,[%g]%0", 0xf8ff8001, 0x18000000, ARCOMPACT, 0, 0 ,0,0},
   { "st%z%.w%.D %C,[%g,%[L]%0", 0xf8000001, 0x18000000, ARCOMPACT, 0, 0 ,0,0},
   { "st%z%.w%.D %C,[%g,%o]%0", 0xf8000001, 0x18000000, ARCOMPACT, 0, 0 ,0,0},
@@ -3214,6 +3276,7 @@ struct arc_opcode arc_opcodes[] = {
   { "st%z%.w%.D%Q %L,[%g]%0", 0xf8ff8fc1, 0x18000f80, ARCOMPACT, 0, 0 ,0,0},
   { "st%z%.w%.D%Q %L,[%g,%o]%0", 0xf8000fc1, 0x18000f80, ARCOMPACT, 0, 0 ,0,0},
   { "st%z%.D%Q %L,[%L,%o]%0", 0xff007fc1, 0x1e007f80, ARCOMPACT, 0, 0 ,0,0},
+  { "st%z%.D%Q %L,[%L]%0", 0xff007fc1, 0x1e007f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f %A,%B,%C%F", 0xf8ff0000, 0x20020000, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f %A,%B,%u%F", 0xf8ff0000, 0x20420000, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f %#,%B,%K%F", 0xf8ff0000, 0x20820000, ARCOMPACT, 0, 0 ,0,0},
@@ -3224,15 +3287,19 @@ struct arc_opcode arc_opcodes[] = {
   { "sub%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c20000, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20c20020, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c20f80, ARCOMPACT, 0, 0 ,0,0},
+/* commute rsub to do the following three operations */
+  { "sub%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20ce0000, ARCOMPACT, 0, 0 ,0,0},
+  { "sub%.q%.f %#,%u,%B%F", 0xf8ff0020, 0x20ce0020, ARCOMPACT, 0, 0 ,0,0},
+  { "sub%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20ce0f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f 0,%B,%C%F", 0xf8ff003f, 0x2002003e, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f 0,%B,%u%F", 0xf8ff003f, 0x2042003e, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20020fbe, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f%Q 0,%L,%C%F", 0xffff703f, 0x2602703e, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.f%Q 0,%L,%u%F", 0xffff703f, 0x2642703e, ARCOMPACT, 0, 0 ,0,0},
-  { "sub%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26027fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "sub%.f%Q 0,%L,%K%F", 0xffff7fff, 0x26827000, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c27000, ARCOMPACT, 0, 0 ,0,0},
   { "sub%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c27020, ARCOMPACT, 0, 0 ,0,0},
-  { "sub%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c27f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sub%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c27f80, ARCOMPACT, 0, 0 ,0,0},
 
   { "sub1%.f %A,%B,%C%F", 0xf8ff0000, 0x20170000, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f %A,%B,%u%F", 0xf8ff0000, 0x20570000, ARCOMPACT, 0, 0 ,0,0},
@@ -3240,8 +3307,7 @@ struct arc_opcode arc_opcodes[] = {
   { "sub1%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20170f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f%Q %A,%L,%C%F", 0xffff7000, 0x26177000, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f%Q %A,%L,%u%F", 0xffff7000, 0x26577000, ARCOMPACT, 0, 0 ,0,0},
-  { "sub1%.f%Q %A,%L,%L%F", 0xffff7000, 0x26177f80, ARCOMPACT, 0, 0 ,0,0},
-  { "sub1%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20d70000, ARCOMPACT, 0, 0 ,0,0},
+   { "sub1%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20d70000, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20d70020, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20d70f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f 0,%B,%C%F", 0xf8ff003f, 0x2017003e, ARCOMPACT, 0, 0 ,0,0},
@@ -3249,17 +3315,17 @@ struct arc_opcode arc_opcodes[] = {
   { "sub1%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20170fbe, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f%Q 0,%L,%C%F", 0xffff703f, 0x2617703e, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.f%Q 0,%L,%u%F", 0xffff703f, 0x2657703e, ARCOMPACT, 0, 0 ,0,0},
-  { "sub1%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26177fbe, ARCOMPACT, 0, 0, 0, 0},
+  { "sub1%.f%Q 0,%L,%K%F", 0xffff7fff, 0x26977000, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d77000, ARCOMPACT, 0, 0 ,0,0},
   { "sub1%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d77020, ARCOMPACT, 0, 0 ,0,0},
-  { "sub1%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d77f80, ARCOMPACT, 0, 0 ,0 ,0},
+  { "sub1%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d77f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f %A,%B,%C%F", 0xf8ff0000, 0x20180000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f %A,%B,%u%F", 0xf8ff0000, 0x20580000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f %#,%B,%K%F", 0xf8ff0000, 0x20980000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20180f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f%Q %A,%L,%C%F", 0xffff7000, 0x26187000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f%Q %A,%L,%u%F", 0xffff7000, 0x26587000, ARCOMPACT, 0, 0 ,0,0},
-  { "sub2%.f%Q %A,%L,%L%F", 0xffff7000, 0x26187f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sub2%.f%Q %A,%L,%L%F", 0xffff7000, 0x26180000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20d80000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20d80020, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20d80f80, ARCOMPACT, 0, 0 ,0,0},
@@ -3268,29 +3334,28 @@ struct arc_opcode arc_opcodes[] = {
   { "sub2%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20180fbe, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f%Q 0,%L,%C%F", 0xffff703f, 0x2618703e, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.f%Q 0,%L,%u%F", 0xffff703f, 0x2658703e, ARCOMPACT, 0, 0 ,0,0},
-  { "sub2%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26187fbe, ARCOMPACT, 0, 0 ,0,0},
+  { "sub2%.f%Q 0,%L,%K%F", 0xffff7000, 0x26987000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d87000, ARCOMPACT, 0, 0 ,0,0},
   { "sub2%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d87020, ARCOMPACT, 0, 0 ,0,0},
-  { "sub2%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d87f80, ARCOMPACT, 0, 0 ,0,0},
+  { "sub2%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d87f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f %A,%B,%C%F", 0xf8ff0000, 0x20190000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f %A,%B,%u%F", 0xf8ff0000, 0x20590000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f %#,%B,%K%F", 0xf8ff0000, 0x20990000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f%Q %A,%B,%L%F", 0xf8ff0fc0, 0x20190f80, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f%Q %A,%L,%C%F", 0xffff7000, 0x26197000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.f%Q %A,%L,%u%F", 0xffff7000, 0x26597000, ARCOMPACT, 0, 0 ,0,0},
-  { "sub3%.f%Q %A,%L,%L%F", 0xffff7000, 0x26197f80, ARCOMPACT, 0, 0 ,0 ,0},
   { "sub3%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20d90000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20d90020, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20d90f80, ARCOMPACT, 0, 0 ,0,0},
-  { "sub3%.f 0,%B,%C%F", 0xf8ff003f, 0x2019003e, ARCOMPACT, 0, 0 ,0 ,0},
-  { "sub3%.f 0,%B,%u%F", 0xf8ff003f, 0x2059003e, ARCOMPACT, 0, 0 ,0 ,0},
   { "sub3%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20190fbe, ARCOMPACT, 0, 0 ,0 ,0},
   { "sub3%.f%Q 0,%L,%C%F", 0xffff703f, 0x2619703e, ARCOMPACT, 0, 0 ,0 ,0},
   { "sub3%.f%Q 0,%L,%u%F", 0xffff703f, 0x2659703e, ARCOMPACT, 0, 0 ,0 ,0},
-  { "sub3%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26197fbe, ARCOMPACT, 0, 0 ,0 ,0},
+  { "sub3%.f%Q 0,%L,%K%F", 0xffff7000, 0x26997000, ARCOMPACT, 0, 0 ,0,0},
+  { "sub3%.f 0,%B,%C%F", 0xf8ff003f, 0x2019003e, ARCOMPACT, 0, 0 ,0,0},
+  { "sub3%.f 0,%B,%u%F", 0xf8ff703f, 0x2957703e, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26d97000, ARCOMPACT, 0, 0 ,0,0},
   { "sub3%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26d97020, ARCOMPACT, 0, 0 ,0,0},
-  { "sub3%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26d97f80, ARCOMPACT, 0, 0 ,0 ,0},
+  { "sub3%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26d97f80, ARCOMPACT, 0, 0 ,0,0},
   { "swap%.f %#,%C%F", 0xf8ff003f, 0x282f0000, ARC_MACH_ARC7, 0, 0 ,0,0},
   { "swap%.f %#,%u%F", 0xf8ff003f, 0x286f0000, ARC_MACH_ARC7, 0, 0 ,0,0},
   { "swap%.f%Q %#,%L%F", 0xf8ff0fff, 0x282f0f80, ARC_MACH_ARC7, 0, 0 ,0,0},
@@ -3304,18 +3369,31 @@ struct arc_opcode arc_opcodes[] = {
   { "trap0", 0xffffffff, 0x226f003f, ARC_MACH_ARC7, 0, 0 ,0,0},
 
   { "tst %B,%C%F", 0xf8ff803f, 0x200b8000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f %B,%C%F", 0xf8ff803f, 0x200b8000, ARCOMPACT, 0, 0 ,0,0},
   { "tst %B,%u%F", 0xf8ff803f, 0x204b8000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f %B,%u%F", 0xf8ff803f, 0x204b8000, ARCOMPACT, 0, 0 ,0,0},
   { "tst %B,%K%F", 0xf8ff8000, 0x208b8000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f %B,%K%F", 0xf8ff8000, 0x208b8000, ARCOMPACT, 0, 0 ,0,0},
   { "tst %B,%L%F", 0xf8ff8fff, 0x200b8f80, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f %B,%L%F", 0xf8ff8fff, 0x200b8f80, ARCOMPACT, 0, 0 ,0,0},
   { "tst%Q %L,%C", 0xfffff03f, 0x260bf000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f%Q %L,%C", 0xfffff03f, 0x260bf000, ARCOMPACT, 0, 0 ,0,0},
   { "tst%Q %L,%u", 0xfffff03f, 0x264bf000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f%Q %L,%u", 0xfffff03f, 0x264bf000, ARCOMPACT, 0, 0 ,0,0},
   { "tst%Q %L,%L", 0xffffffff, 0x260bff80, ARCOMPACT, 0, 0 ,0,0},
+  { "tst.f%Q %L,%L", 0xffffffff, 0x260bff80, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q %B,%C", 0xf8ff8020, 0x20cb8000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f %B,%C", 0xf8ff8020, 0x20cb8000, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q %B,%u", 0xf8ff8020, 0x20cb8020, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f %B,%u", 0xf8ff8020, 0x20cb8020, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q%Q %B,%L", 0xf8ff8fe0, 0x20cb8f80, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f%Q %B,%L", 0xf8ff8fe0, 0x20cb8f80, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q%Q %L,%C", 0xfffff020, 0x26cbf000, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f%Q %L,%C", 0xfffff020, 0x26cbf000, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q%Q %L,%u", 0xfffff020, 0x26cbf020, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f%Q %L,%u", 0xfffff020, 0x26cbf020, ARCOMPACT, 0, 0 ,0,0},
   { "tst%.q%Q %L,%L", 0xffffffe0, 0x26cbff80, ARCOMPACT, 0, 0 ,0,0},
+  { "tst%.q.f%Q %L,%L", 0xffffffe0, 0x26cbff80, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f %A,%B,%C%F", 0xf8ff0000, 0x20070000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f %A,%B,%u%F", 0xf8ff0000, 0x20470000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f %#,%B,%K%F", 0xf8ff0000, 0x20870000, ARCOMPACT, 0, 0 ,0,0},
@@ -3324,17 +3402,20 @@ struct arc_opcode arc_opcodes[] = {
   { "xor%.f%Q %A,%L,%u%F", 0xffff7000, 0x26477000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f%Q %A,%L,%L%F", 0xffff7fc0, 0x26077f80, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.q%.f %#,%B,%C%F", 0xf8ff0020, 0x20c70000, ARCOMPACT, 0, 0 ,0,0},
+  { "xor%.q%.f %#,%C,%B%F", 0xf8ff0020, 0x20c70000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.q%.f %#,%B,%u%F", 0xf8ff0020, 0x20c70020, ARCOMPACT, 0, 0 ,0,0},
+  { "xor%.q%.f %#,%u,%B%F", 0xf8ff0020, 0x20c70020, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.q%.f%Q %#,%B,%L%F", 0xf8ff0fe0, 0x20c70f80, ARCOMPACT, 0, 0 ,0,0},
+  { "xor%.q%.f%Q %#,%L,%B%F", 0xf8ff0fe0, 0x20c70f80, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f 0,%B,%C%F", 0xf8ff003f, 0x2007003e, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f 0,%B,%u%F", 0xf8ff003f, 0x2047003e, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f%Q 0,%B,%L%F", 0xf8ff0fff, 0x20070fbe, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f%Q 0,%L,%C%F", 0xffff703f, 0x2607703e, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.f%Q 0,%L,%u%F", 0xffff703f, 0x2647703e, ARCOMPACT, 0, 0 ,0,0},
-  { "xor%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26077fbe, ARCOMPACT, 0, 0 ,0 ,0},
+  { "xor%.f%Q 0,%L,%K%F", 0xffff7000, 0x26877000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.q%.f%Q 0,%L,%C%F", 0xffff7020, 0x26c77000, ARCOMPACT, 0, 0 ,0,0},
   { "xor%.q%.f%Q 0,%L,%u%F", 0xffff7020, 0x26c77020, ARCOMPACT, 0, 0 ,0,0},
-  { "xor%.q%.f%Q 0,%L,%L%F", 0xffff7fe0, 0x26c77f80, ARCOMPACT, 0, 0 ,0 ,0},
+  { "xor%.q%.f%Q 0,%L,%L%F", 0xffff7fff, 0x26c77f80, ARCOMPACT, 0, 0 ,0,0},
 
   /* ARCompact 16-bit instructions */
 
@@ -4226,6 +4307,12 @@ arc_opcode_lookup_dis (unsigned int insn)
   return icode_map[ARC_HASH_ICODE (insn)];
 }
 
+int 
+arc_test_wb (void)
+{
+  return addrwb_p;
+}
+
 /* Called by the assembler before parsing an instruction.  */
 
 void
@@ -4513,6 +4600,7 @@ ac_constant_operand (const struct arc_operand *op)
       case '\22':
       case '\23':
       case '\24':
+      case '\25':
 
         return 1;
     }
