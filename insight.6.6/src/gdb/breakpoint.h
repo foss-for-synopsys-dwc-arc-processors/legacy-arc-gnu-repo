@@ -190,6 +190,8 @@ enum target_hw_bp_type
 
 struct bp_target_info
 {
+  unsigned int range;
+
   /* Address at which the breakpoint was placed.  This is normally the
      same as ADDRESS from the bp_location, except when adjustment
      happens in BREAKPOINT_FROM_PC.  The most common form of
@@ -267,6 +269,7 @@ struct bp_location
      is not a special value for this field.  Valid for all types except
      bp_loc_other.  */
   CORE_ADDR address;
+  unsigned int range;
 
   /* For any breakpoint type with an address, this is the BFD section
      associated with the address.  Used primarily for overlay debugging.  */
@@ -681,6 +684,8 @@ extern void breakpoint_auto_delete (bpstat);
 extern void breakpoint_clear_ignore_counts (void);
 
 extern void break_command (char *, int);
+
+extern void watch_range_command (unsigned int, unsigned int, int, int);
 
 extern void hbreak_command_wrapper (char *, int);
 extern void thbreak_command_wrapper (char *, int);

@@ -6708,7 +6708,18 @@ dwarf_decode_lines (struct line_header *lh, char *comp_dir, bfd *abfd,
 		{
 		case DW_LNE_end_sequence:
 		  end_sequence = 1;
-                  lh->file_names[file - 1].included_p = 1;
+                  // ARC richards 12/08/08
+                  // there might be very little debug information for the
+                  // compilation unit (e.g. conditional compilation might have
+                  // resulted in an effectively empty source file), so there
+                  // might not be any source file names!
+                  if (lh->num_file_names > 0)
+                    {
+                      if (file > lh->num_file_names)
+                        warning("unexpected filename number %d at DW_LNE_end_sequence", file);
+                      else
+                        lh->file_names[file - 1].included_p = 1;
+                    }
                   if (!decode_for_pst_p)
 		    record_line (current_subfile, 0, address);
 		  break;

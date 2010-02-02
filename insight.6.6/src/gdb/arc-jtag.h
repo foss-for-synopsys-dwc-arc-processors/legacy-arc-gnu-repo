@@ -24,53 +24,52 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define ARC_DEBUG_REG_SH_BIT 	0x40000000
+/******************************************************************************/
+/*                                                                            */
+/* Outline:                                                                   */
+/*     This header file defines some operations provided by the ARC JTAG      */
+/*     module.                                                                */
+/*                                                                            */
+/******************************************************************************/
 
-#define RAUX(name, hwregno , desc, gdbregno, version)  ARC_HW_##name##_REGNUM = hwregno ,
-#define RBCR(name, hwregno , desc, gdbregno, version)  ARC_HW_##name##_REGNUM = hwregno ,
+#ifndef ARC_JTAG_H
+#define ARC_JTAG_H
 
-
-enum arc_hw_regnums
-  {
-    #include "arc-regnums-defs.h"
-    /* Specific ARCAngel Registers for Caches.  */
-    ARC_HW_ICACHE_IVIC = 0x10 , /* Invalidate Cache. */
-    ARC_HW_ICACHE_CONTROL = 0x11 , /* Disable ICache. ICache control. */
-    ARC_HW_DCACHE_IVIC = 0x47, /* Invalidate Cache. */
-    ARC_HW_DCACHE_CONTROL = 0x48 , /* Disable DCache. DCache Control. */
-  };
-
-#undef RBCR
-#undef RAUX
-
-#define ARC_TARGET_OBJECT_AUXREGS 	-1
-
-#define target_read_aux_reg(readbuf, offset, len)               \
-         (current_target.to_xfer_partial(&current_target,        \
-                                         ARC_TARGET_OBJECT_AUXREGS, NULL, readbuf, NULL, offset, len))
-
-#define target_write_aux_reg(writebuf, offset, len)             \
-         (current_target.to_xfer_partial(&current_target,        \
-                                         ARC_TARGET_OBJECT_AUXREGS, NULL, NULL, writebuf, offset, len))
+#include "arc-support.h"
 
 
-static inline int
-is_arc700 (void)
-{
-  struct gdbarch_tdep * tdep = gdbarch_tdep (current_gdbarch);
-  if(tdep->arc_processor_variant_info->arcprocessorversion == ARC700)
-    return 1;
-  return 0;
+#define ARC_TARGET_OBJECT_AUXREGS 	(-1)
 
-}
 
-static inline int
-is_arc600 (void)
-{
-  struct gdbarch_tdep * tdep = gdbarch_tdep (current_gdbarch);
-  if(tdep->arc_processor_variant_info->arcprocessorversion == ARC600)
-    return 1;
-  return 0;
+#define target_read_aux_reg(readbuf, first_regno, count)           \
+         current_target.to_xfer_partial(&current_target,           \
+                                        ARC_TARGET_OBJECT_AUXREGS, \
+                                        NULL,                      \
+                                        (gdb_byte*) readbuf,       \
+                                        NULL,                      \
+                                        first_regno,               \
+                                        count)
 
-}
- int debug_arc_jtag_target_message;
+#define target_write_aux_reg(writebuf, first_regno, count)         \
+         current_target.to_xfer_partial(&current_target,           \
+                                        ARC_TARGET_OBJECT_AUXREGS, \
+                                        NULL,                      \
+                                        NULL,                      \
+                                        (gdb_byte*) writebuf,      \
+                                        first_regno,               \
+                                        count)
+
+
+void _initialize_arc_debug(void);
+
+
+/* utility functions */
+
+ARC_RegisterContents arc_clear_status32_user_bit (void);
+void                 arc_restore_status32_user_bit (ARC_RegisterContents status32);
+
+Boolean arc_read_aux_register  (ARC_RegisterNumber hwregno, ARC_RegisterContents* contents);
+Boolean arc_write_aux_register (ARC_RegisterNumber hwregno, ARC_RegisterContents  contents);
+
+#endif /* ARC_JTAG_H */
+/******************************************************************************/

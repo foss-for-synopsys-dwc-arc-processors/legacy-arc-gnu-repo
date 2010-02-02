@@ -706,7 +706,7 @@ unsigned char *arc_operand_map = arc_operand_map_a4;
    computed at run-time.  We could split this into two, but that doesn't seem
    worth it.  */
 
-struct arc_opcode arc_opcodes[] = {
+static struct arc_opcode arc_opcodes[] = {
 
   /* Base case instruction set (ARC4, ARC5, ARC6, ARC7) */
   /* Macros appear first.  */
@@ -2230,7 +2230,9 @@ struct arc_opcode arc_opcodes[] = {
 
 };
 
-const int arc_opcodes_count = sizeof (arc_opcodes) / sizeof (arc_opcodes[0]);
+
+#define ELEMENTS_IN(arr)    (sizeof (arr) / sizeof ((arr)[0]))
+
 
 /* Register names table for ARCtangent-A4 */
 
@@ -2882,7 +2884,7 @@ arc_opcode_init_tables (flags)
       memset (opcode_map, 0, sizeof (opcode_map));
       memset (icode_map, 0, sizeof (icode_map));
       /* Scan the table backwards so macros appear at the front.  */
-      for (i = arc_opcodes_count - 1; i >= 0; --i)
+      for (i = ELEMENTS_IN(arc_opcodes) - 1; i >= 0; --i)
 	{
 	  int opcode_hash = ARC_HASH_OPCODE (arc_opcodes[i].syntax);
 	  int icode_hash = ARC_HASH_ICODE (arc_opcodes[i].value);

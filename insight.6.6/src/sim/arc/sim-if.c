@@ -54,7 +54,7 @@ free_state (SIM_DESC sd)
 }
 
 /* Find out heap and stack end boundaries, and return required memory
-   size; if this cannot be calcualted, return DEFAULT_MEMSIZE.
+   size; if this cannot be calculated, return DEFAULT_MEMSIZE.
    If INIT_P is nonzero, initialize memory above the stack with argv and envp.
    If this initialization fails, return 0.  */
 static int
@@ -75,7 +75,7 @@ init_stack (struct bfd *abfd, char **argv,
   bfd_byte buf[4];
 
 	// Irfan: 08 Oct 2007: Fix of Crash - if file to debug is specified first.
-	// Temp Fix: Todo: Set memary to program size of specified file later when file is specified.
+	// Temp Fix: Todo: Set memory to program size of specified file later when file is specified.
   if (abfd && !argv) {
 	  return default_memsize;
   }
@@ -159,7 +159,53 @@ init_stack (struct bfd *abfd, char **argv,
    }									\
  while (0)
 
-      write_dword (stack_top, argc);
+/* N.B. we must conform to the ARC processor ABI, which states that the 
+        parameters to a function call are considered to be a sequence of N words
+        (as though all the parameters were stored in order in memory with each
+        parameter occupying an integral number of words), and words 1 .. 8 are
+        passed in registers R0 .. R7.
+
+        It appears that before executing the target program, the simulator loads
+        the parameter registers with the required number of words from the memory
+        image of the stack which we are about to construct; 'main' has just two
+        parameters, both which are word-sized, so the simulator loads the first
+        word (argc) into R0 and the second word (argv[0]) into R1.
+
+        E.g. if we are passing 4 arguments to main, we must construct an image of
+             the form:
+
+               . 
+               . 
+            stack[top + A3] <== <arg_3>
+               . 
+               . 
+            stack[top + A2] <== <arg_2>
+               . 
+               . 
+            stack[top + A1] <== <arg_1>
+               . 
+               . 
+            stack[top + A0] <== <arg_0>
+            stack[top + 32] <== 0x0           # ? NULL terminator
+            stack[top + 28] <== 0x0           # envp NULL terminator
+            stack[top + 24] <== 0x0           # argv NULL terminator
+            stack[top + 20] <== TOP + A3      # argv[3]
+            stack[top + 16] <== TOP + A2      # argv[2]
+            stack[top + 12] <== TOP + A1      # argv[1]
+            stack[top +  8] <== TOP + A0      # argv[0]
+            stack[top +  4] <== TOP + 8       # argv       ====> R1
+            stack[top     ] <== 0x4           # argc       ====> R0
+
+            where TOP = &stack[top]
+              and A0 .. A3 are the offsets of the stored arguments from the stack top.
+*/
+
+      // allow space for argv parameter
+      stack_top -= 4;
+
+      write_dword (stack_top,     argc);             // argc parameter to 'main'
+      write_dword (stack_top + 4, stack_top + 8);    // argv parameter to 'main'
+
       for (cpp = argv, cnt = 2; cnt--; cpp = envp)
 	{
 	  for (rpp = cpp; str = *cpp++;)
@@ -171,13 +217,13 @@ init_stack (struct bfd *abfd, char **argv,
 	      cp += len;
 	      wpp += 4;
 	    }
-	  write_dword (wpp, 0);
+	  write_dword (wpp, 0);     // NULL array terminator
 	  wpp += 4;
 	}
-      write_dword (wpp, 0);
+      write_dword (wpp, 0);         // why is there an extra terminator?
       sd->heap_start = heap_start;
-      sd->heap_end = heap_end;
-      sd->stack_top = stack_top;
+      sd->heap_end   = heap_end;
+      sd->stack_top  = stack_top;
     }
   return default_memsize;
 }
@@ -379,7 +425,7 @@ sim_create_inferior (sd, abfd, argv, envp)
 
 #if 0
   STATE_ARGV (sd) = sim_copy_argv (argv);
-  STATE_ENVP (sd) = sim_copy_argv (envp);
+  STATE_ENVP (sd) = sim_copy_argv (2nvp);
 #endif
 
   return SIM_RC_OK;

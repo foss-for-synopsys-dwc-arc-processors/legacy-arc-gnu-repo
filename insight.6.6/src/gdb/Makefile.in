@@ -1439,6 +1439,7 @@ ALLDEPFILES = \
 	amd64-sol2-tdep.c \
 	arc-tdep.c arc-linux-tdep.c arc-jtag.c \
 	arc-jtag-ops.c arc-jtag.c \
+	arc-jtag-actionpoints.c \
 	arm-linux-nat.c arm-linux-tdep.c arm-tdep.c \
 	armnbsd-nat.c armbsd-tdep.c armnbsd-tdep.c armobsd-tdep.c \
 	avr-tdep.c \
@@ -1795,6 +1796,7 @@ arch-utils.o: arch-utils.c $(defs_h) $(arch_utils_h) $(buildsym_h) \
 arc-jtag.o:arc-jtag.c $(arc_jtag_h) $(defs_h) $(gdbcore_h) \
 	$(arc_regnums_defs_h) $(gdbcmd_h)
 arc-jtag-ops.o: arc-jtag-ops.c $(arc_jtag_ops_h) $(arc_tdep_h)
+arc-jtag-actionpoints.o: arc-jtag-actionpoints.c $(arc_jtag_ops_h)
 arc-jtag-tdep.o:arc-jtag-tdep.c $(arc_tdep_h) $(arc_jtag_h) $(defs_h) \
 	$(osabi_h) $(frame_h) $(regcache_h) $(gdb_assert_h) $(inferior_h) \
 	$(arc_tdep_h) $(arc_jtag_h)

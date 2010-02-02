@@ -1,14 +1,17 @@
+#error The ARC4 processor variant is no longer supported.
+#error No build should use this header file.
+
+
 #define ARC4_JTAG 1
 #define CONFIG_OSABI		GDB_OSABI_UNKNOWN
 
-struct gdbarch *arc_jtag_init (struct gdbarch *gdbarch);
-#define CONFIG_INIT_TDEP	arc_jtag_init
+#define CONFIG_INIT_TDEP	(void) arc_jtag_init(gdbarch);
 
 /* The core regnums here are the same as the hardware register numbers.  We
    cannot do that for aux registers, because the aux regs on the h/w do not
    have contiguous numbers.  */
 enum arc4_jtag_regnums
-  {
+{
     ARC_FP_REGNUM       = 27,
     ARC_SP_REGNUM           ,
     ARC_ILINK1_REGNUM	    ,
@@ -27,7 +30,6 @@ enum arc4_jtag_regnums
     ARC_LP_END_REGNUM		    ,
     ARC_IDENTITY_REGNUM		    ,
     ARC_DEBUG_REGNUM		    ,
-#ifndef ARC4_JTAG
     ARC_PC_REGNUM		    ,
     ARC_STATUS32_REGNUM		    ,
     ARC_STATUS32_L1_REGNUM	    ,
@@ -96,8 +98,8 @@ enum arc4_jtag_regnums
     ARC_BCR_1E_REGNUM		     ,
     ARC_BCR_1F_REGNUM		     ,
 
-#endif    
+   /* end marker: this is not a register,
+    * but its integer value gives the number of registers
+    */
     ARC_NR_REGS
-
-  };
-
+};

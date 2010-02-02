@@ -24,86 +24,97 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
 */
-enum arc700_api_regnums
-  {
-    ARC_ARG0_REGNUM     =        0,
-    ARC_ARG1_REGNUM     =        1,
-    ARC_ARG2_REGNUM     =        2,
-    ARC_ARG3_REGNUM     =        3,
-    ARC_ARG4_REGNUM     =        4,
-    ARC_ARG5_REGNUM     =        5,
-    ARC_ARG6_REGNUM     =        6,
-    ARC_ARG7_REGNUM     =        7,
 
-    /* When a return value is stored in registers, is in either r0 or in
-       (r1,r0).  Used in arc_extract_return_value */
-    ARC_RETURN1_REGNUM	=	 0,
-    ARC_RETURN2_REGNUM 	=	 1
-  };
+/******************************************************************************/
+/*                                                                            */
+/* Outline:                                                                   */
+/*     This header file defines some target-dependent information which is    */
+/*     specific to the ARC gdb port.                                          */
+/*                                                                            */
+/******************************************************************************/
+
+#ifndef ARC_TDEP_H
+#define ARC_TDEP_H
+
+#include "arc-support.h"
+#include "arc-jtag-ops.h"
 
 
-
-enum ARCProcessorVersion
-  {
-    UNSUPPORTED,
-    ARCompact,
-    ARC600,
-    ARC700,
-    A5,
-    A4,
-  };
-
-
-enum ARCExtensionsSupportedInformation
-  {
+typedef enum
+{
     ARC700_MMU
-  };
-
+} ARC_ExtensionsSupportedInformation;
 
 
 typedef struct ARCProcessorInformation
 {
-  enum ARCProcessorVersion arcprocessorversion;
-  enum ARCExtensionsSupportedInformation extensionsSupported;
+    ARC_ProcessorVersion               processor_version;
+    ARC_ExtensionsSupportedInformation extensions_supported;  // not used
+} ARC_VariantsInfo;
 
-}ARCVariantsInfo;
 
+#define REGISTER_NOT_PRESENT   (-1)   // special value for sc_reg_offset[reg]
+
+
+/* this structure hold target-dependent information
+ *
+ * N.B. this type is used in the target-independent gdb code, but it is treated
+ *      as an opaque (or private) type: the only use of it is by pointers to
+ *      objects of this type (passed as parameters or returned as results, or
+ *      held in other structures); it is only the ARC-specific modules that
+ *      have knowledge of the structure of this type and access its field.
+ */
 struct gdbarch_tdep
 {
-  /* Detect sigtramp.  */
-  int (*sigtramp_p) (struct frame_info *);
+    /* Detect sigtramp.  */
+    Boolean (*is_sigtramp) (struct frame_info*);
   
-  /* Get address of sigcontext for sigtramp.  */
-  CORE_ADDR (*sigcontext_addr) (struct frame_info *);
+    /* Get address of sigcontext for sigtramp.  */
+    CORE_ADDR (*sigcontext_addr) (struct frame_info*);
 
-  /* Offset of registers in `struct sigcontext'.  */
-  int *sc_reg_offset;
-  int sc_num_regs;
+    /* Offset of registers in `struct sigcontext'. */
+    const int*   sc_reg_offset;
+    unsigned int sc_num_regs;
 
-  /* In our linux target, gdbarch_pc_regnum points to stop_pc, which is a
-     register that's made-up by the kernel and does not actually exist.
-     stop_pc is NOT saved in the sigcontext; what is saved is the ret
-     "register".  Since ret is a linux-only register, it's regnum is visible
-     only in arc-linux-tdep.c; hence initialize pc_regnum_in_sigcontext in
-     arc-linux-tdep.c.  */
-  int pc_regnum_in_sigcontext;
+    /* In our linux target, gdbarch_pc_regnum points to stop_pc, which is a
+       register that is made up by the kernel and does not actually exist.
+       stop_pc is NOT saved in the sigcontext; what is saved is the ret
+       "register".  Since ret is a linux-only register, its regnum is visible
+       only in arc-linux-tdep.c; hence initialize pc_regnum_in_sigcontext in
+       arc-linux-tdep.c.  */
+    int pc_regnum_in_sigcontext;
 
-  /* Returns false, true, or -1; -1 means the tdep has nothing to say about this
-     register and group.  */
-  int (*register_reggroup_p) (int, struct reggroup *);
+    /* Returns 0, 1, or -1:
+     *    0 means the register is not in the group.
+     *    1 means the register is in the group.
+     *   -1 means the tdep has nothing to say about this register and group.
+     */
+    int (*register_reggroup_p) (int regnum, struct reggroup* group);
   
-  /* Breakpoint instruction to be used */
-  unsigned char * arc_breakpoint_insn;
-  int arc_breakpoint_size;
+    /* Names of processor registers, both real and pseudo */
+    const char** register_names;
+    unsigned int num_register_names;
 
-  /* For stopping backtraces.  */
-  CORE_ADDR lowest_pc;
+    /* Breakpoint instruction to be used */
+    const unsigned char* breakpoint_instruction;
+    unsigned int         breakpoint_size;
+
+    /* For stopping backtraces.  */
+    CORE_ADDR lowest_pc;
   
-  /* ARC Processor variant information.  */
-  ARCVariantsInfo * arc_processor_variant_info ;
-
+    /* ARC processor variant information (may be NULL). */
+    ARC_VariantsInfo* processor_variant_info;
 };
 
 
-void arc_software_single_step(enum target_signal ignore, int insert_breakpoints_p);
+void _initialize_arc_tdep (void);
 
+
+/* utility functions used by other ARC-specific modules */
+
+void arc_initialize_disassembler(struct disassemble_info* info);
+
+int arc_binutils_reg_to_regnum (int reg);
+
+#endif /* ARC_TDEP_H */
+/******************************************************************************/

@@ -91,6 +91,8 @@ static int can_use_hardware_watchpoint (struct value *);
 
 static int break_command_1 (char *, int, int, struct breakpoint *);
 
+static void watch_range_command_1 (unsigned int, unsigned int, int, int);
+
 static void mention (struct breakpoint *);
 
 struct breakpoint *set_raw_breakpoint (struct symtab_and_line, enum bptype);
@@ -765,6 +767,16 @@ free_valchain (struct bp_location *b)
   b->owner->val_chain = NULL;
 }
 
+static void print_frame_id(const char* s, struct frame_id id)
+{
+    printf("*** %s frame ID: (%x %x %x)\n",
+           s,
+           id.stack_addr,
+           id.code_addr,
+           id.special_addr);
+}
+
+
 /* Insert a low-level "breakpoint" of some type.  BPT is the breakpoint.
    Any error messages are printed to TMP_ERROR_STREAM; and DISABLED_BREAKS,
    PROCESS_WARNING, and HW_BREAKPOINT_ERROR are used to report problems.
@@ -790,6 +802,7 @@ insert_bp_location (struct bp_location *bpt,
   /* Initialize the target-specific information.  */
   memset (&bpt->target_info, 0, sizeof (bpt->target_info));
   bpt->target_info.placed_address = bpt->address;
+  bpt->target_info.range = bpt->range;
 
   if (bpt->loc_type == bp_loc_software_breakpoint
       || bpt->loc_type == bp_loc_hardware_breakpoint)
@@ -946,63 +959,86 @@ insert_bp_location (struct bp_location *bpt,
 	{
 	  free_valchain (bpt);
 
-	  /* Evaluate the expression and cut the chain of values
-	     produced off from the value chain.
+          if (bpt->owner->exp)
+            {
+	      /* Evaluate the expression and cut the chain of values
+	         produced off from the value chain.
 
-	     Make sure the value returned isn't lazy; we use
-	     laziness to determine what memory GDB actually needed
-	     in order to compute the value of the expression.  */
-	  v = evaluate_expression (bpt->owner->exp);
-	  value_contents (v);
-	  value_release_to_mark (mark);
+	         Make sure the value returned isn't lazy; we use
+	         laziness to determine what memory GDB actually needed
+	         in order to compute the value of the expression.  */
+	      v = evaluate_expression (bpt->owner->exp);
+	      value_contents (v);
+	      value_release_to_mark (mark);
 
-	  bpt->owner->val_chain = v;
-	  bpt->inserted = 1;
+	      bpt->owner->val_chain = v;
+	      bpt->inserted = 1;
 
-	  /* Look at each value on the value chain.  */
-	  for (; v; v = value_next (v))
-	    {
-	      /* If it's a memory location, and GDB actually needed
-		 its contents to evaluate the expression, then we
-		 must watch it.  */
-	      if (VALUE_LVAL (v) == lval_memory
-		  && ! value_lazy (v))
-		{
-		  struct type *vtype = check_typedef (value_type (v));
-
-		  /* We only watch structs and arrays if user asked
-		     for it explicitly, never if they just happen to
-		     appear in the middle of some value chain.  */
-		  if (v == bpt->owner->val_chain
-		      || (TYPE_CODE (vtype) != TYPE_CODE_STRUCT
-			  && TYPE_CODE (vtype) != TYPE_CODE_ARRAY))
+	      /* Look at each value on the value chain.  */
+	      for (; v; v = value_next (v))
+	        {
+	          /* If it's a memory location, and GDB actually needed
+		     its contents to evaluate the expression, then we
+		     must watch it.  */
+	          if (VALUE_LVAL (v) == lval_memory
+		      && ! value_lazy (v))
 		    {
-		      CORE_ADDR addr;
-		      int len, type;
+		      struct type *vtype = check_typedef (value_type (v));
 
-		      addr = VALUE_ADDRESS (v) + value_offset (v);
-		      len = TYPE_LENGTH (value_type (v));
-		      type = hw_write;
-		      if (bpt->owner->type == bp_read_watchpoint)
-			type = hw_read;
-		      else if (bpt->owner->type == bp_access_watchpoint)
-			type = hw_access;
+		      /* We only watch structs and arrays if user asked
+		         for it explicitly, never if they just happen to
+		         appear in the middle of some value chain.  */
+		      if (v == bpt->owner->val_chain
+		          || (TYPE_CODE (vtype) != TYPE_CODE_STRUCT
+			  && TYPE_CODE (vtype) != TYPE_CODE_ARRAY))
+		        {
+		          CORE_ADDR addr;
+		          int len, type;
 
-		      val = target_insert_watchpoint (addr, len, type);
-		      if (val == -1)
-			{
-			  /* Don't exit the loop, try to insert
-			     every value on the value chain.  That's
-			     because we will be removing all the
-			     watches below, and removing a
-			     watchpoint we didn't insert could have
-			     adverse effects.  */
-			  bpt->inserted = 0;
-			}
-		      val = 0;
+		          addr = VALUE_ADDRESS (v) + value_offset (v);
+		          len = TYPE_LENGTH (value_type (v));
+		          type = hw_write;
+		          if (bpt->owner->type == bp_read_watchpoint)
+			    type = hw_read;
+		          else if (bpt->owner->type == bp_access_watchpoint)
+			    type = hw_access;
+
+		          val = target_insert_watchpoint (addr, len, type);
+		          if (val == -1)
+			    {
+			      /* Don't exit the loop, try to insert
+			         every value on the value chain.  That's
+			         because we will be removing all the
+			         watches below, and removing a
+			         watchpoint we didn't insert could have
+			         adverse effects.  */
+			      bpt->inserted = 0;
+			    }
+		          val = 0;
+		        }
 		    }
-		}
-	    }
+	        }
+            }
+          else
+            {
+              CORE_ADDR addr;
+              int len, type;
+
+              addr = bpt->owner->loc->address;
+              len  = bpt->owner->loc->range;
+
+              type = hw_write;
+              if (bpt->owner->type == bp_read_watchpoint)
+                 type = hw_read;
+              else if (bpt->owner->type == bp_access_watchpoint)
+                 type = hw_access;
+
+	      bpt->inserted = 1;
+              val = target_insert_watchpoint (addr, len, type);
+              if (val == -1)
+                  bpt->inserted = 0;
+            }
+
 	  /* Failure to insert a watchpoint on any memory value in the
 	     value chain brings us here.  */
 	  if (!bpt->inserted)
@@ -1149,12 +1185,15 @@ insert_breakpoints (void)
       if ((b->loc_type == bp_loc_hardware_watchpoint
 	   || b->owner->type == bp_watchpoint) && !b->owner->val)
 	{
-	  struct value *val;
-	  val = evaluate_expression (b->owner->exp);
-	  release_value (val);
-	  if (value_lazy (val))
-	    value_fetch_lazy (val);
-	  b->owner->val = val;
+          if (b->owner->exp)
+          {
+	    struct value *val;
+	    val = evaluate_expression (b->owner->exp);
+	    release_value (val);
+	    if (value_lazy (val))
+	      value_fetch_lazy (val);
+	    b->owner->val = val;
+	  }
 	}
 
       val = insert_bp_location (b, tmp_error_stream,
@@ -2066,6 +2105,30 @@ top:
   do_cleanups (old_chain);
 }
 
+
+static void
+check_range (struct breakpoint *bp, enum async_reply_reason reason)
+{
+  CORE_ADDR addr;
+
+  if (target_stopped_data_address (&current_target, &addr))
+    {
+      if (addr >= bp->loc->address &&
+          addr <  bp->loc->address + bp->loc->range)
+        {
+          if (ui_out_is_mi_like_p (uiout))
+            ui_out_field_string
+              (uiout, "reason",
+               async_reason_lookup (reason));
+          mention (bp);
+          ui_out_text(uiout, "triggered by access at address ");
+          ui_out_field_core_addr(uiout, "", addr);
+          ui_out_text (uiout, "\n");
+        }
+    }
+}
+
+
 /* This is the normal print function for a bpstat.  In the future,
    much of this logic could (should?) be moved to bpstat_stop_status,
    by having it set different print_it values.
@@ -2242,76 +2305,91 @@ print_it_typical (bpstat bs)
 
     case bp_watchpoint:
     case bp_hardware_watchpoint:
-      if (bs->old_val != NULL)
-	{
-	  annotate_watchpoint (bs->breakpoint_at->number);
-	  if (ui_out_is_mi_like_p (uiout))
-	    ui_out_field_string
-	      (uiout, "reason",
-	       async_reason_lookup (EXEC_ASYNC_WATCHPOINT_TRIGGER));
-	  mention (bs->breakpoint_at);
-	  ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
-	  ui_out_text (uiout, "\nOld value = ");
-	  value_print (bs->old_val, stb->stream, 0, Val_pretty_default);
-	  ui_out_field_stream (uiout, "old", stb);
-	  ui_out_text (uiout, "\nNew value = ");
-	  value_print (bs->breakpoint_at->val, stb->stream, 0, Val_pretty_default);
-	  ui_out_field_stream (uiout, "new", stb);
-	  do_cleanups (ui_out_chain);
-	  ui_out_text (uiout, "\n");
-	  value_free (bs->old_val);
-	  bs->old_val = NULL;
+      if (bs->breakpoint_at->exp)
+        {
+          if (bs->old_val != NULL)
+	    {
+	      annotate_watchpoint (bs->breakpoint_at->number);
+	      if (ui_out_is_mi_like_p (uiout))
+	        ui_out_field_string
+	          (uiout, "reason",
+	           async_reason_lookup (EXEC_ASYNC_WATCHPOINT_TRIGGER));
+	      mention (bs->breakpoint_at);
+	      ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
+	      ui_out_text (uiout, "\nOld value = ");
+	      value_print (bs->old_val, stb->stream, 0, Val_pretty_default);
+	      ui_out_field_stream (uiout, "old", stb);
+	      ui_out_text (uiout, "\nNew value = ");
+	      value_print (bs->breakpoint_at->val, stb->stream, 0, Val_pretty_default);
+	      ui_out_field_stream (uiout, "new", stb);
+	      do_cleanups (ui_out_chain);
+	      ui_out_text (uiout, "\n");
+	      value_free (bs->old_val);
+	      bs->old_val = NULL;
+            }
 	}
+      else
+        check_range(bs->breakpoint_at, EXEC_ASYNC_WATCHPOINT_TRIGGER);
       /* More than one watchpoint may have been triggered.  */
       return PRINT_UNKNOWN;
       break;
 
     case bp_read_watchpoint:
-      if (ui_out_is_mi_like_p (uiout))
-	ui_out_field_string
-	  (uiout, "reason",
-	   async_reason_lookup (EXEC_ASYNC_READ_WATCHPOINT_TRIGGER));
-      mention (bs->breakpoint_at);
-      ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
-      ui_out_text (uiout, "\nValue = ");
-      value_print (bs->breakpoint_at->val, stb->stream, 0, Val_pretty_default);
-      ui_out_field_stream (uiout, "value", stb);
-      do_cleanups (ui_out_chain);
-      ui_out_text (uiout, "\n");
+      if (bs->breakpoint_at->exp)
+        {
+          if (ui_out_is_mi_like_p (uiout))
+	    ui_out_field_string
+	      (uiout, "reason",
+	       async_reason_lookup (EXEC_ASYNC_READ_WATCHPOINT_TRIGGER));
+          mention (bs->breakpoint_at);
+          ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
+          ui_out_text (uiout, "\nValue = ");
+          value_print (bs->breakpoint_at->val, stb->stream, 0, Val_pretty_default);
+          ui_out_field_stream (uiout, "value", stb);
+          do_cleanups (ui_out_chain);
+          ui_out_text (uiout, "\n");
+        }
+      else
+        check_range(bs->breakpoint_at, EXEC_ASYNC_READ_WATCHPOINT_TRIGGER);
       return PRINT_UNKNOWN;
       break;
 
     case bp_access_watchpoint:
-      if (bs->old_val != NULL)     
-	{
-	  annotate_watchpoint (bs->breakpoint_at->number);
-	  if (ui_out_is_mi_like_p (uiout))
-	    ui_out_field_string
-	      (uiout, "reason",
-	       async_reason_lookup (EXEC_ASYNC_ACCESS_WATCHPOINT_TRIGGER));
-	  mention (bs->breakpoint_at);
-	  ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
-	  ui_out_text (uiout, "\nOld value = ");
-	  value_print (bs->old_val, stb->stream, 0, Val_pretty_default);
-	  ui_out_field_stream (uiout, "old", stb);
-	  value_free (bs->old_val);
-	  bs->old_val = NULL;
-	  ui_out_text (uiout, "\nNew value = ");
-	}
-      else 
-	{
-	  mention (bs->breakpoint_at);
-	  if (ui_out_is_mi_like_p (uiout))
-	    ui_out_field_string
-	      (uiout, "reason",
-	       async_reason_lookup (EXEC_ASYNC_ACCESS_WATCHPOINT_TRIGGER));
-	  ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
-	  ui_out_text (uiout, "\nValue = ");
-	}
-      value_print (bs->breakpoint_at->val, stb->stream, 0,Val_pretty_default);
-      ui_out_field_stream (uiout, "new", stb);
-      do_cleanups (ui_out_chain);
-      ui_out_text (uiout, "\n");
+      if (bs->breakpoint_at->exp)
+        {
+          if (bs->old_val != NULL)     
+	    {
+	      annotate_watchpoint (bs->breakpoint_at->number);
+	      if (ui_out_is_mi_like_p (uiout))
+	        ui_out_field_string
+	          (uiout, "reason",
+	           async_reason_lookup (EXEC_ASYNC_ACCESS_WATCHPOINT_TRIGGER));
+	      mention (bs->breakpoint_at);
+	      ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
+	      ui_out_text (uiout, "\nOld value = ");
+	      value_print (bs->old_val, stb->stream, 0, Val_pretty_default);
+	      ui_out_field_stream (uiout, "old", stb);
+	      value_free (bs->old_val);
+	      bs->old_val = NULL;
+	      ui_out_text (uiout, "\nNew value = ");
+            }
+          else 
+	    {
+	      mention (bs->breakpoint_at);
+	      if (ui_out_is_mi_like_p (uiout))
+	        ui_out_field_string
+	          (uiout, "reason",
+	           async_reason_lookup (EXEC_ASYNC_ACCESS_WATCHPOINT_TRIGGER));
+	        ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "value");
+	        ui_out_text (uiout, "\nValue = ");
+	    }
+          value_print (bs->breakpoint_at->val, stb->stream, 0,Val_pretty_default);
+          ui_out_field_stream (uiout, "new", stb);
+          do_cleanups (ui_out_chain);
+          ui_out_text (uiout, "\n");
+        }
+      else
+        check_range(bs->breakpoint_at, EXEC_ASYNC_ACCESS_WATCHPOINT_TRIGGER);
       return PRINT_UNKNOWN;
       break;
 
@@ -2492,6 +2570,7 @@ watchpoint_check (void *p)
          the frame chain (so we can determine if we're in scope).  */
       reinit_frame_cache ();
       fr = frame_find_by_id (b->watchpoint_frame);
+printf("FR = %p\n", fr);
       within_current_scope = (fr != NULL);
       /* in_function_epilogue_p() returns a non-zero value if we're still
 	 in the function but the stack frame has already been invalidated.
@@ -2513,6 +2592,8 @@ watchpoint_check (void *p)
 	select_frame (fr);
     }
 
+printf("within_current_scope = %d\n", within_current_scope);
+
   if (within_current_scope)
     {
       /* We use value_{,free_to_}mark because it could be a
@@ -2520,24 +2601,28 @@ watchpoint_check (void *p)
          call free_all_values.  We can't call free_all_values because
          we might be in the middle of evaluating a function call.  */
 
-      struct value *mark = value_mark ();
-      struct value *new_val = evaluate_expression (bs->breakpoint_at->exp);
-      if (!value_equal (b->val, new_val))
-	{
-	  release_value (new_val);
-	  value_free_to_mark (mark);
-	  bs->old_val = b->val;
-	  b->val = new_val;
-	  /* We will stop here */
-	  return WP_VALUE_CHANGED;
+      if (bs->breakpoint_at->exp)
+        {
+          struct value *mark = value_mark ();
+          struct value *new_val = evaluate_expression (bs->breakpoint_at->exp);
+          if (!value_equal (b->val, new_val))
+	    {
+	      release_value (new_val);
+	      value_free_to_mark (mark);
+	      bs->old_val = b->val;
+	      b->val = new_val;
+	      /* We will stop here */
+	      return WP_VALUE_CHANGED;
+	    }
+          else
+	    {
+	      /* Nothing changed, don't do anything.  */
+	      value_free_to_mark (mark);
+	      /* We won't stop here */
+	      return WP_VALUE_NOT_CHANGED;
+	    }
 	}
-      else
-	{
-	  /* Nothing changed, don't do anything.  */
-	  value_free_to_mark (mark);
-	  /* We won't stop here */
-	  return WP_VALUE_NOT_CHANGED;
-	}
+      return WP_VALUE_CHANGED;
     }
   else
     {
@@ -2616,7 +2701,7 @@ bpstat_stop_status (CORE_ADDR bp_addr, ptid_t ptid, int stopped_by_watchpoint)
 	&& b->type != bp_catch_catch
 	&& b->type != bp_catch_throw)	/* a non-watchpoint bp */
       {
-	if (b->loc->address != bp_addr) 	/* address doesn't match */
+	if (b->loc->address != bp_addr)
 	  continue;
 	if (overlay_debugging		/* unmapped overlay section */
 	    && section_is_overlay (b->loc->section) 
@@ -2638,8 +2723,18 @@ bpstat_stop_status (CORE_ADDR bp_addr, ptid_t ptid, int stopped_by_watchpoint)
 
     if (b->type == bp_hardware_breakpoint)
       {
-	if (b->loc->address != bp_addr)
-	  continue;
+	if (b->loc->address != bp_addr) 	/* address doesn't match */
+          {
+            /* if it is not a b/p range */
+            if (b->loc->range == 0)
+	      continue;
+
+            /* is the address within the b/p range? */
+            if (bp_addr < b->loc->address ||
+                bp_addr > b->loc->address + b->loc->range - 1)
+	      continue;
+          }
+
 	if (overlay_debugging		/* unmapped overlay section */
 	    && section_is_overlay (b->loc->section) 
 	    && !section_is_mapped (b->loc->section))
@@ -2699,200 +2794,221 @@ bpstat_stop_status (CORE_ADDR bp_addr, ptid_t ptid, int stopped_by_watchpoint)
     bs->stop = 1;
     bs->print = 1;
 
-    if (b->type == bp_watchpoint ||
-	b->type == bp_hardware_watchpoint)
+    if ((b->type == bp_hardware_watchpoint ||
+         b->type == bp_read_watchpoint     ||
+         b->type == bp_access_watchpoint) &&
+         b->exp == NULL)
       {
-	char *message = xstrprintf ("Error evaluating expression for watchpoint %d\n",
-				    b->number);
-	struct cleanup *cleanups = make_cleanup (xfree, message);
-	int e = catch_errors (watchpoint_check, bs, message, 
-			      RETURN_MASK_ALL);
-	do_cleanups (cleanups);
-	switch (e)
-	  {
-	  case WP_DELETED:
-	    /* We've already printed what needs to be printed.  */
-	    /* Actually this is superfluous, because by the time we
-               call print_it_typical() the wp will be already deleted,
-               and the function will return immediately. */
-	    bs->print_it = print_it_done;
-	    /* Stop.  */
-	    break;
-	  case WP_VALUE_CHANGED:
-	    /* Stop.  */
-	    ++(b->hit_count);
-	    break;
-	  case WP_VALUE_NOT_CHANGED:
-	    /* Don't stop.  */
-	    bs->print_it = print_it_noop;
-	    bs->stop = 0;
-	    continue;
-	  default:
-	    /* Can't happen.  */
-	    /* FALLTHROUGH */
-	  case 0:
-	    /* Error from catch_errors.  */
-	    printf_filtered (_("Watchpoint %d deleted.\n"), b->number);
-	    if (b->related_breakpoint)
-	      b->related_breakpoint->disposition = disp_del_at_next_stop;
-	    b->disposition = disp_del_at_next_stop;
-	    /* We've already printed what needs to be printed.  */
-	    bs->print_it = print_it_done;
+          CORE_ADDR addr;
 
-	    /* Stop.  */
-	    break;
-	  }
+          if (!target_stopped_data_address (&current_target, &addr))
+             continue;
+
+          if (addr >= b->loc->address &&
+              addr < b->loc->address + b->loc->range)
+            {
+	      /* Stop.  */
+	      ++(b->hit_count);
+            }
       }
-    else if (b->type == bp_read_watchpoint || 
-	     b->type == bp_access_watchpoint)
+    else
       {
-	CORE_ADDR addr;
-	struct value *v;
-	int found = 0;
-
-	if (!target_stopped_data_address (&current_target, &addr))
-	  continue;
-	for (v = b->val_chain; v; v = value_next (v))
-	  {
-	    if (VALUE_LVAL (v) == lval_memory
-		&& ! value_lazy (v))
-	      {
-		struct type *vtype = check_typedef (value_type (v));
-
-		if (v == b->val_chain
-		    || (TYPE_CODE (vtype) != TYPE_CODE_STRUCT
-			&& TYPE_CODE (vtype) != TYPE_CODE_ARRAY))
-		  {
-		    CORE_ADDR vaddr;
-
-		    vaddr = VALUE_ADDRESS (v) + value_offset (v);
-		    /* Exact match not required.  Within range is
-                       sufficient.  */
-		    if (addr >= vaddr &&
-			addr < vaddr + TYPE_LENGTH (value_type (v)))
-		      found = 1;
-		  }
-	      }
-	  }
-	if (found)
-	  {
+        if (b->type == bp_watchpoint ||
+	    b->type == bp_hardware_watchpoint)
+          {
 	    char *message = xstrprintf ("Error evaluating expression for watchpoint %d\n",
-					b->number);
+				        b->number);
 	    struct cleanup *cleanups = make_cleanup (xfree, message);
-	    int e = catch_errors (watchpoint_check, bs, message,
-				  RETURN_MASK_ALL);
+	    int e = catch_errors (watchpoint_check, bs, message, 
+			          RETURN_MASK_ALL);
 	    do_cleanups (cleanups);
 	    switch (e)
 	      {
 	      case WP_DELETED:
-		/* We've already printed what needs to be printed.  */
-		bs->print_it = print_it_done;
-		/* Stop.  */
-		break;
+	        /* We've already printed what needs to be printed.  */
+	        /* Actually this is superfluous, because by the time we
+                   call print_it_typical() the wp will be already deleted,
+                   and the function will return immediately. */
+	        bs->print_it = print_it_done;
+	        /* Stop.  */
+	        break;
 	      case WP_VALUE_CHANGED:
-		if (b->type == bp_read_watchpoint)
-		  {
-		    /* Don't stop: read watchpoints shouldn't fire if
-		       the value has changed.  This is for targets
-		       which cannot set read-only watchpoints.  */
-		    bs->print_it = print_it_noop;
-		    bs->stop = 0;
-		    continue;
-		  }
-		++(b->hit_count);
-		break;
+	        /* Stop.  */
+	        ++(b->hit_count);
+	        break;
 	      case WP_VALUE_NOT_CHANGED:
-		/* Stop.  */
-		++(b->hit_count);
-		break;
+	        /* Don't stop.  */
+	        bs->print_it = print_it_noop;
+	        bs->stop = 0;
+	        continue;
 	      default:
-		/* Can't happen.  */
+	        /* Can't happen.  */
+	        /* FALLTHROUGH */
 	      case 0:
-		/* Error from catch_errors.  */
-		printf_filtered (_("Watchpoint %d deleted.\n"), b->number);
-		if (b->related_breakpoint)
-		  b->related_breakpoint->disposition = disp_del_at_next_stop;
-		b->disposition = disp_del_at_next_stop;
-		/* We've already printed what needs to be printed.  */
-		bs->print_it = print_it_done;
-		break;
+	        /* Error from catch_errors.  */
+	        printf_filtered (_("Watchpoint %d deleted.\n"), b->number);
+	        if (b->related_breakpoint)
+	          b->related_breakpoint->disposition = disp_del_at_next_stop;
+	        b->disposition = disp_del_at_next_stop;
+	        /* We've already printed what needs to be printed.  */
+	        bs->print_it = print_it_done;
+
+	        /* Stop.  */
+	        break;
 	      }
-	  }
-	else	/* found == 0 */
-	  {
-	    /* This is a case where some watchpoint(s) triggered,
-	       but not at the address of this watchpoint (FOUND
-	       was left zero).  So don't print anything for this
-	       watchpoint.  */
-	    bs->print_it = print_it_noop;
-	    bs->stop = 0;
-            continue;
-	  }
-      }
-    else
-      {
-	/* By definition, an encountered breakpoint is a triggered
-	   breakpoint. */
-	++(b->hit_count);
+          }
+        else if (b->type == bp_read_watchpoint || 
+	         b->type == bp_access_watchpoint)
+          {
+	    CORE_ADDR addr;
+	    struct value *v;
+	    int found = 0;
 
-	real_breakpoint = 1;
-      }
-
-    if (frame_id_p (b->frame_id)
-	&& !frame_id_eq (b->frame_id, get_frame_id (get_current_frame ())))
-      bs->stop = 0;
-    else
-      {
-	int value_is_zero = 0;
-
-	if (b->cond)
-	  {
-	    /* Need to select the frame, with all that implies
-	       so that the conditions will have the right context.  */
-	    select_frame (get_current_frame ());
-	    value_is_zero
-	      = catch_errors (breakpoint_cond_eval, (b->cond),
-			      "Error in testing breakpoint condition:\n",
-			      RETURN_MASK_ALL);
-	    /* FIXME-someday, should give breakpoint # */
-	    free_all_values ();
-	  }
-	if (b->cond && value_is_zero)
-	  {
-	    bs->stop = 0;
-	    /* Don't consider this a hit.  */
-	    --(b->hit_count);
-	  }
-	else if (b->thread != -1 && b->thread != thread_id)
-	  {
-	    bs->stop = 0;
-	    /* Don't consider this a hit.  */
-	    --(b->hit_count);
-	  }
-	else if (b->ignore_count > 0)
-	  {
-	    b->ignore_count--;
-	    annotate_ignore_count_change ();
-	    bs->stop = 0;
-	  }
-	else
-	  {
-	    /* We will stop here */
-	    if (b->disposition == disp_disable)
-	      b->enable_state = bp_disabled;
-	    if (b->silent)
-	      bs->print = 0;
-	    bs->commands = b->commands;
-	    if (bs->commands &&
-		(strcmp ("silent", bs->commands->line) == 0
-		 || (xdb_commands && strcmp ("Q", bs->commands->line) == 0)))
+	    if (!target_stopped_data_address (&current_target, &addr))
+	      continue;
+	    for (v = b->val_chain; v; v = value_next (v))
 	      {
-		bs->commands = bs->commands->next;
-		bs->print = 0;
+	        if (VALUE_LVAL (v) == lval_memory
+		    && ! value_lazy (v))
+	          {
+		    struct type *vtype = check_typedef (value_type (v));
+
+		    if (v == b->val_chain
+		        || (TYPE_CODE (vtype) != TYPE_CODE_STRUCT
+			    && TYPE_CODE (vtype) != TYPE_CODE_ARRAY))
+		      {
+		        CORE_ADDR vaddr;
+
+		        vaddr = VALUE_ADDRESS (v) + value_offset (v);
+		        /* Exact match not required.  Within range is
+                           sufficient.  */
+		        if (addr >= vaddr &&
+			    addr < vaddr + TYPE_LENGTH (value_type (v)))
+		          found = 1;
+		      }
+	          }
 	      }
-	    bs->commands = copy_command_lines (bs->commands);
-	  }
+	    if (found)
+	      {
+	        char *message = xstrprintf ("Error evaluating expression for watchpoint %d\n",
+					    b->number);
+	        struct cleanup *cleanups = make_cleanup (xfree, message);
+	        int e = catch_errors (watchpoint_check, bs, message,
+				      RETURN_MASK_ALL);
+	        do_cleanups (cleanups);
+	        switch (e)
+	          {
+	          case WP_DELETED:
+		    /* We've already printed what needs to be printed.  */
+		    bs->print_it = print_it_done;
+		    /* Stop.  */
+		    break;
+	          case WP_VALUE_CHANGED:
+		    if (b->type == bp_read_watchpoint)
+		      {
+		        /* Don't stop: read watchpoints shouldn't fire if
+		           the value has changed.  This is for targets
+		           which cannot set read-only watchpoints.  */
+		        bs->print_it = print_it_noop;
+		        bs->stop = 0;
+		        continue;
+		      }
+		    ++(b->hit_count);
+		    break;
+	              case WP_VALUE_NOT_CHANGED:
+		    /* Stop.  */
+		    ++(b->hit_count);
+		    break;
+	          default:
+		    /* Can't happen.  */
+	          case 0:
+		    /* Error from catch_errors.  */
+		    printf_filtered (_("Watchpoint %d deleted.\n"), b->number);
+		    if (b->related_breakpoint)
+		      b->related_breakpoint->disposition = disp_del_at_next_stop;
+		    b->disposition = disp_del_at_next_stop;
+		    /* We've already printed what needs to be printed.  */
+		    bs->print_it = print_it_done;
+		    break;
+	          }
+	      }
+	    else	/* found == 0 */
+	      {
+	        /* This is a case where some watchpoint(s) triggered,
+	           but not at the address of this watchpoint (FOUND
+	           was left zero).  So don't print anything for this
+	           watchpoint.  */
+	        bs->print_it = print_it_noop;
+	        bs->stop = 0;
+                continue;
+	      }
+          }
+        else
+          {
+	    /* By definition, an encountered breakpoint is a triggered
+	       breakpoint. */
+	    ++(b->hit_count);
+    
+	    real_breakpoint = 1;
+          }
+
+        if (frame_id_p (b->frame_id)
+	    && !frame_id_eq (b->frame_id, get_frame_id (get_current_frame ())))
+          bs->stop = 0;
+        else
+          {
+	    int value_is_zero = 0;
+
+	    if (b->cond)
+	      {
+	        /* Need to select the frame, with all that implies
+	           so that the conditions will have the right context.  */
+	        select_frame (get_current_frame ());
+	        value_is_zero
+	          = catch_errors (breakpoint_cond_eval, (b->cond),
+			          "Error in testing breakpoint condition:\n",
+			          RETURN_MASK_ALL);
+	        /* FIXME-someday, should give breakpoint # */
+	        free_all_values ();
+	      }
+	    if (b->cond && value_is_zero)
+	      {
+	        bs->stop = 0;
+	        /* Don't consider this a hit.  */
+	        --(b->hit_count);
+	      }
+	    else if (b->thread != -1 && b->thread != thread_id)
+	      {
+	        bs->stop = 0;
+	        /* Don't consider this a hit.  */
+	        --(b->hit_count);
+	      }
+	    else if (b->ignore_count > 0)
+	      {
+	        b->ignore_count--;
+	        annotate_ignore_count_change ();
+	        bs->stop = 0;
+	      }
+	    else
+	      {
+	        /* We will stop here */
+	        if (b->disposition == disp_disable)
+	          b->enable_state = bp_disabled;
+	        if (b->silent)
+	          bs->print = 0;
+	        bs->commands = b->commands;
+	        if (bs->commands &&
+		    (strcmp ("silent", bs->commands->line) == 0
+		     || (xdb_commands && strcmp ("Q", bs->commands->line) == 0)))
+	          {
+		    bs->commands = bs->commands->next;
+		    bs->print = 0;
+	          }
+	        bs->commands = copy_command_lines (bs->commands);
+	      }
+          }
       }
+
     /* Print nothing for this entry if we dont stop or if we dont print.  */
     if (bs->stop == 0 || bs->print == 0)
       bs->print_it = print_it_noop;
@@ -2911,6 +3027,7 @@ bpstat_stop_status (CORE_ADDR bp_addr, ptid_t ptid, int stopped_by_watchpoint)
       remove_breakpoints ();
       insert_breakpoints ();
     }
+
   return bs;
 }
 
@@ -3378,14 +3495,27 @@ print_one_breakpoint (struct breakpoint *b,
       case bp_hardware_watchpoint:
       case bp_read_watchpoint:
       case bp_access_watchpoint:
-	/* Field 4, the address, is omitted (which makes the columns
-	   not line up too nicely with the headers, but the effect
-	   is relatively readable).  */
-	if (addressprint)
-	  ui_out_field_skip (uiout, "addr");
-	annotate_field (5);
-	print_expression (b->exp, stb->stream);
-	ui_out_field_stream (uiout, "what", stb);
+        if (b->exp)
+          {
+	    /* Field 4, the address, is omitted (which makes the columns
+	       not line up too nicely with the headers, but the effect
+	       is relatively readable).  */
+	    if (addressprint)
+	      ui_out_field_skip (uiout, "addr");
+	    annotate_field (5);
+	    print_expression (b->exp, stb->stream);
+	    ui_out_field_stream (uiout, "what", stb);
+          }
+        else
+          {
+            /* exp_string has format "<address>:<bytes>" */
+            char* colon = strchr(b->exp_string, ':');
+            *colon = 0;
+            ui_out_field_string(uiout, "addr", b->exp_string);
+            ui_out_field_string(uiout, "what", colon+1);
+            ui_out_text(uiout, "-byte range");
+            *colon = ':';
+          }
 	break;
 
       case bp_catch_load:
@@ -3481,7 +3611,14 @@ print_one_breakpoint (struct breakpoint *b,
 	    if (b->pending)
 	      ui_out_field_string (uiout, "addr", "<PENDING>");
 	    else
-	      ui_out_field_core_addr (uiout, "addr", b->loc->address);
+              {
+	        ui_out_field_core_addr (uiout, "addr", b->loc->address);
+                if (b->loc->range)
+                  {
+                    ui_out_field_int(uiout, "what",  b->loc->range);
+                    ui_out_text(uiout, "-byte range");
+                  }
+              }
 	  }
 	annotate_field (5);
 	*last_addr = b->loc->address;
@@ -3701,7 +3838,7 @@ breakpoint_1 (int bnum, int allflag)
   ui_out_table_header (uiout, 3, ui_left, "number", "Num");		/* 1 */
   if (nr_printable_breakpoints > 0)
     annotate_field (1);
-  ui_out_table_header (uiout, 14, ui_left, "type", "Type");		/* 2 */
+  ui_out_table_header (uiout, 15, ui_left, "type", "Type");		/* 2 */
   if (nr_printable_breakpoints > 0)
     annotate_field (2);
   ui_out_table_header (uiout, 4, ui_left, "disp", "Disp");		/* 3 */
@@ -4675,6 +4812,12 @@ hw_watchpoint_used_count (enum bptype type, int *other_type_used)
 	if (b->type == type)
 	  i++;
 	else if ((b->type == bp_hardware_watchpoint ||
+// begin ARC
+// N.B. for ARC, all h/w break/watchpoints are allocated
+//      from the same limited pool of resources (the ARC
+//      processor actionpoints)
+		  b->type == bp_hardware_breakpoint ||
+// end ARC
 		  b->type == bp_read_watchpoint ||
 		  b->type == bp_access_watchpoint))
 	  *other_type_used = 1;
@@ -4815,7 +4958,10 @@ mention (struct breakpoint *b)
 	ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "wpt");
 	ui_out_field_int (uiout, "number", b->number);
 	ui_out_text (uiout, ": ");
-	print_expression (b->exp, stb->stream);
+        if (b->exp)
+	  print_expression (b->exp, stb->stream);
+        else
+	  ui_out_text (uiout, b->exp_string);
 	ui_out_field_stream (uiout, "exp", stb);
 	do_cleanups (ui_out_chain);
 	break;
@@ -4824,7 +4970,10 @@ mention (struct breakpoint *b)
 	ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "hw-rwpt");
 	ui_out_field_int (uiout, "number", b->number);
 	ui_out_text (uiout, ": ");
-	print_expression (b->exp, stb->stream);
+        if (b->exp)
+          print_expression (b->exp, stb->stream);
+        else
+          ui_out_text (uiout, b->exp_string);
 	ui_out_field_stream (uiout, "exp", stb);
 	do_cleanups (ui_out_chain);
 	break;
@@ -4833,7 +4982,10 @@ mention (struct breakpoint *b)
 	ui_out_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "hw-awpt");
 	ui_out_field_int (uiout, "number", b->number);
 	ui_out_text (uiout, ": ");
-	print_expression (b->exp, stb->stream);
+        if (b->exp)
+          print_expression (b->exp, stb->stream);
+        else
+          ui_out_text (uiout, b->exp_string);
 	ui_out_field_stream (uiout, "exp", stb);
 	do_cleanups (ui_out_chain);
 	break;
@@ -4908,6 +5060,8 @@ mention (struct breakpoint *b)
 	    {
 	      printf_filtered (" at ");
 	      deprecated_print_address_numeric (b->loc->address, 1, gdb_stdout);
+              if (b->loc->range)
+                printf_filtered(" covering %u bytes", b->loc->range);
 	    }
 	  if (b->source_file)
 	    printf_filtered (": file %s, line %d.",
@@ -5542,10 +5696,24 @@ break_command (char *arg, int from_tty)
 }
 
 void
+watch_range_command (unsigned int address, unsigned int bytes, int accessflag, int from_tty)
+{
+    watch_range_command_1 (address, bytes, accessflag, from_tty);
+}
+
+void
 tbreak_command (char *arg, int from_tty)
 {
   break_command_1 (arg, BP_TEMPFLAG, from_tty, NULL);
 }
+
+// begin ARC
+void
+hbreak_command_wrapper (char *arg, int from_tty)
+{
+  hbreak_command (arg, from_tty);
+}
+// end ARC
 
 static void
 hbreak_command (char *arg, int from_tty)
@@ -5758,6 +5926,8 @@ watch_command_1 (char *arg, int accessflag, int from_tty)
     {
       prev_frame = get_prev_frame (frame);
       b->watchpoint_frame = get_frame_id (frame);
+
+print_frame_id("get WP", b->watchpoint_frame);
     }
   else
     {
@@ -5798,6 +5968,68 @@ watch_command_1 (char *arg, int accessflag, int from_tty)
   value_free_to_mark (mark);
   mention (b);
 }
+
+
+// begin ARC
+
+/* accessflag:  hw_write:   watch write, 
+                hw_read:    watch read, 
+		hw_access:  watch access (read or write)
+                hw_execute: execute access */
+static void
+watch_range_command_1 (unsigned int address, unsigned int bytes, int accessflag, int from_tty)
+{
+  struct breakpoint *b;
+  struct symtab_and_line sal;
+  int i, other_type_used, target_resources_ok;
+  enum bptype bp_type;
+  char exp[50];
+
+  (void) sprintf(exp, "0x%08X:%u", address, bytes);
+
+  init_sal (&sal);  /* initialize to zeroes */
+
+  if (accessflag == hw_read)
+    bp_type = bp_read_watchpoint;
+  else if (accessflag == hw_access)
+    bp_type = bp_access_watchpoint;
+  else if (accessflag == hw_write)
+    bp_type = bp_hardware_watchpoint;
+  else
+    bp_type = bp_hardware_breakpoint;
+
+
+  i = hw_watchpoint_used_count (bp_type, &other_type_used);
+  target_resources_ok = 
+     TARGET_CAN_USE_HARDWARE_WATCHPOINT (bp_type, i, other_type_used);
+  if (target_resources_ok == 0 && bp_type != bp_hardware_watchpoint)
+      error (_("Target does not support this type of hardware watchpoint."));
+  if (target_resources_ok < 0 && bp_type != bp_hardware_watchpoint)
+   error (_("Target can only support one kind of HW watchpoint at a time."));
+
+
+  /* Now set up the breakpoint.  */
+  b = set_raw_breakpoint (sal, bp_type);
+  set_breakpoint_count (breakpoint_count + 1);
+  b->number = breakpoint_count;
+  b->disposition = disp_donttouch;
+  b->exp = NULL;
+  b->exp_valid_block = NULL;
+  b->exp_string = xstrdup(exp);
+  b->val = NULL;
+  b->cond = NULL;
+  b->cond_string = 0;
+  b->loc->address = (CORE_ADDR) address;
+  b->loc->requested_address = b->loc->address;
+  b->loc->range = bytes;
+
+  memset (&b->watchpoint_frame, 0, sizeof (b->watchpoint_frame));
+
+  mention (b);
+}
+
+// end ARC
+
 
 /* Return count of locations need to be watched and can be handled
    in hardware.  If the watchpoint can not be handled

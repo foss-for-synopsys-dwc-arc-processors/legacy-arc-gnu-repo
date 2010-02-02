@@ -773,7 +773,7 @@ parse_frame_specification_1 (const char *frame_exp, const char *message,
   {
     int i;
     for (i = 0; i < numargs; i++)
-      addrs[i] = value_as_address (args[0]);
+      addrs[i] = value_as_address (args[i]);  // ARC BUG FIX
   }
 
   /* Assume that the single arg[0] is an address, use that to identify
@@ -833,8 +833,22 @@ frame_info (char *addr_exp, int from_tty)
   enum language funlang = language_unknown;
   const char *pc_regname;
   int selected_frame_p;
+  CORE_ADDR pc;
 
   fi = parse_frame_specification_1 (addr_exp, "No stack.", &selected_frame_p);
+
+  /* richards ARC 22/9/2008
+   * try to detect that an invalid frame has been selected (e.g. a frame
+   * number has been given, but there is no such frame on the stack);
+   * N.B. this works for the ARC gdb port, but 0 might be a valid code
+   *      address on other processors, so this needs more investigation!
+   */
+  pc = get_frame_pc (fi);
+  if (pc == 0)
+    {
+      warning("invalid frame");
+      return;
+    }
 
   /* Name of the value returned by get_frame_pc().  Per comments, "pc"
      is not a good name.  */
@@ -854,7 +868,7 @@ frame_info (char *addr_exp, int from_tty)
   func = get_frame_function (fi);
   /* FIXME: cagney/2002-11-28: Why bother?  Won't sal.symtab contain
      the same value?  */
-  s = find_pc_symtab (get_frame_pc (fi));
+  s = find_pc_symtab (pc);
   if (func)
     {
       /* It seems appropriate to use SYMBOL_PRINT_NAME() here, to

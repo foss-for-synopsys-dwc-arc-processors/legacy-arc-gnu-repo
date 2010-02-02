@@ -24,80 +24,114 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+
+/******************************************************************************/
+/*                                                                            */
+/* Outline:                                                                   */
+/*     This module provides support for the ARC processor family's target     */
+/*     dependencies which are specific to the arc-elf32 configuration of the  */
+/*     ARC gdb.                                                               */
+/*                                                                            */
+/*                                                                            */
+/*  Functionality:                                                            */
+/*     This module provides a number of operations:                           */
+/*                                                                            */
+/*     1) a function which returns the name of a register, given its number   */
+/*                                                                            */
+/*     2) a function which determines whether a given register should be      */
+/*        saved and restored across a function call                           */
+/*                                                                            */
+/*     3) a function which prints out registers                               */
+/*                                                                            */
+/*     4) functions which implement the gdb extended commands                 */
+/*           arc-aux-read <from> <to>          for displaying aux registers   */
+/*           arc-aux-write <regnum> = <value>  for setting an aux register    */
+/*                                                                            */
+/*                                                                            */
+/* Usage:                                                                     */
+/*     This module exports a function arc_jtag_init which creates the user    */
+/*     commands which use those command-implementing functions; it also       */
+/*     stores pointers to the other functions in a data structure so that     */
+/*     they may be called from outside this module.                           */
+/*                                                                            */
+/*     Some of the operations provided by this module are registered with gdb */
+/*     during initialization; gdb then calls them via function pointers,      */
+/*     rather than by name (this allows gdb to handle multiple target         */
+/*     architectures):                                                        */
+/*                                                                            */
+/*          set_gdbarch_XXX (gdbarch, <function>);                            */
+/*                                                                            */
+/******************************************************************************/
+
+/* system header files */
 #include <string.h>
 
+/* gdb header files */
 #include "defs.h"
-#include "osabi.h"
-#include "frame.h"
-#include "regcache.h"
-#include "gdb_assert.h"
 #include "inferior.h"
 #include "gdbcmd.h"
 #include "reggroups.h"
 
+/* ARC header files */
+#include "arc-jtag-tdep.h"
 #include "arc-tdep.h"
 #include "arc-jtag.h"
 
 
-#ifdef ARC4_JTAG
-/* brk */
-unsigned int a4_jtag_breakpoint_size = 4;
-unsigned char a4_jtag_breakpoint_insn[4] = { 0x00, 0xfe, 0xff, 0x1f };
-#define A4_HALT_VALUE 0x02000000
-#else
-/* brk_s */
-unsigned int arc700_jtag_breakpoint_size = 2;
-unsigned char arc700_jtag_breakpoint_insn[2] = { 0xff, 0x7f };
-#endif
+/* -------------------------------------------------------------------------- */
+/*                               local data                                   */
+/* -------------------------------------------------------------------------- */
+
+#define AUX_READ_COMMAND            "arc-aux-read"
+#define AUX_WRITE_COMMAND           "arc-aux-write"
+#define WATCH_MEMORY_COMMAND        "arc-watch-range"
+#define BREAK_MEMORY_COMMAND        "arc-break-range"
+#define FILL_MEMORY_COMMAND         "arc-fill-memory"
+
+#define AUX_READ_COMMAND_USAGE      "Usage: " AUX_READ_COMMAND     " <REG-FROM> [<REG-TO>]\n"
+#define AUX_WRITE_COMMAND_USAGE     "Usage: " AUX_WRITE_COMMAND    " <REG> = <VALUE>\n"
+#define WATCH_MEMORY_COMMAND_USAGE  "Usage: " WATCH_MEMORY_COMMAND " <START> <LENGTH> [read|write|access]\n"
+#define BREAK_MEMORY_COMMAND_USAGE  "Usage: " BREAK_MEMORY_COMMAND " <START> <LENGTH>\n"
+#define FILL_MEMORY_COMMAND_USAGE   "Usage: " FILL_MEMORY_COMMAND  " <START> <LENGTH> [<PATTERN>]\n"
 
 
 
-struct arc_reg_info
+/* ARC 700 */
+/* brk_s instruction */
+static const unsigned char breakpoint_instruction[] = { 0xff, 0x7f };
+
+
+/* N.B. the array size is specified in the declaration so that the compiler
+ *      will warn of "excess elements in array initializer" if there is a
+ *      mismatch (but not of too few elements, unfortunately!).
+ */
+static const char* register_names[ARC_NR_REGS + ARC_NR_PSEUDO_REGS] =
 {
-  char *name ;
-  int hw_regno;
-  char *description;
-#ifdef ARC4_JTAG
-  enum arc4_jtag_regnums gdbregno;
-#else
-  enum arc700_jtag_regnums gdbregno;
-#endif
-  enum ARCProcessorVersion arcVersionSupported;
-};
-
-
-
-static const char *
-arc_jtag_register_name (int regno)
-{
-  static char jtag_names[][30] = {
-    "r0", "r1", "r2", "r3", "r4", "r5", "r6",
-    "r7", "r8", "r9", "r10", "r11", "r12", "r13",
+    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",
+    "r7",  "r8",  "r9",  "r10", "r11", "r12", "r13",
     "r14", "r15", "r16", "r17", "r18", "r19", "r20",
     "r21", "r22", "r23", "r24", "r25", "r26",
 
-    "fp",
-    "sp",
-    "ilink1",
-    "ilink2",
-    "blink",
+    "fp",      // r27
+    "sp",      // r28
+    "ilink1",  // r29
+    "ilink2",  // r30
+    "blink",   // r31
 
-    /* Extension core regs are 32..59 inclusive.  */
+    /* Extension core registers are 32 .. 59 inclusive. */
     "r32", "r33", "r34", "r35", "r36", "r37", "r38", "r39",
     "r40", "r41", "r42", "r43", "r44", "r45", "r46", "r47", "r48", "r49",
     "r50", "r51", "r52", "r53", "r54", "r55", "r56", "r57", "r58", "r59",
 
     "lp_count",
 
-    /* 61 is reserved, 62 is not a real register.  */
-    /*FIXMEA: The following 3 are supposed to be registers
-     that are used only to encode immediate values in A4*/
+    /* 61 is reserved, 62 is not a real register. */
     "r61",
     "r62",
 
     "pcl",
 
-    /* Now the aux registers.  */
+    /* Now the Auxiliary registers. */
 
     "status",
     "semaphore",
@@ -106,7 +140,6 @@ arc_jtag_register_name (int regno)
     "identity",
     "debug",
 
-#ifndef ARC4_JTAG
     "pc",
     "status32",
     "status32_l1",
@@ -118,7 +151,6 @@ arc_jtag_register_name (int regno)
     "int_vector_base",
     "aux_macmode",
     "aux_irq_lv12",
-
 
     "count1",
     "control1",
@@ -141,7 +173,7 @@ arc_jtag_register_name (int regno)
     "aux_irq_pulse_cancel",
     "aux_irq_pending",
 
-    /* Build configuration registers.  */
+    /* Build Configuration Registers. */
     "bcr_0",
     "dccm_base_build",
     "crc_base_build",
@@ -173,465 +205,583 @@ arc_jtag_register_name (int regno)
     "swap_build",
     "norm_build",
     "minmax_build",
-    "barrel_build",
-#endif
+    "barrel_build"
+};
 
-  };
 
-  gdb_assert(ARRAY_SIZE (jtag_names) == NUM_REGS + NUM_PSEUDO_REGS);
-  gdb_assert(regno >=0 && regno < NUM_REGS + NUM_PSEUDO_REGS);
+static ARC_VariantsInfo debug_processor_information;
 
-  return jtag_names[regno];
-}
 
-int
-arc_jtag_register_reggroup_p (int regnum, struct reggroup *group)
+/* -------------------------------------------------------------------------- */
+/*                               local macros                                 */
+/* -------------------------------------------------------------------------- */
+
+#define PRINT(regnum) \
+    default_print_registers_info (gdbarch, file, frame, regnum, all)
+
+
+/* -------------------------------------------------------------------------- */
+/*                               local functions                              */
+/* -------------------------------------------------------------------------- */
+
+/* Returns 0, 1, or -1:
+ *    0 means the register is not in the group.
+ *    1 means the register is in the group.
+ *   -1 means the tdep has nothing to say about this register and group.
+ */
+static int
+register_reggroup_p (int regnum, struct reggroup *group)
 {
-  /* These registers don't exist, so they are not in any reggroup.  */
-  if ((regnum >= 32 && regnum <= 59) || (regnum == 61) || (regnum == 62))
-    return 0;
+    /* These registers don't exist, so they are not in any reggroup.  */
+    if ((32 <= regnum && regnum <= 59) || (regnum == 61) || (regnum == 62))
+        return 0;
 
-  /* Which regs to save/restore ? */
-  if ((group == save_reggroup || group == restore_reggroup))
+    /* Which regs to save/restore? */
+    if ((group == save_reggroup || group == restore_reggroup))
     {
-      /* Save/restore:
-	 1. all core regs, except PCL (PCL is not writable)
-	 2. aux regs LP_START..LP_END (IDENTITY is not writable)
-	 3. aux regs PC_REGNUM..STATUS32_L2
-	 3. aux regs ERET..EFA */
-      return ( ( regnum >= 0 && regnum < ARC_PCL_REGNUM)
-	       || ( regnum >= ARC_LP_START_REGNUM && regnum<= ARC_LP_END_REGNUM)
-#ifdef ARC4_JTAG
-	       || ( regnum == ARC_STATUS_REGNUM)
-#else
-	       || ( regnum >= ARC_PC_REGNUM && regnum <= ARC_STATUS32_L2_REGNUM)
-	       || ( regnum >= ARC_ERET_REGNUM && regnum <= ARC_EFA_REGNUM)
-#endif
-	       );
+        /* Save/restore:
+         *    1. all core regs, except PCL (PCL is not writable)
+         *    2. aux regs LP_START .. LP_END (IDENTITY is not writable)
+         *    3. aux regs PC_REGNUM .. STATUS32_L2
+         *    4. aux regs ERET .. EFA
+         */
+        return ((0                   <= regnum && regnum  < ARC_PCL_REGNUM)         ||
+                (ARC_LP_START_REGNUM <= regnum && regnum <= ARC_LP_END_REGNUM)      ||
+                (ARC_PC_REGNUM       <= regnum && regnum <= ARC_STATUS32_L2_REGNUM) ||
+                (ARC_ERET_REGNUM     <= regnum && regnum <= ARC_EFA_REGNUM)) ? 1 : 0;
     }
 
-  return -1;
+    /* let the caller sort it out! */
+    return -1;
 }
+
+
+static void memory_range_command(char*       arg,
+                                 int         from_tty,
+                                 Boolean     is_watchpoint,
+                                 const char* command,
+                                 const char* usage)
+{
+    char                  *length_arg;
+    struct expression     *start_expr, *length_expr;
+    struct value          *start_val,  *length_val;
+    struct cleanup        *old_chain;
+    unsigned int           start;
+    unsigned int           length;
+    enum target_hw_bp_type type;
+
+    if (!arg)
+    {
+        printf_filtered ("%s", usage);
+        return;
+    }
+
+    length_arg = strchr(arg, ' ');
+
+    if (!length_arg)
+    {
+        printf_filtered ("%s : no second argument\n%s", command, usage);
+        return;
+    }
+
+    /* split up the input string */
+    length_arg[0] = (char) 0;
+    length_arg++;
+    while (*length_arg == ' ') length_arg++;
+
+    if (is_watchpoint)
+    {
+        char* access_arg = strchr(length_arg, ' ');
+
+        if (access_arg)
+        {
+            /* split up the input string */
+            access_arg[0] = (char) 0;
+            access_arg++; 
+            while (*access_arg == ' ') access_arg++;
+
+            if (strcmp(access_arg, "read") == 0)
+                type = hw_read;
+            else if (strcmp(access_arg, "write") == 0)
+                type = hw_write;
+            else if (strcmp(access_arg, "access") == 0)
+                type = hw_access;
+            else
+            {
+                printf_filtered ("%s: invalid type '%s'\n%s", command, access_arg, usage);
+                return;
+            }
+        }
+        else
+            // write by default
+            type = hw_write;
+    }
+    else
+        type = hw_execute;
+
+    /* from address expression */
+    start_expr = parse_expression (arg);
+    start_val  = evaluate_expression (start_expr);
+    start      = *(unsigned int *)(value_contents (start_val));
+    old_chain   = make_cleanup (free_current_contents, &start_expr);
+
+    /* length expression */
+    length_expr = parse_expression (length_arg);
+    length_val  = evaluate_expression (length_expr);
+    length      = *(unsigned int *)(value_contents (length_val));
+    (void) make_cleanup (free_current_contents, &length_expr);
+
+    if (length <= 0)
+    {
+        warning ("%s: %s <= 0", command, length_arg);
+        do_cleanups (old_chain);
+        return;
+    }
+
+    DEBUG("try to set %u breakpoint at 0x%08X length %u bytes\n",
+          type, start, length);
+
+    watch_range_command(start, length, type, from_tty);
+
+    /* clean up the items that we have put on the cleanup chain (back as far as
+     * the old head of the chain
+     */
+    do_cleanups (old_chain);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/*                        local functions called from gdb                     */
+/* -------------------------------------------------------------------------- */
 
 static void
-arc_jtag_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
-			       struct frame_info *frame, int regnum, int all)
+arc_jtag_print_registers_info (struct gdbarch    *gdbarch,
+                               struct ui_file    *file,
+                               struct frame_info *frame,
+                               int                regnum,
+                               int                all)
 {
-  int i;
-
-  if (regnum >= 0 )
+    if (regnum >= 0)
+        PRINT(regnum);
+    else
+    /* if regnum < 0, print registers */
     {
-      default_print_registers_info (gdbarch, file, frame, regnum, all);
-      return;
+        int i;
+
+        /* r0 .. r26 */
+        for (i = 0; i <= 26; i++) PRINT (i);
+
+        PRINT (ARC_FP_REGNUM      );
+        PRINT (ARC_SP_REGNUM      );
+        PRINT (ARC_ILINK1_REGNUM  );
+        PRINT (ARC_ILINK2_REGNUM  );
+        PRINT (ARC_BLINK_REGNUM   );
+        PRINT (ARC_LP_COUNT_REGNUM);
+
+        /* now the aux registers */
+        if (!all)
+        {
+            PRINT (ARC_LP_START_REGNUM   );
+            PRINT (ARC_LP_END_REGNUM     );
+            PRINT (ARC_STATUS32_REGNUM   );
+            PRINT (ARC_BTA_REGNUM        );
+            PRINT (ARC_EFA_REGNUM        );
+            PRINT (ARC_ERET_REGNUM       );
+            PRINT (ARC_STATUS32_L1_REGNUM);
+            PRINT (ARC_STATUS32_L2_REGNUM);
+            PRINT (ARC_ERSTATUS_REGNUM   );
+            PRINT (ARC_PC_REGNUM         );
+        }
+        else
+        {
+            for (i = ARC_STATUS_REGNUM; i <= ARC_AUX_IRQ_PENDING_REGNUM; i++) PRINT (i);
+            for (i = ARC_BCR_1_REGNUM;  i <= ARC_BCR_5_REGNUM;           i++) PRINT (i);
+            for (i = ARC_BCR_7_REGNUM;  i <= ARC_BCR_9_REGNUM;           i++) PRINT (i);
+            for (i = ARC_BCR_F_REGNUM;  i <= ARC_BCR_10_REGNUM;          i++) PRINT (i);
+            for (i = ARC_BCR_12_REGNUM; i <= ARC_BCR_1F_REGNUM;          i++) PRINT (i);
+        }
     }
-
-  /* if regnum < 0 , print all registers */
-
-  for (i=0; i <= 26; ++i)
-    default_print_registers_info (gdbarch, file, frame, i, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_FP_REGNUM, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_SP_REGNUM, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_ILINK1_REGNUM, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_ILINK2_REGNUM, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_BLINK_REGNUM, all);
-  default_print_registers_info (gdbarch, file, frame,
-				ARC_LP_COUNT_REGNUM, all);
-
-  /* now the aux registers */
-   if (!all)
-    {
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_LP_START_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_LP_END_REGNUM, all);
-
-#ifndef ARC4_JTAG
-      default_print_registers_info (gdbarch, file,frame,
-				    ARC_STATUS32_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_BTA_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_EFA_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_ERET_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_STATUS32_L1_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_STATUS32_L2_REGNUM, all);
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_ERSTATUS_REGNUM, all);
-
-
-      /* PC */
-      default_print_registers_info (gdbarch, file, frame,
-				    ARC_PC_REGNUM, all);
-#endif
-    }
-   else
-     {
-       /* This part needs cleaning up. */
-       for (i = ARC_STATUS_REGNUM;
-#ifndef ARC4_JTAG
-	    i <= ARC_AUX_IRQ_PENDING_REGNUM;
-#else /*FIXMEA*/
-	    i <=  ARC_DEBUG_REGNUM;
-#endif
-	    i ++ )
-	 default_print_registers_info (gdbarch, file, frame ,
-				       i, all);
-
-
-       for (i = ARC_STATUS_REGNUM ;
-#ifndef ARC4_JTAG
-	    i <= ARC_AUX_IRQ_PENDING_REGNUM;
-#else /*FIXMEA*/
-	    i <=  ARC_DEBUG_REGNUM;
-#endif
-	    i ++ )
-	 default_print_registers_info (gdbarch, file, frame,
-				       i, all);
-
-#ifndef ARC4_JTAG
-       for (i = ARC_BCR_1_REGNUM ;
-	    i <= ARC_BCR_5_REGNUM ;
-	    i ++ )
-	 default_print_registers_info (gdbarch, file , frame,
-				       i , all);
-
-       for (i = ARC_BCR_7_REGNUM ;
-	    i <= ARC_BCR_9_REGNUM;
-	    i ++ )
-	 default_print_registers_info (gdbarch, file, frame,
-				       i , all);
-
-       for (i = ARC_BCR_F_REGNUM;
-	    i <= ARC_BCR_10_REGNUM;
-	    i ++ )
-	 default_print_registers_info (gdbarch, file, frame ,
-				       i , all);
-
-       for (i = ARC_BCR_12_REGNUM;
-	    i <= ARC_BCR_1F_REGNUM;
-	    i ++)
-	 default_print_registers_info (gdbarch, file, frame ,
-				       i , all);
-#endif //if no ARC4_JTAG
-
-
-     }
 }
 
-/* Command: aux-read <from> <to>
 
-   Read and display a range of aux registers.  Some of the aux registers
-   (pc, debug, etc.) are part of the register set, but this is a more
-   general interface.
-
-   We should eventually change this to use the ui_out stuff rather than
-   printf_filtered.  */
+/* Command: <command> <from> [ <to> ]
+ *
+ * Read and display a range of aux registers.  Some of the aux registers
+ * (pc, debug, etc.) are part of the register set, but this is a more
+ * general interface.
+ *
+ * We should eventually change this to use the ui_out stuff rather than
+ * printf_filtered.
+ */
 static void
 arc_jtag_aux_read_command (char *arg, int from_tty)
 {
-  char *arg2 = 0;
-  struct expression *expr;
-  struct value *val;
-  struct cleanup *old_chain = 0;
-  int auxregno, auxregno2 = 0, nrregs;
-  unsigned int *buf;
-  int i, nrtransfered;
+    char                 *arg2;
+    struct expression    *expr;
+    struct value         *val;
+    struct cleanup       *old_chain;
+    ARC_RegisterContents *buf;
+    int                   first_aux_reg_no, last_aux_reg_no, num_regs, num_registers_read;
 
-  if (!arg)
+    if (!arg)
     {
-      printf_filtered ("aux-read <REG-FROM> [<REG-TO>]\n");
-      return;
+        printf_filtered (AUX_READ_COMMAND_USAGE);
+        return;
     }
 
-  /* strip leading spaces */
-  while(*arg == ' ')
-    arg++;
+    /* strip leading spaces */
+    while (*arg == ' ')
+        arg++;
 
-  /* two arguments ?  */
-  /* This assumes that the first arg cannot have spaces.  (The disas command
-     also seems to work this way.)  */
-  arg2 = strchr (arg, ' ');
+    /* This assumes that the first arg cannot have spaces.  (The disas command
+       also seems to work this way.)  */
+    arg2 = strchr (arg, ' ');
 
-  /* get the second one */
-  if (arg2)
+    /* are there two arguments? */
+    if (arg2)
     {
-      struct expression *expr2;
-      struct value *val2;
-
-      arg2[0] = 0;
-      arg2++;
-
-      expr2 = parse_expression (arg2);
-      val2 = evaluate_expression (expr2);
-      xfree (expr2);
-      auxregno2 = *(int *)(value_contents (val2));
+        /* split the input string up */
+        arg2[0] = (char) 0;
+        arg2++;
     }
 
-  /* first arg */
-  expr = parse_expression (arg);
-  val = evaluate_expression (expr);
-  old_chain = make_cleanup (free_current_contents, &expr);
+    /* first arg */
+    expr = parse_expression (arg);
+    val  = evaluate_expression (expr);
+    old_chain = make_cleanup (free_current_contents, &expr);
 
-  auxregno = *(int *)(value_contents (val));
+    first_aux_reg_no = *(int*)(value_contents (val));
 
-  /* so, how many regs do we want ? */
-  if (arg2)
+    if (first_aux_reg_no < 0)
     {
-      if (auxregno2 < auxregno)
-	{
-	  warning ("aux-read: %s < %s, showing one register", arg2, arg);
-	  nrregs = 1;
-	}
-      else
-	nrregs = auxregno2 - auxregno + 1;
-    }
-  else
-    nrregs = 1;
-
-  buf = xcalloc (nrregs, sizeof(int));
-  make_cleanup (free_current_contents, &buf);
-
-  /* Go get 'em !  */
-  nrtransfered = target_read_aux_reg (buf, auxregno, nrregs);
-  if (nrtransfered <= 0)
-    {
-      do_cleanups (old_chain);
-      error ("aux-read: couldn't read any registers.");
-    }
-  else if (nrtransfered < nrregs)
-    {
-      warning ("aux-read: could only read %d registers", nrtransfered);
+        warning (AUX_READ_COMMAND ": %s < 0", arg);
+        do_cleanups (old_chain);
+        return;
     }
 
-  gdb_assert (nrtransfered <= nrregs);
-
-  /* Show them.  */
-  for (i = auxregno; i - auxregno < nrtransfered; ++i)
+    /* so, how many regs do we want? */
+    if (arg2)
     {
-      if ((i - auxregno) % 4 == 0)
-	printf_filtered("%s%08x: ", ((i - auxregno) ? "\n" : ""), i);
+        struct expression *expr2 = parse_expression (arg2);
+        struct value      *val2  = evaluate_expression (expr2);
 
-      printf_filtered ("%08x ", buf[i - auxregno]);
+        (void) make_cleanup (free_current_contents, &expr);
+
+        last_aux_reg_no = *(int *)(value_contents (val2));
+
+        if (last_aux_reg_no < 0)
+        {
+            warning (AUX_READ_COMMAND ": %s < 0", arg2);
+            do_cleanups (old_chain);
+            return;
+        }
+
+        if (last_aux_reg_no < first_aux_reg_no)
+        {
+            warning (AUX_READ_COMMAND ": %s < %s, showing one register", arg2, arg);
+            last_aux_reg_no = first_aux_reg_no;
+        }
     }
-  printf_filtered ("\n");
+    else
+        last_aux_reg_no = first_aux_reg_no;
 
-  do_cleanups (old_chain);
+    DEBUG("try to read aux regs %d .. %d\n", first_aux_reg_no, last_aux_reg_no);
+
+    num_regs = last_aux_reg_no - first_aux_reg_no + 1;
+
+    buf = xcalloc ((size_t) num_regs, sizeof(ARC_RegisterContents));
+    (void) make_cleanup (free_current_contents, &buf);
+
+    /* Go get 'em!  */
+    num_registers_read = (int) target_read_aux_reg (buf,
+                                                    (ULONGEST) first_aux_reg_no,
+                                                    (LONGEST)  num_regs);
+
+    if (num_registers_read <= 0)
+        warning (AUX_READ_COMMAND ": could not read any registers.");
+    else
+    {
+        int count = 0;
+        int i;
+
+        gdb_assert (num_registers_read <= num_regs);
+
+        if (num_registers_read < num_regs)
+        {
+            warning (AUX_READ_COMMAND ": could read only %d registers",
+                     num_registers_read);
+            last_aux_reg_no = first_aux_reg_no + num_registers_read - 1;
+        }
+
+        /* Show them, 4 per line. */
+        for (i = first_aux_reg_no; i <= last_aux_reg_no; i++)
+        {
+            /* include the register number at the beginning of each line;
+             * for each line except the first, output a newline at the start
+             */
+            if (count % 4 == 0)
+                printf_filtered("%s%08x: ", (count ? "\n" : ""), i);
+
+            printf_filtered ("%08x ", buf[count]);
+            count++;
+        } 
+
+        printf_filtered ("\n");
+    }
+
+    do_cleanups (old_chain);
 }
 
-/* aux-write <regnum> = <value>
+
+/* arc-aux-write <regnum> = <value>
    Write VALUE to aux register REGNUM. */
 static void
 arc_jtag_aux_write_command (char *arg, int from_tty)
 {
-  char *value_arg = 0;
-  struct expression *regnum_expr, *value_expr;
-  struct value *regnum_val, *value_val;
-  struct cleanup *old_chain = 0;
-  unsigned int regnum, value;
-  int err;
+    char                *value_arg;
+    struct expression   *regnum_expr, *value_expr;
+    struct value        *regnum_val,  *value_val;
+    struct cleanup      *old_chain;
+    int                  regnum;
+    ARC_RegisterContents value;
+    LONGEST              num_registers_written;
 
-  if (!arg)
+    if (!arg)
     {
-      printf_filtered ("aux-write <regnum> = <value>\n");
-      return;
+        printf_filtered (AUX_WRITE_COMMAND_USAGE);
+        return;
     }
 
-  value_arg = strchr(arg, '=');
-  if (!value_arg)
+    value_arg = strchr(arg, '=');
+
+    if (!value_arg)
     {
-      error ("aux-write: can't find second argument\n\
-Usage: aux-write <regnum> = <value>");
-      return;
-    }
-  value_arg[0] = 0;
-  value_arg++;
-
-  /* Regnum expression */
-  regnum_expr = parse_expression (arg);
-  regnum_val = evaluate_expression (regnum_expr);
-  old_chain = make_cleanup (free_current_contents, &regnum_expr);
-  regnum = *(unsigned int *)(value_contents (regnum_val));
-
-  /* Value expression */
-  value_expr = parse_expression (value_arg);
-  value_val = evaluate_expression (value_expr);
-  make_cleanup (free_current_contents, &value_expr);
-  value = *(unsigned int *)(value_contents (value_val));
-
-  /* Write it.  */
-  err = target_write_aux_reg (&value, regnum, 1);
-  if (err != 1)
-    {
-      do_cleanups (old_chain);
-      error ("aux-write: couldn't write to register 0x%x", regnum);
+        printf_filtered (AUX_WRITE_COMMAND ": no second argument\n" AUX_WRITE_COMMAND_USAGE);
+        return;
     }
 
-  do_cleanups (old_chain);
+    /* split up the input string */
+    value_arg[0] = (char) 0;
+    value_arg++;
+
+    /* Regnum expression */
+    regnum_expr = parse_expression (arg);
+    regnum_val  = evaluate_expression (regnum_expr);
+    regnum      = *(int *)(value_contents (regnum_val));
+    old_chain   = make_cleanup (free_current_contents, &regnum_expr);
+
+    /* Value expression */
+    value_expr = parse_expression (value_arg);
+    value_val  = evaluate_expression (value_expr);
+    value      = *(ARC_RegisterContents*)(value_contents (value_val));
+    (void) make_cleanup (free_current_contents, &value_expr);
+
+    if (regnum < 0)
+    {
+        warning (AUX_WRITE_COMMAND ": %s < 0", arg);
+        do_cleanups (old_chain);
+        return;
+    }
+
+    DEBUG("try to write aux reg %d = 0x%08X\n", regnum, value);
+
+    /* Write it. */
+    num_registers_written = target_write_aux_reg ((gdb_byte*) &value,
+                                                  (ULONGEST) regnum,
+                                                  1);
+
+    if (num_registers_written != 1)
+        warning (AUX_WRITE_COMMAND ": could not write to register %d", regnum);
+
+    /* clean up the items that we have put on the cleanup chain (back as far as
+     * the old head of the chain
+     */
+    do_cleanups (old_chain);
 }
 
-#ifdef ARC4_JTAG
-//  gdbarch_write_pc_ftype *write_pc;
-/*
-  Write PC
-  Arguments:
-  1.CORE_ADDR val : Contains the value to be written into PC.
-  2.ptid_t ptid: Process id of the process.
 
-  Returns: void
-  Description: FIXMEA: Update
-      Reads the status register
-      Inserts the value (upper 24 bit) into the bits
-      0-23 in the status register
-      Write the status register
- */
-void
-a4_jtag_write_pc (CORE_ADDR val, ptid_t ptid)
+/* arc-watch-range <start> <length>
+   Set hardware breakpoint at address START covering LENGTH bytes. */
+static void
+arc_jtag_break_memory_command(char *arg, int from_tty)
 {
-  CORE_ADDR insert_val = val >> 2;
-  unsigned int buffer;
-
-
-  if(debug_arc_jtag_target_message)
-      printf_filtered ("\n -----***------------ a4_jtag_write_pc Entered ---*%%*#\n");
-
-
-  target_read_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-
-  if (!(buffer & A4_HALT_VALUE))
-    {
-      if(debug_arc_jtag_target_message)
-	printf_filtered ("\n***** Halting Processor... *********\n");
-
-      buffer = buffer | A4_HALT_VALUE ;
-      target_write_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-      /* Now the A4 processor has halted*/
-    }
-
-  if(debug_arc_jtag_target_message)
-    printf_filtered (" \nWriting value %u to PC\n", val);
-
-
-  target_read_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-  if(debug_arc_jtag_target_message)
-    printf_filtered (" \nValue of Status Register before writing %d\
-                     \n Value of PC: 0x%x\n", buffer, buffer & 0x00ffffff);
-
-  buffer = buffer & 0xff000000;
-  insert_val    = insert_val & 0x00ffffff;
-  buffer = buffer | insert_val ;
-
-  if(debug_arc_jtag_target_message)
-    printf_filtered (" \nValue of Status Register to be written %d\
-                       \n Value of PC: 0x%x\n", buffer, buffer & 0x00ffffff);
-
-  //  jtag_ops.jtag_write_aux_reg (ARC_STATUS_REGNUM, buffer);
-  target_write_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-
-  if(debug_arc_jtag_target_message)
-    {
-      target_read_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-      printf_filtered (" \nValue of Status Register after reading again %d\
-                        \n Value of PC: 0x%x\n", buffer, buffer & 0x00ffffff);
-    }
-
-    if(debug_arc_jtag_target_message)
-      printf_filtered ("\n -----***------------ a4_jtag_write_pc Leaving ---*%%*#\n");
-
+    memory_range_command(arg, from_tty, FALSE, BREAK_MEMORY_COMMAND, BREAK_MEMORY_COMMAND_USAGE);
 }
 
 
-/*
-  Read PC
-  Arguments:
-  1.ptid_t ptid: Process id of the process.
-
-  Returns: CORE_ADDR
-  Description:
-      Reads the status register
-      Extracts the PC value from it.
-      Right shift twice to get correct value of PC
-      return PC
-*/
-CORE_ADDR
-a4_jtag_read_pc (ptid_t ptid)
+/* arc-watch-range <start> <length> [read|write|access]
+   Set hardware watchpoint at address START covering LENGTH bytes. */
+static void
+arc_jtag_watch_memory_command (char *arg, int from_tty)
 {
-  unsigned int buffer;
-
-  if (debug_arc_jtag_target_message)
-    printf_filtered ("\n Entering a4_jtag_read_pc ()");
-  buffer = 0;
-  target_read_aux_reg (&buffer, ARC_HW_STATUS_REGNUM, 1);
-  if (debug_arc_jtag_target_message)
-    printf_filtered ("\n Value of Status Reg: 0x%x",buffer);
-  buffer = buffer & 0x00ffffff;
-  buffer = buffer << 2;
-
-  if (debug_arc_jtag_target_message)
-    printf_filtered ("\n Leaving a4_jtag_read_pc ()\
-                      \n Value of Pc: 0x%x\n", buffer);
-
-  return buffer;
+    memory_range_command(arg, from_tty, TRUE, WATCH_MEMORY_COMMAND, WATCH_MEMORY_COMMAND_USAGE);
 }
 
-#endif // ARC4_JTAG
 
-ARCVariantsInfo arc_debug_processor_information;
+/* arc-fill-memory <start> <length> [<pattern>]
+   Write repeated copies of PATTERN at address START covering LENGTH bytes. */
+static void
+arc_jtag_fill_memory_command (char *arg, int from_tty)
+{
+    char              *length_arg;
+    char              *pattern_arg;
+    struct expression *start_expr, *length_expr, *pattern_expr;
+    struct value      *start_val,  *length_val,  *pattern_val;
+    struct cleanup    *old_chain;
+    ARC_Address       start;
+    unsigned int      length;
+    ARC_Word          pattern;
+    unsigned int      written;
+
+    if (!arg)
+    {
+        printf_filtered ("%s", FILL_MEMORY_COMMAND_USAGE);
+        return;
+    }
+
+    length_arg = strchr(arg, ' ');
+
+    if (!length_arg)
+    {
+        printf_filtered (FILL_MEMORY_COMMAND " : no second argument\n" FILL_MEMORY_COMMAND_USAGE);
+        return;
+    }
+
+    /* split up the input string */
+    length_arg[0] = (char) 0;
+    length_arg++;
+    while (*length_arg == ' ') length_arg++;
+
+    pattern_arg = strchr(length_arg, ' ');
+    if (pattern_arg)
+    {
+        /* split up the input string */
+        pattern_arg[0] = (char) 0;
+        pattern_arg++;
+    }
+
+    /* from address expression */
+    start_expr = parse_expression (arg);
+    start_val  = evaluate_expression (start_expr);
+    start      = *(ARC_Address *)(value_contents (start_val));
+    old_chain   = make_cleanup (free_current_contents, &start_expr);
+
+    /* length expression */
+    length_expr = parse_expression (length_arg);
+    length_val  = evaluate_expression (length_expr);
+    length      = *(unsigned int *)(value_contents (length_val));
+    (void) make_cleanup (free_current_contents, &length_expr);
+
+    if (length <= 0)
+    {
+        warning (FILL_MEMORY_COMMAND ": %s <= 0", length_arg);
+        do_cleanups (old_chain);
+        return;
+    }
+
+    if (pattern_arg)
+    {
+        /* from pattern expression */
+        pattern_expr = parse_expression (pattern_arg);
+        pattern_val  = evaluate_expression (pattern_expr);
+        pattern      = *(ARC_Word *)(value_contents (pattern_val));
+        (void) make_cleanup (free_current_contents, &pattern_expr);
+    }
+    else
+        pattern = 0;
+
+
+    written = arc_jtag_ops.jtag_memory_write_pattern(start, pattern, length);
+
+    if (written != length)
+        warning (FILL_MEMORY_COMMAND ": only %u bytes written to target memory", written);
+
+    /* clean up the items that we have put on the cleanup chain (back as far as
+     * the old head of the chain
+     */
+    do_cleanups (old_chain);
+}
+
+
+
+
+/* -------------------------------------------------------------------------- */
+/*                               externally visible functions                 */
+/* -------------------------------------------------------------------------- */
 
 struct gdbarch *
 arc_jtag_init (struct gdbarch *gdbarch)
 {
-  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+    struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
-#ifndef ARC4_JTAG
-  tdep->arc_breakpoint_size = arc700_jtag_breakpoint_size;
-  tdep->arc_breakpoint_insn = arc700_jtag_breakpoint_insn;
-#else
-  tdep->arc_breakpoint_size = a4_jtag_breakpoint_size;
-  tdep->arc_breakpoint_insn = a4_jtag_breakpoint_insn;
-#endif
+    /* Fill in target-dependent info in ARC-private structure. */
 
-  set_gdbarch_num_regs (gdbarch, ARC_NR_REGS);
-#ifndef ARC4_JTAG
-  set_gdbarch_pc_regnum (gdbarch, ARC_PC_REGNUM);
-#else
-  //  set_gdbarch_pc_regnum (gdbarch, ARC_STATUS_REGNUM);
-  set_gdbarch_write_pc (gdbarch, a4_jtag_write_pc);
-  set_gdbarch_read_pc (gdbarch, a4_jtag_read_pc);
-#endif
-  set_gdbarch_register_name (gdbarch, arc_jtag_register_name);
+    tdep->is_sigtramp             = NULL;
+    tdep->sigcontext_addr         = NULL;
+    tdep->sc_reg_offset           = NULL;
+    tdep->sc_num_regs             = 0;
+    tdep->pc_regnum_in_sigcontext = 0;
 
-  set_gdbarch_print_registers_info (gdbarch, arc_jtag_print_registers_info);
+    tdep->breakpoint_instruction = breakpoint_instruction;
+    tdep->breakpoint_size        = (unsigned int) sizeof(breakpoint_instruction);
 
-  tdep->register_reggroup_p = arc_jtag_register_reggroup_p;
+    tdep->register_reggroup_p = register_reggroup_p;
+    tdep->register_names      = register_names;
+    tdep->num_register_names  = ELEMENTS_IN_ARRAY(register_names);
 
-  tdep->lowest_pc = 0;
+    tdep->lowest_pc              = 0;
+    tdep->processor_variant_info = &debug_processor_information;
 
-  tdep->sigtramp_p = NULL;
+    /* Pass target-dependent info to gdb. */
 
-  tdep->arc_processor_variant_info = &arc_debug_processor_information;
+    set_gdbarch_pc_regnum            (gdbarch, ARC_PC_REGNUM);
+    set_gdbarch_print_registers_info (gdbarch, arc_jtag_print_registers_info);
 
-  /* Auxillary register commands.  */
-  add_cmd ("arc-aux-read", class_vars, arc_jtag_aux_read_command,
-	   "Read and show a range of auxillary registers.\n\
-Usage: arc-aux-read <REG-FROM> [<REG-TO>]\n\
-REG-FROM and REG-TO can be any expressions that evaluate to integers.\n\
-If REG-TO is not specified, one register is displayed.",
-	   &cmdlist);
+    /* Register auxiliary register commands. */
 
-  add_cmd ("arc-aux-write", class_vars, arc_jtag_aux_write_command,
-	   "Write to an auxillary register.\n\
-Usage: arc-aux-write <REG> = <VALUE>\n\
-REG and VALUE can be any expressions that evaluate to integers.",
-	   &cmdlist);
+    (void) add_cmd (AUX_READ_COMMAND,
+                    class_vars,
+                    arc_jtag_aux_read_command,
+                    "Read and show a range of auxiliary registers.\n"
+                    AUX_READ_COMMAND_USAGE
+                    "REG-FROM and REG-TO can be any expressions that evaluate to integers.\n"
+                    "If REG-TO is not specified, one register is displayed.",
+                    &cmdlist);
 
-  return gdbarch;
+    (void) add_cmd (AUX_WRITE_COMMAND,
+                    class_vars,
+                    arc_jtag_aux_write_command,
+                    "Write to an auxiliary register.\n"
+                    AUX_WRITE_COMMAND_USAGE
+                    "REG and VALUE can be any expressions that evaluate to integers.",
+                    &cmdlist);
+
+    (void) add_cmd (BREAK_MEMORY_COMMAND,
+                    class_breakpoint,
+                    arc_jtag_break_memory_command,
+                    "Set a breakpoint on a memory address range.\n"
+                    BREAK_MEMORY_COMMAND_USAGE
+                    "START and LENGTH can be any expressions that evaluate to integers.",
+                    &cmdlist);
+
+    (void) add_cmd (WATCH_MEMORY_COMMAND,
+                    class_breakpoint,
+                    arc_jtag_watch_memory_command,
+                    "Set a watchpoint on a memory address range.\n"
+                    WATCH_MEMORY_COMMAND_USAGE
+                    "START and LENGTH can be any expressions that evaluate to integers.",
+                    &cmdlist);
+
+    (void) add_cmd (FILL_MEMORY_COMMAND,
+                    class_obscure,
+                    arc_jtag_fill_memory_command,
+                    "Fill a memory address range with a repeated pattern.\n"
+                    FILL_MEMORY_COMMAND_USAGE
+                    "START, LENGTH and PATTERN can be any expressions that evaluate to integers.\n"
+                    "If PATTERN is omitted, it defaults to 0.",
+                    &cmdlist);
+
+    return gdbarch;
 }
 
+/******************************************************************************/
