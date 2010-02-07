@@ -1405,6 +1405,10 @@ arc_extoper (int opertype)
 
   ext_oper = xmalloc (sizeof (struct arc_ext_operand_value));
 
+/* allow extension to be loaded to */
+      if(imode!=ARC_REGISTER_READONLY)
+	  arc_ld_ext_mask |= (1 << (number-32));
+
   if (opertype)
     {
       /* If the symbol already exists, point it at the new definition.  */
@@ -2105,6 +2109,30 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
 				suffix_class & (AC_SUFFIX_FLAG | AC_SUFFIX_COND));
 	    }
 	}
+      if(suffix_class & AC_EXTENDED_MULTIPLY)
+          {
+          arc_add_ext_inst (instruction_name, " 0,%B,%C%F",
+                            INSN_32(major_opcode,
+                                    I_FIELD(sub_opcode, 1),
+                                    3, 0, 0, 0),
+                            INSN_32(-1, -1, -1, 32, 0, 0),
+                            (syntax_class | syntax_class_modifiers),
+                            suffix_class & (AC_SUFFIX_FLAG | AC_SUFFIX_COND));
+          arc_add_ext_inst (instruction_name, " 0,%B,%L%F",
+                            INSN_32(major_opcode,
+                                    I_FIELD(sub_opcode, 1),
+                                    3, 0, 0, 62),
+                            INSN_32(-1, -1 , -1, 32, 0, -1),
+                            (syntax_class | syntax_class_modifiers),
+                            suffix_class & (AC_SUFFIX_FLAG | AC_SUFFIX_COND));
+          arc_add_ext_inst (instruction_name, " 0,%B,%u%F",
+                            INSN_32(major_opcode,
+                                    I_FIELD(sub_opcode, 1),
+                                    3, 32, 0, 0),
+                            INSN_32(-1, -1, -1, 32, 0, 0),
+                            (syntax_class | syntax_class_modifiers),
+                            suffix_class & (AC_SUFFIX_FLAG | AC_SUFFIX_COND));
+          }
       
       if(!(syntax_class_modifiers & AC_OP1_MUST_BE_IMM))
 	{
