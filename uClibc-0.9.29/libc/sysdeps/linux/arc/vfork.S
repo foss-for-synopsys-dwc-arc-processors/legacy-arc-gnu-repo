@@ -34,46 +34,28 @@
 
 #ifdef __CONFIG_ARCH_ARC_A7__
 ARC_SYMBOL_NAME(__vfork):		
-#ifdef __NR_vfork
-	mov r8, __NR_vfork	; save the syscall type in r0
+	mov r8, __NR_vfork
+	trap0
+	sub.f 0, r0, 0
+	jge [blink]
 
-	trap0                   ; do the interrupt (syscall)
+__syscall_error_lcl:
 
-	sub.f 0, r0, 0  	; Check if some error occured in the syscall
-	nop			; flush the pipeline (make sure flags are set... hw bug)
-	jge.nd [blink]
-/*go_on:
+    ; ----- Errno related processing -------
+    ; (1) No need to make -ve kernel error code as positive errno
+    ;   __syscall_error expects the -ve error code returned by kernel
+    ; (2) r0 still had orig -ve kernel error code
+    ; (3) Tail call to __syscall_error: 
+    ;       hence jmp-n-link (jl) instead of jmp (j)
+    ;       That way __syscall_error( ) returns to caller of vfork
+    ;       Also jl would have required push/pop blink around it too
 
-	; Check if vfork exists. it not, use fork.
-	mov	r1, -ENOSYS
-	sub.f	0, r0, r1*/
-	nop
-	blt.nd	__syscall_error
-#endif
-
-	mov r8, __NR_fork	; save the syscall type in r0
-
-	trap0                   ; do the interrupt (syscall)
-
-	sub.f	0, r0, 0 	; Check if some error occured in the syscall
-	nop			; flush the pipeline
-	jge	[blink]		; done...
-
-__syscall_error:
-	; set the errno
-
-	rsub	r2, r0, 0	;  get -r0 in r2 (which will give us +errno)
-
-#ifndef __PIC__	
-	st	r2, [ARC_SYMBOL_NAME(errno)]
+#ifndef __PIC__
+    b  __syscall_error
 #else
-	add 	r0, pcl, ARC_SYMBOL_NAME(errno)@gotpc  ; get the got address for errno 
-	ld	r0, [r0]	     ; get the address of errno 
-	st	r2, [r0]	     ; store the return value 
+    b   ARC_SYMBOL_NAME(__syscall_error)@plt
 #endif
 
-	mov	r0, -1
-	j.nd [blink]
 ;---------------------------------------------------------------
 #else
 ARC_SYMBOL_NAME(__vfork):
@@ -101,7 +83,7 @@ ARC_SYMBOL_NAME(__vfork):
 	mov	r1, -ENOSYS
 	sub.f	0, r0, r1*/
 	nop
-	blt.nd	__syscall_error
+	blt.nd	__syscall_error_lcl
 #endif
 
 2:
@@ -122,7 +104,7 @@ ARC_SYMBOL_NAME(__vfork):
 	jge	[blink]		; done...
 	*/
 
-__syscall_error:
+__syscall_error_lcl:
 	; set the errno
 	sub	r2, 0, r0	;  get -r0 in r2 (which will give us +errno)
 

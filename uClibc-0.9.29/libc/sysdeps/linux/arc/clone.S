@@ -39,7 +39,7 @@ __clone:
 	cmp r0, 0	;No Null function pointers
 	cmp.ne r1, 0	; No Null stack pointers
 	mov.z r0, -EINVAL	; Invalid operands
-	bz.nd __syscall_error
+	bz.nd __syscall_error_lcl
 
 	; insert the args into the new stack
 	
@@ -57,7 +57,7 @@ __clone:
 	sub.f	0, r0, 0	; Check if some error occured in the syscall
 	nop			; flush the pipeline
 
-	blt	__syscall_error ; error 
+	blt	__syscall_error_lcl ; error 
 	
 	jnz.nd	[blink]		; return to parent
 
@@ -66,24 +66,18 @@ __clone:
 	mov	blink,r10
 	j.nd	[blink]
 
-__syscall_error:
-	; set the errno
-	
-	rsub	r2, r0, 0	;  get -r0 in r2 (which will give us +errno)
-	
+__syscall_error_lcl:
 #ifndef __PIC__	
-	st	r2, [ARC_SYMBOL_NAME(errno)]
+    ; (1) No need to make -ve kernel error code as positive errno
+    ;   __syscall_error expects the -ve error code returned by kernel
+    ; (2) r0 still had orig -ve kernel error code
+    ; (3) Tail call to __syscall_error so we dont have to come back here
+    ;   hence instead of jmp-n-link we do jmp
+    ;   A jl would have required push/pop blink here as well
+    b  __syscall_error
 #else
-	add 	r0, pcl , ARC_SYMBOL_NAME(errno)@gotpc	; get the got entry for errno 
-	ld 	r0, [r0]		; get the address for errno
-	st	r2, [r0]		; store the return value there 
-#endif /* __PIC__ */
-
-	/* return -1 */
-	j.d	[blink]
-	mov	r0, -1
-
-;	.word	_errno 
+    b   ARC_SYMBOL_NAME(__syscall_error)@plt
+#endif
 
 .globl _clone
 	_clone = __clone
@@ -104,7 +98,7 @@ __clone:
 #error Unknown ARCTangent Archtitecture
 #endif
 	mov.z r0, -EINVAL	; Invalid operands
-	bz.nd __syscall_error
+	bz.nd __syscall_error_lcl
 
 	; insert the args into the new stack
 	
@@ -131,7 +125,7 @@ __clone:
 
 	sub.f	0, r0, 0	; Check if some error occured in the syscall
 	nop			; flush the pipeline
-	blt	__syscall_error ; error 
+	blt	__syscall_error_lcl ; error 
 	jne.nd	[blink]		; return to parent
 	
 	;return to child
@@ -142,7 +136,7 @@ __clone:
 ;#endif
 	
 
-__syscall_error:
+__syscall_error_lcl:
 	; set the errno
 #ifdef __CONFIG_ARCH_ARC_A5
 	rsub	r2, r0, 0	;  get -r0 in r2 (which will give us +errno)
