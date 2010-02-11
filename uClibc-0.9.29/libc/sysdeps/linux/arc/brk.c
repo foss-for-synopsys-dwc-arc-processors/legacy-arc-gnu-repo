@@ -81,8 +81,7 @@ int brk (void *addr)
 	__curbrk = newbrk;
 
 	if (newbrk < addr) {
-		__set_errno (ENOMEM);
-		return -1;
+        return __syscall_error(-ENOMEM);
 	}
 
     return 0;
