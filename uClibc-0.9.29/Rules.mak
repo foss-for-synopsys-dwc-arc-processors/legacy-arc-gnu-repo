@@ -164,6 +164,7 @@ PIEFLAG_NAME:=-fPIE
 ifeq ($(TARGET_ARCH),arc)
         CPU_CFLAGS-n:="-da"
         CPU_CFLAGS-$(CONFIG_ARCH_ARC_A7):="-mA7 -fno-peephole"
+        OPTIMIZATION+="-fomit-frame-pointer"
         CPU_CFLAGS-$(CONFIG_ARCH_ARC_A5):="-mA5 "
         CPU_CFLAGS-$(CONFIG_ARCH_ARC_A4):="-mA4 "
         CPU_LDFLAGS-$(CONFIG_ARCH_ARC_A7):="-marclinux"
