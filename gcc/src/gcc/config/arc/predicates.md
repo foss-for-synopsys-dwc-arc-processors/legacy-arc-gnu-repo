@@ -608,6 +608,16 @@
 	    (match_test "TARGET_ARC700 || TARGET_EA_SET")))
 )
 
+(define_predicate "commutative_operator_sans_mult"
+  (ior (match_code "plus,ior,xor,and")
+       (and (match_code "ss_plus")
+	    (match_test "TARGET_ARC700 || TARGET_EA_SET")))
+)
+
+(define_predicate "mult_operator"
+    (and (match_code "mult") (match_test "TARGET_ARC700"))
+)
+
 (define_predicate "noncommutative_operator"
   (ior (match_code "minus,ashift,ashiftrt,lshiftrt,rotatert")
        (and (match_code "ss_minus")

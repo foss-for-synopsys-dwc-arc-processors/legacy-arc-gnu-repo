@@ -1,3 +1,13 @@
+2010-02-08  Brendan Kehoe  <brendan@zen.org>
+
+	Restrict control of the LP_COUNT register to the MULT insn
+	specifically, not all commutative operators.
+	* config/arc/arc.md (*commutative_binary_comparison_result_used): Revert to 'w' constraint, but change the predicate to commutative_operator_sans_mult.
+	(*commutative_binary_mult_comparison_result_used): New pattern similar to the other, but matching the mult_operand specifically, so we can use the 'W' constraint.
+	* config/arc/predicates.md (commutative_operator_sans_mult):
+	Copy of commutative_operator, without the "mult" TARGET_ARC700 insn.
+	(mult_operator): New predicate.
+
 2010-01-29  Brendan Kehoe  <brendan@zen.org>
 
 	* config/arc/arc.c (arc_conditional_register_usage): If

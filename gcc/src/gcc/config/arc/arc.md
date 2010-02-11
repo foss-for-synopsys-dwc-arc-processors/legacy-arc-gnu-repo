@@ -645,18 +645,34 @@
 (define_insn "*commutative_binary_comparison_result_used"
   [(set (match_operand 3 "cc_register" "")
 	(match_operator 5 "zn_compare_operator"
-          [(match_operator:SI 4 "commutative_operator"
+	  ; We can accept any commutative operator except mult because
+	  ; our 'w' class below could try to use LP_COUNT.
+          [(match_operator:SI 4 "commutative_operator_sans_mult"
 	     [(match_operand:SI 1 "register_operand" "c,0,c")
 	      (match_operand:SI 2 "nonmemory_operand" "cL,I,?Cal")])
 	   (const_int 0)]))
-	; Make sure to use the W class to not touch LP_COUNT; note this
-	; means the other commutative operators plus, ior, xor, and,
-	; and ss_plus will not be able to touch LP_COUNT either,
-	; even though it's technically supposed to be allowed for them.
-   (set (match_operand:SI 0 "register_operand" "=W,W,W")
+   (set (match_operand:SI 0 "register_operand" "=w,w,w")
 	(match_dup 4))]
   ""
-  "%O4.f %0,%1,%2"
+  "%O4.f %0,%1,%2 ; non-mult commutative"
+  [(set_attr "type" "compare,compare,compare")
+   (set_attr "cond" "set_zn,set_zn,set_zn")
+   (set_attr "length" "4,4,8")])
+
+; a MULT-specific version of this pattern to avoid touching the
+; LP_COUNT register
+(define_insn "*commutative_binary_mult_comparison_result_used"
+  [(set (match_operand 3 "cc_register" "")
+	(match_operator 5 "zn_compare_operator"
+          [(match_operator:SI 4 "mult_operator"
+	     [(match_operand:SI 1 "register_operand" "c,0,c")
+	      (match_operand:SI 2 "nonmemory_operand" "cL,I,?Cal")])
+	   (const_int 0)]))
+	; Make sure to use the W class to not touch LP_COUNT.
+   (set (match_operand:SI 0 "register_operand" "=W,W,W")
+	(match_dup 4))]
+  "TARGET_ARC700"
+  "%O4.f %0,%1,%2 ; mult commutative"
   [(set_attr "type" "compare,compare,compare")
    (set_attr "cond" "set_zn,set_zn,set_zn")
    (set_attr "length" "4,4,8")])
