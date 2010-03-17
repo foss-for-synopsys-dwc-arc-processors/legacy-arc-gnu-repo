@@ -1,3 +1,11 @@
+2010-03-15  Brendan Kehoe  <brendan@zen.org>
+
+	CR 98782
+	* config/arc/arc.md (cbranchsi4_scratch): Include a clobber of
+	the CC reg 61.
+	* config/arc/arc.c (arc_reorg): Pass REG 61 as the new final arg
+	to gen_cbranchsi4_scratch.
+
 2010-02-08  Brendan Kehoe  <brendan@zen.org>
 
 	Restrict control of the LP_COUNT register to the MULT insn
