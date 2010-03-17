@@ -6063,12 +6063,19 @@ arc_reorg (void)
  		  else 
  		    brcc_s_possible_rtx = const0_rtx;
  		  
+		  /* START ARC LOCAL */
+		  /* Pass the CC register for the final CLOBBER argument to cbranchsi4_scratch. */
+		  {
  		  brcc_insn = emit_jump_insn_before (gen_cbranchsi4_scratch 
  						     (gen_rtx_fmt_ee (GET_CODE(operator), GET_MODE(operator), NULL, NULL),
  						      XEXP ( SET_SRC (pat), 0),
  						      XEXP ( SET_SRC (pat), 1),
  						      XEXP (label, 0),
- 						      brcc_s_possible_rtx), insn);
+ 						      brcc_s_possible_rtx,
+						      gen_rtx_REG (CCmode, 61)),
+						     insn);
+		  }
+		  /* END ARC LOCAL */
  		  JUMP_LABEL (brcc_insn) = JUMP_LABEL (insn);
  		
  		  changed = 1;

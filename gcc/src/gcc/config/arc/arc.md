@@ -4615,7 +4615,15 @@
  					 (match_operand:SI 2 "nonmemory_operand" "L,c,?Cal")])
  			 (label_ref (match_operand 3 "" ""))
  			 (pc)))
- 	     (match_operand 4 "immediate_operand" "J,J,J")])]
+ 	       (match_operand 4 "immediate_operand" "J,J,J")
+	       ; START ARC LOCAL
+	       ; Make sure the comparison in here is noted to change
+	       ; the contents of the CC register; otherwise, the
+	       ; dbr_schedule pass can stick in things depending on a
+	       ; previous value of CC.
+	       (clobber (match_operand 5 "cc_register" ""))
+	       ; END ARC LOCAL
+	      ])]
    "TARGET_ARCOMPACT && reload_completed"
    "*
      switch (get_attr_length(insn))
