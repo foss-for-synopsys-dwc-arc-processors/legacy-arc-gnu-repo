@@ -116,7 +116,9 @@ extern int __syscall_error(int err_no);
 	     : "ir" (syscallnum)  ASM_ARGS_##nr                 \
          : "r8","memory" );							        \
                                                             \
-    if(_sys_result < 0)  {                                  \
+    /* -1 to -1023 as valid error values will suffice       \
+            for some time */                                \
+    if(_sys_result > (unsigned int) -1024)  {               \
         ERRNO_ERRANDS(_sys_result);                         \
      }                                                      \
     _sys_result;                                            \
