@@ -1,3 +1,8 @@
+2010-09-17  Michael Eager  <eager@eagercon.com>
+
+	* Bug 100549 -- Apply PR gas/10704
+	* symbols.c (snapshot_symbol): Revert 2006-01-09 patch for PR2117.
+
 2010-01-25  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
 
 	* config/tc-arc.c (tc_arc_fix_adjustable): Make sure we don't
