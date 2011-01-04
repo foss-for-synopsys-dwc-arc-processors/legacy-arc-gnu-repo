@@ -4722,6 +4722,7 @@
 ; be available for the loop end.
 (define_insn "doloop_begin_i"
   [(unspec:SI [(pc)] UNSPEC_LP)
+   (clobber (reg:SI LP_COUNT)) ; make sure the life of LP_COUNT is clear
    (clobber (reg:SI LP_START))
    (clobber (reg:SI LP_END))
    (use (match_operand:SI 0 "register_operand" "l,l,????*X"))
@@ -4857,7 +4858,8 @@
 ; ??? ARC600 might want to check if the loop has few iteration and only a
 ; single insn - loop setup is expensive then.
 (define_expand "doloop_end"
-  [(use (match_operand 0 "register_operand" ""))
+  [(use (reg:SI LP_COUNT)) ; make sure the life of LP_COUNT is clear
+   (use (match_operand 0 "register_operand" ""))
    (use (match_operand:QI 1 "const_int_operand" ""))
    (use (match_operand:QI 2 "const_int_operand" ""))
    (use (match_operand:QI 3 "const_int_operand" ""))
