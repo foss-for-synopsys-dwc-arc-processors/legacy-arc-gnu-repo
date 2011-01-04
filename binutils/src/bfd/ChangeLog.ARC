@@ -1,3 +1,8 @@
+2010-10-19  Brendan Kehoe  <brendan@zen.org>
+
+	* elf32-arc.c (arc_plugin_one_reloc): Reject a R_ARC_PLT32
+	which tries do to more than +/- 1M with a BLcc or Bcc insn.
+
 2010-01-29  Brendan Kehoe  <brendan.kehoe@viragelogic.com>
 
 	* elf32-arc.c (elf_arc_relocate_section): Handle the result of

@@ -1059,6 +1059,28 @@ arc_plugin_one_reloc (unsigned long insn, Elf_Internal_Rela *rel,
 	*overflow_detected = 1;
     }
 
+  /* START ARC LOCAL */
+  if (r_type == R_ARC_PLT32)
+    {
+	/* BLcc and Bcc */
+	/*
+      	  Relocations of the type R_ARC_PLT32 are for the BLcc and Bcc
+      	  instructions. However the BL/B instruction takes a 25-bit relative
+      	  displacement while the BLcc/Bcc instruction takes a 21-bit relative
+      	  displacement. We are using bit-17 to distinguish between these two
+      	  cases and handle them differently.
+    	*/
+	if (! (insn
+		& ((insn & 0x08000000) ? 0x00020000 : 0x00010000)))
+	{
+	  check_overfl_pos = (long long) 1024000;
+	  check_overfl_neg = -check_overfl_pos;
+	  if ((value >= check_overfl_pos) || (check_overfl_neg > value))
+	    *overflow_detected = 1;		
+	}
+    }
+    /* END ARC LOCAL */
+
     if (*overflow_detected
       && symbol_defined == TRUE)
     {
