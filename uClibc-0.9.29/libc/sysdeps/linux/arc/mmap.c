@@ -25,6 +25,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <errno.h>
 
 libc_hidden_proto(mmap)
 
@@ -43,7 +44,7 @@ __ptr_t mmap(__ptr_t addr, size_t len, int prot,
 {
   /* check if offset is page aligned */
     if (offset & ((1 << MMAP2_PAGE_SHIFT) - 1))
-        return MAP_FAILED;
+        return __syscall_error(-EINVAL);
 
   return (__ptr_t) _mmap (addr, len, prot, flags,
 						  fd,(off_t) (offset >> MMAP2_PAGE_SHIFT));
