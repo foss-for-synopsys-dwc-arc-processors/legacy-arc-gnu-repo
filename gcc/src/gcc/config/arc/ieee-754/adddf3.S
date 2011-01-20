@@ -52,6 +52,24 @@ __subdf3:
 /* N.B. This is optimized for ARC700.
   ARC600 has very different scheduling / instruction selection criteria.  */
 
+/* Check if either operand is zero.
+   inputs: n/a
+   output: DBL0H/DBL0L holding return value if Z bit is set
+   clobber: r12 */
+
+__adddf3_support: /* This label makes debugger output saner.  */
+	.balign 4
+.Lcheck_iszero:
+	; Note this does not mimic dp-bit.c in its efforts to retain
+	; the correct sign for 0.0 in the result.
+	bclr r12, DBL1H, 31 ; - 0.0 has the sign bit set 
+	or.f 0, r12, DBL1L ; if (iszero (b))
+	beq_s .Lcheck_iszero_result ; leave with Z bit set if it was zero
+	or.f 0, DBL0H, DBL0L ; if (iszero (a))
+	mov.eq DBL0H, DBL1H
+	mov.eq DBL0L, DBL1L
+	b_s .Lcheck_iszero_result ; leave with Z bit set if it was zero
+
 /* inputs: DBL0, DBL1 (r0-r3)
    output: DBL0 (r0, r1)
    clobber: r2-r10, r12, flags
@@ -75,8 +93,18 @@ __adddf3:
 	blo .Ldbl1_gt
 	brhs r4,r9,.Linf_nan
 	brhs r12,32,.Large_shift
-	brne r12,0,.Lsmall_shift
+
+; With the iszero checks are just 1 byte too large to be able to branch:
+;	brne r12,0,.Lsmall_shift
+	tst_s r12, r12
+	jne .Lsmall_shift
+
 	brge r10,0,.Ladd_same_exp ; r12 == 0
+
+	b_s .Lcheck_iszero ; note: this changes r12
+.Lcheck_iszero_result:
+	jeq_s [blink]
+	
 /* After subtracting, we need to normalize; when shifting to place the
   leading 1 into position for the implicit 1 and adding that to DBL0H,
   we increment the exponent.  Thus, we have to subtract one more than

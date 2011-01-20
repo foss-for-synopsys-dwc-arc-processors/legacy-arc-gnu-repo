@@ -1,5 +1,10 @@
 2011-01-20  Brendan Kehoe  <brendan@zen.org>
 
+	CR 101622
+	* config/arc/ieee-754/adddf3.S (Lcheck_iszero): New code to
+	handle either operand being zero.
+	(__adddf3): Use it.
+
 	CR 101612
 	* config/arc/ieee-754/adddf3.S (Linf_nan): Fix to give NaN when
 	the signs on values of infinity don't match.
