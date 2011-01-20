@@ -102,9 +102,15 @@ __adddf3:
 	norm DBL1L,r4
 	b.d .Lsub_done_same_exp
 	sub r12,DBL1L,9
+
 .Linf_nan:
+	xor.f 0, DBL0H, DBL1H
+	/* If XOR set the N bit, the signs do not match: give NaN.  */
+	mov.n DBL0H, 0xffffffff
 	j_s.d [blink]
-	or.eq DBL0H,DBL0H,DBL1H
+	/* If the signs matched, give inf, using 7|7 and 7|f to relay sign.  */
+	or.p DBL0H,DBL0H,DBL1H
+
 	.balign 4
 .L_rsub_same_exp:
 	rsub.f DBL0L,DBL0L,DBL1L

@@ -1,3 +1,11 @@
+2011-01-20  Brendan Kehoe  <brendan@zen.org>
+
+	CR 101612
+	* config/arc/ieee-754/adddf3.S (Linf_nan): Fix to give NaN when
+	the signs on values of infinity don't match.
+	* config/arc/ieee-754/muldf3.S (Linf_nan): Fix to honor inf*0.0
+	and properly give back NaN.
+
 2010-03-15  Brendan Kehoe  <brendan@zen.org>
 
 	CR 98782

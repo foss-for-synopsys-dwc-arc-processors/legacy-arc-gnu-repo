@@ -70,15 +70,17 @@ __muldf3_support: /* This label makes debugger output saner.  */
 	.balign 4
 .Linf_nan:
 	bclr r12,DBL1H,31
-	xor_s DBL1H,DBL1H,DBL0H
+	; use r13 instead of DBL1H to not lose its (possibly 0) value
+	xor r13, DBL1H, DBL0H
 	bclr_s DBL0H,DBL0H,31
 	max r8,DBL0H,r12 ; either NaN -> NaN ; otherwise inf
-	or.f DBL1L,DBL0H,DBL0L
+	or.f r14,DBL0H,DBL0L
 	mov_s DBL0L,0
+	; if lhs != 0, see if rhs is
 	or.ne.f DBL1L,DBL1L,r12
-	not_s DBL0H,DBL1L ; inf * 0 -> NaN
-	mov.ne DBL0H,r8
-	tst_s DBL1H,DBL1H
+	not_s DBL0H,DBL1L ; inf * 0 -> NaN (~DBL1L gives NaN)
+	mov.nz DBL0H,r8;  ; if rhs is not 0, give INF
+	tst DBL1H,r13
 	j_s.d [blink]
 	bset.mi DBL0H,DBL0H,31
 
