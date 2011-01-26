@@ -97,7 +97,7 @@ __adddf3:
 ; With the iszero checks are just 1 byte too large to be able to branch:
 ;	brne r12,0,.Lsmall_shift
 	tst_s r12, r12
-	jne .Lsmall_shift
+	bne .Lsmall_shift
 
 	brge r10,0,.Ladd_same_exp ; r12 == 0
 

@@ -1,3 +1,9 @@
+2011-01-26  Brendan Kehoe  <brendan@zen.org>
+
+	CR 101622
+	* config/arc/ieee-754/adddf3.S (__adddf3): Change JNE to BNE
+	to be more friendly to PIC.
+
 2011-01-20  Brendan Kehoe  <brendan@zen.org>
 
 	CR 101622
