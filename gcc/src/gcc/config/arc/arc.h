@@ -787,10 +787,12 @@ extern enum reg_class arc_regno_reg_class[];
    In general this is just CLASS; but on some machines
    in some cases it is preferable to use a more restrictive class.  */
 
+/* START ARC LOCAL fpx support */
 #define PREFERRED_RELOAD_CLASS(X, CLASS) \
-  (((CLASS) == CHEAP_CORE_REGS  || (CLASS) == WRITABLE_CORE_REGS) \
-   ? GENERAL_REGS \
-   : (CLASS))
+  arc_preferred_reload_class((X), (CLASS))
+
+  extern enum reg_class arc_preferred_reload_class (rtx, enum reg_class);
+/* END ARC LOCAL fpx support */
 
 /* Return the maximum number of consecutive registers
    needed to represent mode MODE in a register of class CLASS.  */

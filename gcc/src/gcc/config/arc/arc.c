@@ -468,7 +468,9 @@ arc_sched_adjust_priority (rtx insn ATTRIBUTE_UNUSED, int priority)
   return priority;
 }
 
-struct gcc_target targetm = TARGET_INITIALIZER;
+/* START ARC LOCAL fpx support */
+extern struct gcc_target targetm;
+/* END ARC LOCAL fpx support */
 
 /* Called by OVERRIDE_OPTIONS to initialize various things.  */
 void arc_init (void)
@@ -673,29 +675,39 @@ get_arc_condition_code (rtx comparison)
 	case GEU : return 7;
 	default : gcc_unreachable ();
 	}
+
+    /* START ARC LOCAL fpx support */
+    /* Note: these need to match arc.c:arc_select_cc_mode. */
     case CC_FP_GTmode:
-      if (TARGET_SPFP)
+      if (TARGET_ARGONAUT_SET && TARGET_SPFP)
 	switch (GET_CODE (comparison))
 	  {
+	  case LT  :
 	  case GT  : return 5; /* n */
+	  case UNGE:
 	  case UNLE: return 4; /* p */
 	  default : gcc_unreachable ();
 	}
       else
 	switch (GET_CODE (comparison))
 	  {
-	  case GT   : return 14;
-	  case UNLE : return 15;
+	  case LT   :
+	  case GT   : return 14; /* hi */
+	  case UNGE :
+	  case UNLE : return 15; /* ls */
 	  default : gcc_unreachable ();
 	}
     case CC_FP_GEmode:
       /* Same for FPX and non-FPX.  */
       switch (GET_CODE (comparison))
 	{
+	case LE   :
 	case GE   : return 7;
+	case UNGT :
 	case UNLT : return 6;
 	default : gcc_unreachable ();
 	}
+    /* END ARC LOCAL fpx support */
     case CC_FP_UNEQmode:
       switch (GET_CODE (comparison))
 	{
@@ -760,7 +772,10 @@ arc_select_cc_mode (enum rtx_code op,
       && (rtx_equal_p (XEXP (x, 0), y) || rtx_equal_p (XEXP (x, 1), y)))
     return CC_Cmode;
 
-  if ((mode == SFmode && TARGET_SPFP) || (mode == DFmode && TARGET_DPFP))
+/* START ARC LOCAL fpx support */
+  if (TARGET_ARGONAUT_SET
+      && ((mode == SFmode && TARGET_SPFP) || (mode == DFmode && TARGET_DPFP)))
+/* END ARC LOCAL fpx support */
     switch (op)
       {
       case EQ: case NE: case UNEQ: case LTGT: case ORDERED: case UNORDERED:
@@ -852,6 +867,16 @@ unsigned int arc_hard_regno_mode_ok[] = {
 unsigned int arc_mode_class [NUM_MACHINE_MODES];
 
 enum reg_class arc_regno_reg_class[FIRST_PSEUDO_REGISTER];
+
+/* START ARC LOCAL fpx support */
+enum reg_class
+arc_preferred_reload_class (rtx x, enum reg_class cl)
+{
+  if ((cl) == CHEAP_CORE_REGS  || (cl) == WRITABLE_CORE_REGS)
+    return GENERAL_REGS;
+  return cl;
+}
+/* END ARC LOCAL fpx support */
 
 static void
 arc_init_reg_tables (void)
@@ -1064,10 +1089,26 @@ arc_conditional_register_usage (void)
 
     if (TARGET_DPFP)
       {
-	arc_regno_reg_class[40] = DOUBLE_REGS;
-	arc_regno_reg_class[41] = DOUBLE_REGS;
-	arc_regno_reg_class[42] = DOUBLE_REGS;
-	arc_regno_reg_class[43] = DOUBLE_REGS;
+	/* START ARC LOCAL fpx support */
+	for (i = 40; i < 44; ++i)
+	{
+	  arc_regno_reg_class[i] = DOUBLE_REGS;
+	  
+	  if (!TARGET_ARGONAUT_SET)
+  	  {
+	    /* Make sure no 'c', 'w', 'W', or 'Rac' constraint is
+	       interpreted to mean they can use D1 or D2 in their insn. */
+	    CLEAR_HARD_REG_BIT(reg_class_contents[CHEAP_CORE_REGS       ], i);
+	    CLEAR_HARD_REG_BIT(reg_class_contents[ALL_CORE_REGS         ], i);
+
+	    /* Unless they want us to do 'mov d1, 0x00000000' make sure
+	       no attempt is made to use such a register as a destination
+	       operand in *movdf_insn.  */
+	    CLEAR_HARD_REG_BIT(reg_class_contents[WRITABLE_CORE_REGS    ], i);
+	    CLEAR_HARD_REG_BIT(reg_class_contents[MPY_WRITABLE_CORE_REGS], i);
+	  }
+	}
+	/* END ARC LOCAL fpx support */
       }
     else
       {
@@ -1191,7 +1232,12 @@ gen_compare_reg (enum rtx_code code, enum machine_mode omode)
 
   cc_reg = gen_rtx_REG (mode, 61);
 
-  if ((cmode == SFmode && TARGET_SPFP) || (cmode == DFmode && TARGET_DPFP))
+  /* START ARC LOCAL fpx support */
+  /* Until all state bits other than Z are checked and valid for fsub.f,
+     stick with the software comparisons.  */
+  if (TARGET_ARGONAUT_SET
+      && ((cmode == SFmode && TARGET_SPFP) || (cmode == DFmode && TARGET_DPFP)))
+  /* END ARC LOCAL fpx support */
     {
       switch (code)
 	{
@@ -1206,7 +1252,18 @@ gen_compare_reg (enum rtx_code code, enum machine_mode omode)
 	default:
 	  gcc_unreachable ();
 	}
-      emit_insn ((cmode == SFmode ? gen_cmpsfpx_raw : gen_cmpdfpx_raw) (x, y));
+      /* START ARC LOCAL fpx support */
+      if (cmode == SFmode)
+      {
+	emit_insn (gen_cmpsfpx_raw (x, y));
+      }
+      else /* DFmode */
+      {
+	/* Accepts Dx regs directly by insns.  */
+	emit_insn (gen_cmpdfpx_raw (x, y));
+      }
+      /* END ARC LOCAL fpx support */
+
       if (mode != CC_FPXmode)
 	emit_insn (gen_rtx_SET (VOIDmode, cc_reg,
 				gen_rtx_COMPARE (mode,
@@ -7144,15 +7201,35 @@ arc_secondary_reload (bool in_p, rtx x, enum reg_class class,
                      enum machine_mode mode ATTRIBUTE_UNUSED,
 		     secondary_reload_info *sri ATTRIBUTE_UNUSED)
 {
-  /* We can't load/store the D-registers directly */
-  if (class == DOUBLE_REGS && (GET_CODE (x) == MEM))
-    return GENERAL_REGS;
+  /* START ARC LOCAL fpx support */
+  if (class == DOUBLE_REGS)
+    {
+      /* We can't load/store DOUBLE_REGS directly. */
+      if (MEM_P (x))
+        return GENERAL_REGS;
+
+      /* Any attempt to save to a DOUBLE_REGS register will require
+         an intermediate register in order to use "*movdf_insn".  */
+      if (in_p && REG_P (x))
+      {
+        return GENERAL_REGS;
+      }
+    }
+  /* END ARC LOCAL fpx support */
+
   /* The loop counter register can be stored, but not loaded directly.  */
   if ((class == LPCOUNT_REG || class == WRITABLE_CORE_REGS)
       && in_p && GET_CODE (x) == MEM)
     return GENERAL_REGS;
   return NO_REGS;
 }
+
+/* START ARC LOCAL fpx support */
+#undef TARGET_SECONDARY_RELOAD
+#define TARGET_SECONDARY_RELOAD arc_secondary_reload
+
+struct gcc_target targetm = TARGET_INITIALIZER;
+/* END ARC LOCAL fpx support */
 
 static bool
 arc_preserve_reload_p (rtx in)

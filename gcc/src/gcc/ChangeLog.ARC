@@ -1,3 +1,100 @@
+2011-01-07  Brendan Kehoe  <brendan@zen.org>
+
+        Back-port fixed FPX extension support from ARC_GNU 3.0 trunk
+        to ARC_GNU 2.3 release.
+
+	* config/arc/fpx.md (cmpdfpx_raw): Only keep TARGET_ARGONAUT_SET
+	version.  In this and related patterns, add comment explaining
+	why this implementation is flawed.
+	(cmpdfpx_argonaut_raw): Deleted.
+	(cmpsfpx_raw): Conditionalize on TARGET_ARGONAUT_SET.
+	(*cmpfpx_gt, *cmpfpx_ge): Likewise.
+	* config/arc/arc.md (*cmp{s,d}f_{eq,gt,ge,uneq,ord}): Only heed
+	the -mspfp or -mdpfp flags if TARGET_ARGONAUT_SET; otherwise
+	always allow these to result in calling comparison routines.
+	* config/arc/arc.c (gen_compare_reg): Only use the approach
+	with cmp{s,d}fpx_raw if TARGET_ARGONAUT_SET.
+	(arc_select_cc_mode): Only allow the possibility of CC_FPXmode
+	if TARGET_ARGONAUT_SET.
+
+	* config/arc/arc.c (arc_init): Don't complain if a DPFP option
+	was used without -margonaut.
+	(arc_conditional_register_usage): With TARGET_DPFP, make sure
+	WRITABLE_CORE_REGS and MPY_WRITABLE_CORE_REGS don't believe the
+	Dx registers are usable unless TARGET_ARGONAUT_SET.  Likewise,
+	don't touch CHEAP_CORE_REGS and ALL_CORE_REGS unless
+	!TARGET_ARGONAUT_SET.
+	(gen_compare_reg): For TARGET_ARGONAUT_SET, call the
+	renamed gen_cmpdfpx_argonaut_raw.
+	* config/arc/arc.h (TARGET_DPFP): Remove TARGET_ARGONAUT_SET.
+	* config/arc/fpx.md (cmpfpx_raw) [!TARGET_ARGONAUT_SET]: Define
+	new version which uses correct insn Dx register for dest and to
+	not try to use Dx regs as operands.
+	(cmpdfpx_argonaut_raw) [TARGET_ARGONAUT_SET]: Renamed.
+
+	* config/arc/fpx.md: Remove constraints from define_peephole2
+	patterns.
+
+	* config/arc/arc.c (arc_verify_short): For TARGET_SPFP,
+	prevent letting specific unsupported conditions P, N, C, or NC
+	be part of short Bcc_S branches; result in Bcc instead.
+	(arc_reorg): Don't try to build a BRCC insn if the operands
+	are SFmode.
+
+	Isolate the Argonaut FPX implementation.
+	* config/arc/arc.opt (margonaut): Add -margonaut option to
+	enable the Argonaut FPX implementation.
+	* config/arc/arc.h (TARGET_DPFP): For now, only allow this
+	if TARGET_ARGONAUT_SET.
+	* config/arc/arc.c (arc_init): Complain if either DPFP flag
+	is used without also using -margonaut.
+
+	* config/arc/predicates.md (proper_comparison_operator): Add
+	missing cases for the CC_FP_* modes which can be set up by
+	arc.c:arc_select_cc_mode.
+
+	* config/arc/arc.md (cmpdf, cmpsf): Change constraints to
+	both be register_operand, not general_operand, so MEM refs
+	will get put into a reg for us.
+
+	* config/arc/arc.md (cmpdf): Don't conditionalize on
+	TARGET_DPFP, or we'll end up with a libcall instead of
+	actually using the FPX patterns.
+	
+	* config/arc/arc-protos.h (arc_secondary_reload): Delete
+	unnecessary decl.
+
+	* config/arc/arc.c (targetm): Add extern decl.
+	* config/arc/arc.c (get_arc_condition_code, case CC_FP_GTmode):
+	Only set N or P if TARGET_ARGONAUT_SET for SPFP, otherwise do HI
+        or LS.  Add missing cases.
+        (get_arc_condition_code, case CC_FP_GEmode): Add missing cases.
+        (arc_secondary_reload): For an input reload, any attempt
+	to save to a DOUBLE_REGS register will require
+	an intermediate register in order to use "*movdf_insn".
+	Adjust to use MEM_P.  Rename from arc_secondary_reload_class.
+	(TARGET_SECONDARY_RELOAD): Refer to arc_secondary_reload_class.
+	(arc_conditional_register_usage): Make sure the d1/d2 registers
+	don't get used for 'c' or 'Rac' constraints.
+	
+	* config/arc/arc.md (movdf): Make op0 be nonimmediate_operand
+	instead of general_operand, to match the style of other ports.
+	(*movdf_insn): Use gcc_unreachable.
+
+	* config/arc/arc.md (*movdf_insn): Change order of
+	constraints so the D class for DOUBLE_REGS is better
+	than the w/c pair for generic registers.  Adjust order
+	of cases approprately; add comments to the assembly to
+	ease identification of which constraint matches.
+	* config/arc/arc.c (arc_secondary_reload_class): Rename
+	from arc_secondary_reload.
+	(TARGET_SECONDARY_RELOAD): Define so it actually gets used.
+	(arc_preferred_reload_class): New function, using what
+	was in the macro.
+	* config/arc/arc.h (PREFERRED_RELOAD_CLASS): Call
+	arc_preferred_reload_class() instead.
+	(arc_preferred_reload_class): Add decl.
+
 2011-01-26  Brendan Kehoe  <brendan@zen.org>
 
 	CR 101622

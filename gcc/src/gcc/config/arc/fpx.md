@@ -93,11 +93,12 @@
   [(set_attr "type" "spfp")
   (set_attr "length" "4,4,8,8,8")])
 
+;; START ARC LOCAL fpx support
 (define_insn "cmpsfpx_raw"
   [(set (reg:CC_FPX 61)
 	(compare:CC_FPX (match_operand:SF 0 "register_operand" "r")
 			 (match_operand:SF 1 "register_operand" "r")))]
-  "TARGET_SPFP"
+  "TARGET_ARGONAUT_SET && TARGET_SPFP"
   "fsub.f 0,%0,%1"
   [(set_attr "type" "spfp")
    (set_attr "length" "4")])
@@ -107,7 +108,7 @@
 	(compare:CC_FPX (match_operand:DF 0 "nonmemory_operand" "D,r")
 			 (match_operand:DF 1 "nonmemory_operand" "r,D")))
    (clobber (match_scratch:DF 2 "=D,D"))]
-  "TARGET_DPFP"
+  "TARGET_ARGONAUT_SET && TARGET_DPFP"
   "@
    dsubh%F0%F1.f 0,%H2,%L2
    drsubh%F0%F2.f 0,%H1,%L1"
@@ -116,17 +117,18 @@
 
 (define_insn "*cmpfpx_gt"
   [(set (reg:CC_FP_GT 61) (compare:CC_FP_GT (reg:CC_FPX 61) (const_int 0)))]
-  ""
+  "TARGET_ARGONAUT_SET"
   "cmp.ls pcl,pcl"
   [(set_attr "type" "compare")
    (set_attr "length" "4")])
 
 (define_insn "*cmpfpx_ge"
   [(set (reg:CC_FP_GE 61) (compare:CC_FP_GE (reg:CC_FPX 61) (const_int 0)))]
-  ""
+  "TARGET_ARGONAUT_SET"
   "rcmp.pnz pcl,0"
   [(set_attr "type" "compare")
    (set_attr "length" "4")])
+;; END ARC LOCAL fpx support
 
 ;; DPFP instructions begin...
 
@@ -371,7 +373,9 @@
 ;;       {regpair2_or_limmreg24} and D3
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define_peephole2
-  [(parallel [(set (match_operand:DF 0 "register_operand"          "W")
+;; START ARC LOCAL fpx support
+  [(parallel [(set (match_operand:DF 0 "register_operand"          "")
+;; END ARC LOCAL fpx support
 	(match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 			   (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))
@@ -473,7 +477,9 @@
 ;;       {regpair2_or_limmreg24} and D3
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define_peephole2
-  [(parallel [(set (match_operand:DF 0 "register_operand"          "W")
+;; END ARC LOCAL fpx support
+  [(parallel [(set (match_operand:DF 0 "register_operand"          "")
+;; END ARC LOCAL fpx support
 		   (match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 				      (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))

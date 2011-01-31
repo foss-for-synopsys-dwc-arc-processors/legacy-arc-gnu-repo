@@ -794,14 +794,17 @@
   [(set_attr "type" "move,move,load,store")])
 
 (define_expand "movdf"
-  [(set (match_operand:DF 0 "general_operand" "")
+  ; START ARC LOCAL fpx support
+  [(set (match_operand:DF 0 "nonimmediate_operand" "")
+  ; END ARC LOCAL fpx support
 	(match_operand:DF 1 "general_operand" ""))]
   ""
   "if (prepare_move_operands (operands, DFmode)) DONE;")
 
+;; START ARC LOCAL fpx support
 (define_insn "*movdf_insn"
-  [(set (match_operand:DF 0 "move_dest_operand" "=c,c,r,m,D,r")
-	(match_operand:DF 1 "move_double_src_operand" "c,E,m,c,r,D"))]
+  [(set (match_operand:DF 0 "move_dest_operand"      "=D,r,c,c,r,m")
+	(match_operand:DF 1 "move_double_src_operand" "r,D,c,E,m,c"))]
   "register_operand (operands[0], DFmode)
    || register_operand (operands[1], DFmode)"
   "*
@@ -809,7 +812,16 @@
   switch (which_alternative)
     {
     default:
-    case 0 :
+	gcc_unreachable ();
+    case 0:
+        if (!TARGET_DPFP)
+          {
+            fatal_error (\"DPFP register allocated without -mdpfp\\n\");
+          }
+        return \"dexcl%F0 0, %H1, %L1\";
+    case 1:
+        return \"lr %H0,[%H1h]\;lr %L0,[%H1l] ; double reg moves\";
+    case 2 :
       /* We normally copy the low-numbered register first.  However, if
 	 the first register operand 0 is the same as the second register of
 	 operand 1, we must copy in the opposite order.  */
@@ -817,9 +829,9 @@
 	return \"mov %R0,%R1\;mov %0,%1\";
       else
       return \"mov%? %0,%1\;mov%? %R0,%R1\";
-    case 1 :
+    case 3 :
       return \"mov%? %L0,%L1\;mov%? %H0,%H1 ; %A1\";
-    case 2 :
+    case 4 :
       /* If the low-address word is used in the address, we must load it
 	 last.  Otherwise, load it first.  Note that we cannot have
 	 auto-increment in that case since the address register is known to be
@@ -836,7 +848,7 @@
 	default:
 	  return \"ld%U1%V1 %0,%1\;ld%U1%V1 %R0,%R1\";
 	}
-    case 3 :
+    case 5 :
       switch (GET_CODE (XEXP(operands[0], 0)))
 	{
 	case POST_MODIFY: case POST_INC: case POST_DEC:
@@ -846,21 +858,13 @@
 	default:
      	  return \"st%U0%V0 %1,%0\;st%U0%V0 %R1,%R0\";
 	}
-    case 4:
-        if (!TARGET_DPFP)
-          {
-            fatal_error (\"DPFP register allocated without -mdpfp\\n\");
-          }
-        return \"dexcl%F0 0, %H1, %L1\";
-    case 5:
-        return \"lr %H0,[%H1h]\;lr %L0,[%H1l] ; double reg moves\";
-
     }
 }"
-  [(set_attr "type" "move,move,load,store, move,lr")
-   (set_attr "cond" "canuse,canuse,nocond,nocond,nocond,nocond")
+  [(set_attr "type" "move,lr,move,move,load,store")
+   (set_attr "cond" "nocond,nocond,canuse,canuse,nocond,nocond")
    ;; ??? The ld/st values could be 16 if it's [reg,bignum].
-   (set_attr "length" "8,16,16,16,4,16")])
+   (set_attr "length" "4,16,8,16,16,16")])
+;; END ARC LOCAL fpx support
 
 ;; Load/Store with update instructions.
 ;;
@@ -4979,9 +4983,11 @@
 ;; See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35803 why we can't
 ;; get rid of this bogosity.
 (define_expand "cmpsf"
+  ; START ARC LOCAL fpx support
   [(set (reg:CC 61)
-	(compare:CC (match_operand:SF 0 "general_operand" "")
-		    (match_operand:SF 1 "general_operand" "")))]
+	(compare:CC (match_operand:SF 0 "register_operand" "")
+		    (match_operand:SF 1 "register_operand" "")))]
+  ; END ARC LOCAL fpx support
   "TARGET_ARC700"
   "
 {
@@ -4991,10 +4997,12 @@
 }")
 
 (define_expand "cmpdf"
+  ; START ARC LOCAL fpx support
   [(set (reg:CC 61)
-	(compare:CC (match_operand:DF 0 "general_operand" "")
-		    (match_operand:DF 1 "general_operand" "")))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+	(compare:CC (match_operand:DF 0 "register_operand" "")
+		    (match_operand:DF 1 "register_operand" "")))]
+  ; END ARC LOCAL fpx support
+  "TARGET_ARC700"
   "
 {
   arc_compare_op0 = operands[0];
@@ -5013,7 +5021,8 @@
   [(set (reg:CC_Z 61) (compare:CC_Z (reg:SF 0) (reg:SF 1)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_SPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_SPFP)"
   "*return arc_output_libcall (\"__eqsf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5027,7 +5036,8 @@
   [(set (reg:CC_Z 61) (compare:CC_Z (reg:DF 0) (reg:DF 2)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_DPFP)"
   "*return arc_output_libcall (\"__eqdf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5041,7 +5051,8 @@
   [(set (reg:CC_FP_GT 61) (compare:CC_FP_GT (reg:SF 0) (reg:SF 1)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_SPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_SPFP)"
   "*return arc_output_libcall (\"__gtsf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5055,7 +5066,8 @@
   [(set (reg:CC_FP_GT 61) (compare:CC_FP_GT (reg:DF 0) (reg:DF 2)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_DPFP)"
   "*return arc_output_libcall (\"__gtdf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5069,7 +5081,8 @@
   [(set (reg:CC_FP_GE 61) (compare:CC_FP_GE (reg:SF 0) (reg:SF 1)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_SPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_SPFP)"
   "*return arc_output_libcall (\"__gesf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5083,7 +5096,8 @@
   [(set (reg:CC_FP_GE 61) (compare:CC_FP_GE (reg:DF 0) (reg:DF 2)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_DPFP)"
   "*return arc_output_libcall (\"__gedf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5097,7 +5111,8 @@
   [(set (reg:CC_FP_UNEQ 61) (compare:CC_FP_UNEQ (reg:SF 0) (reg:SF 1)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_SPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_SPFP)"
   "*return arc_output_libcall (\"__uneqsf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5111,7 +5126,8 @@
   [(set (reg:CC_FP_UNEQ 61) (compare:CC_FP_UNEQ (reg:DF 0) (reg:DF 2)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_DPFP)"
   "*return arc_output_libcall (\"__uneqdf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5125,7 +5141,8 @@
   [(set (reg:CC_FP_ORD 61) (compare:CC_FP_ORD (reg:SF 0) (reg:SF 1)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_SPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_SPFP)"
   "*return arc_output_libcall (\"__ordsf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
@@ -5141,7 +5158,8 @@
   [(set (reg:CC_FP_ORD 61) (compare:CC_FP_ORD (reg:DF 0) (reg:DF 2)))
    (clobber (reg:SI 31))
    (clobber (reg:SI 12))]
-  "TARGET_ARC700 && !TARGET_DPFP"
+  ; ARC LOCAL fpx support
+  "TARGET_ARC700 && (!TARGET_ARGONAUT_SET || !TARGET_DPFP)"
   "*return arc_output_libcall (\"__orddf2\");"
   [(set (attr "type")
 	(cond [(eq (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))

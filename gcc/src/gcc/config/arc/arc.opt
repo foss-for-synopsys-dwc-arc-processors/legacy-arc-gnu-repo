@@ -134,6 +134,12 @@ mspfp_fast
 Target Report Mask(SPFP_FAST_SET) 
 FPX: Generate Single Precision FPX (fast) instructions.
 
+; START ARC LOCAL
+margonaut
+Target Report Mask(ARGONAUT_SET)
+FPX: Enable Argonaut ARC CPU Double Precision Floating Point extensions.
+; END ARC LOCAL
+
 mdpfp
 Target Report Mask(DPFP_COMPACT_SET)
 FPX: Generate Double Precision FPX (compact) instructions.
