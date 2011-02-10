@@ -67,22 +67,33 @@ __muldf3_support: /* This label makes debugger output saner.  */
 	b.d __muldf3
 	add_s DBL1H,DBL1H,r6
 
+;; Inf/NaN handling
+
 	.balign 4
 .Linf_nan:
-	bclr r12,DBL1H,31
-	; use r13 instead of DBL1H to not lose its (possibly 0) value
-	xor r13, DBL1H, DBL0H
-	bclr_s DBL0H,DBL0H,31
-	max r8,DBL0H,r12 ; either NaN -> NaN ; otherwise inf
-	or.f r14,DBL0H,DBL0L
+	; if either is NaN, return NaN
+	or r12, DBL0H, DBL1H
+	cmp r12, 0xFFFFFFFF
+	beq_s .Linf_nan_reNAN
+
+	; if either is 0, return NaN
+	or.f r12, DBL0H, DBL0L ; test lhs == 0
 	mov_s DBL0L,0
-	; if lhs != 0, see if rhs is
-	or.ne.f DBL1L,DBL1L,r12
-	not_s DBL0H,DBL1L ; inf * 0 -> NaN (~DBL1L gives NaN)
-	mov.nz DBL0H,r8;  ; if rhs is not 0, give INF
-	tst DBL1H,r13
+	; if /Z aka if lhs != 0, set Z bit if rhs==0
+	mov.ne r12, DBL1L
+	or.ne.f r12, r12, DBL1H
+.Linf_nan_reNAN: ; return NaN if Z bit is set (by BEQ_S / OR insn)
+	mov.z DBL0H, 0xffffffff
+	jz [blink]
+
+	; otherwise, give back infinity with the right sign	
+	xor.f r12, DBL1H, DBL0H
+	mov_s DBL0H, r9
 	j_s.d [blink]
+	; if signs were different according to XOR, then reset it
 	bset.mi DBL0H,DBL0H,31
+
+;;
 
 .Lret0:	xor_s DBL0H,DBL0H,DBL1H
 	bclr DBL1H,DBL0H,31

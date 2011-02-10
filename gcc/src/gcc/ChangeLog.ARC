@@ -1,5 +1,11 @@
 2011-02-10  Brendan Kehoe  <brendan@zen.org>
 
+	Further fixes to domain error handling.
+	* config/arc/ieee-754/adddf3.S: If the RHS operand is neither
+	infinity nor NaN, just return the LHS operand.
+	* config/arc/ieee-754/muldf3.S (Linf_nan): Rewrite to simplify
+	and make sure arguments can be commutable.
+
 	Add support for disabling the LR insn with FPX extension regs;
 	involves the replacement the DFmode patterns.
 	* config/arc/arc.c (arc_init): Give an error if -mno-dpfp-lrsr

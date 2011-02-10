@@ -86,6 +86,7 @@ __subdf3:
 __adddf3:
 	ld r9,[pcl,-8]
 	bmsk r4,DBL0H,30
+	bmsk r5,DBL1H,30 ; do both so adddf3 is properly commutative
 	xor r10,DBL0H,DBL1H
 	and r6,DBL1H,r9
 	sub.f r12,r4,r6
@@ -132,6 +133,10 @@ __adddf3:
 	sub r12,DBL1L,9
 
 .Linf_nan:
+	; if Y r5 is not also infinity/nan, return X r4 as-is
+	cmp r5,r9 ; so adddf3 is properly commutative
+	jlo [blink]
+
 	xor.f 0, DBL0H, DBL1H
 	/* If XOR set the N bit, the signs do not match: give NaN.  */
 	mov.n DBL0H, 0xffffffff
