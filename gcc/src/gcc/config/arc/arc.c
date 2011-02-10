@@ -473,7 +473,8 @@ extern struct gcc_target targetm;
 /* END ARC LOCAL fpx support */
 
 /* Called by OVERRIDE_OPTIONS to initialize various things.  */
-void arc_init (void)
+void
+arc_init (void)
 {
   char *tmp;
   int target_found = 0;
@@ -573,6 +574,9 @@ void arc_init (void)
   /* mul/mac instructions only for ARC600 */
   if (TARGET_MULMAC_32BY16_SET && !TARGET_ARC600)
       error ("-mmul32x16 supported only for ARC600");
+
+  if (!TARGET_DPFP && TARGET_DPFP_DISABLE_LRSR)
+      error ("-mno-dpfp-lrsr supported only with -mdpfp");
 
   /* Sanity checks for usage of the FPX switches */
   /* FPX-1. No fast and compact together */
@@ -7214,6 +7218,12 @@ arc_secondary_reload (bool in_p, rtx x, enum reg_class class,
       {
         return GENERAL_REGS;
       }
+      
+      /* Make sure double constants are loaded into feeder registers. */
+      if (GET_CODE (x) == CONST_DOUBLE || GET_CODE (x) == CONST_INT)
+      {
+        return GENERAL_REGS;
+      }
     }
   /* END ARC LOCAL fpx support */
 
@@ -7255,6 +7265,11 @@ arc_register_move_cost (enum machine_mode mode ATTRIBUTE_UNUSED,
       && (from_class == LPCOUNT_REG || from_class == ALL_CORE_REGS
 	  || from_class == WRITABLE_CORE_REGS))
     return 8;
+    
+  /* Force an attempt to 'mov Dy,Dx' to spill. */
+  if (TARGET_ARC700 && TARGET_DPFP
+      && from_class == DOUBLE_REGS && to_class == DOUBLE_REGS)
+      return 100;
   return 2;
 
 }
@@ -7720,4 +7735,162 @@ rtx
 gen_mhi (void)
 {
   return gen_rtx_REG (SImode, TARGET_BIG_ENDIAN ? 58: 59);
+}
+
+/* Handle DOUBLE_REGS uses.
+   Operand 0: destination register
+   Operand 1: source register  */
+rtx
+arc_process_double_reg_moves (rtx *operands)
+{
+  rtx dest = operands[0];
+  rtx src  = operands[1];
+  rtx val;
+
+  enum usesDxState { none, srcDx, destDx, maxDx };
+  enum usesDxState state = none;
+
+  if (refers_to_regno_p (40, 44, src, 0))
+  {
+     state = srcDx;
+  }
+  if (refers_to_regno_p (40, 44, dest, 0))
+  {
+     /* Via arc_register_move_cost, we should never see D,D moves.  */
+     gcc_assert (state == none);
+     state = destDx;
+  }
+
+  if (state == none)
+    return NULL_RTX;
+
+  start_sequence ();
+
+  if (state == srcDx)
+    {
+	/* Without the LR insn, we need to split this into a
+	   sequence of insns which will use the DEXCLx and DADDHxy
+	   insns to be able to read the Dx register in question. */
+	if (TARGET_DPFP_DISABLE_LRSR)
+	{
+	  /* gen *movdf_insn_nolrsr */
+	  rtx set = gen_rtx_SET (VOIDmode, dest, src);
+	  rtx use1 = gen_rtx_USE (VOIDmode, const1_rtx);
+	  emit_insn (gen_rtx_PARALLEL (VOIDmode, gen_rtvec (2, set, use1)));
+	}
+	else
+	{
+	  /* When we have 'mov D, r' or 'mov D, D' then get the target
+	     register pair for use with LR insn.  */
+	  rtx destHigh = simplify_gen_subreg(SImode, dest, DFmode, 4);
+	  rtx destLow  = simplify_gen_subreg(SImode, dest, DFmode, 0);
+
+	  /* Produce the two LR insns to get the high and low parts. */
+	  emit_insn (gen_rtx_SET (VOIDmode,
+	  			  destHigh,
+	  			  gen_rtx_UNSPEC_VOLATILE (Pmode, gen_rtvec (1, src),
+				  VUNSPEC_LR_HIGH)));
+	  emit_insn (gen_rtx_SET (VOIDmode,
+				  destLow,
+	  			  gen_rtx_UNSPEC_VOLATILE (Pmode, gen_rtvec (1, src),
+				  VUNSPEC_LR)));
+	}
+    }
+    else if (state == destDx)
+    {
+      /* When we have 'mov r, D' or 'mov D, D' and we have access to the
+         LR insn get the target register pair.  */
+      rtx srcHigh = simplify_gen_subreg(SImode, src, DFmode, 4);
+      rtx srcLow  = simplify_gen_subreg(SImode, src, DFmode, 0);
+
+      emit_insn (gen_rtx_UNSPEC_VOLATILE (Pmode,
+					  gen_rtvec (3, dest, srcHigh, srcLow),
+		 			  VUNSPEC_DEXCL_NORES));
+
+    }
+    else
+      gcc_unreachable ();
+    
+    val = get_insns ();
+    end_sequence ();
+    return val;    
+}
+
+/* operands 0..1 are the operands of a 64 bit move instruction.
+   split it into two moves with operands 2/3 and 4/5.  */
+rtx
+arc_split_move (rtx *operands)
+{
+  enum machine_mode mode = GET_MODE (operands[0]);
+  int i;
+  int swap = 0;
+  rtx xop[4];
+  rtx val;
+
+  if (TARGET_DPFP)
+  {
+    val = arc_process_double_reg_moves (operands);
+    if (val)
+      return val;
+  }
+
+  for (i = 0; i < 2; i++)
+    {
+      if (MEM_P (operands[i]) && auto_inc_p (XEXP (operands[i], 0)))
+	{
+	  rtx addr = XEXP (operands[i], 0);
+	  rtx r, o;
+	  enum rtx_code code;
+
+	  gcc_assert (!reg_overlap_mentioned_p (operands[0], addr));
+	  switch (GET_CODE (addr))
+	    {
+	    case PRE_DEC: o = GEN_INT (-8); goto pre_modify;
+	    case PRE_INC: o = GEN_INT (8); goto pre_modify;
+	    case PRE_MODIFY: o = XEXP (XEXP (addr, 1), 1);
+	    pre_modify:
+	      code = PRE_MODIFY;
+	      break;
+	    case POST_DEC: o = GEN_INT (-8); goto post_modify;
+	    case POST_INC: o = GEN_INT (8); goto post_modify;
+	    case POST_MODIFY: o = XEXP (XEXP (addr, 1), 1);
+	    post_modify:
+	      code = POST_MODIFY;
+	      swap = 2;
+	      break;
+	    default:
+	      gcc_unreachable ();
+	    }
+	  r = XEXP (addr, 0);
+	  xop[0+i] = adjust_automodify_address_nv
+		      (operands[i], SImode,
+		       gen_rtx_fmt_ee (code, Pmode, r,
+				       gen_rtx_PLUS (Pmode, r, o)),
+		       0);
+	  xop[2+i] = adjust_automodify_address_nv
+		      (operands[i], SImode, plus_constant (r, 4), 4);
+	}
+      else
+	{
+	  xop[0+i] = operand_subword (operands[i], 0, 0, mode);
+	  xop[2+i] = operand_subword (operands[i], 1, 0, mode);
+	}
+    }
+  if (reg_overlap_mentioned_p (xop[0], xop[3]))
+    {
+      swap = 2;
+      gcc_assert (!reg_overlap_mentioned_p (xop[2], xop[1]));
+    }
+  operands[2+swap] = xop[0];
+  operands[3+swap] = xop[1];
+  operands[4-swap] = xop[2];
+  operands[5-swap] = xop[3];
+  
+  start_sequence ();
+  emit_insn (gen_rtx_SET (VOIDmode, operands[2], operands[3]));
+  emit_insn (gen_rtx_SET (VOIDmode, operands[4], operands[5]));
+  val = get_insns ();
+  end_sequence ();
+
+  return val;
 }

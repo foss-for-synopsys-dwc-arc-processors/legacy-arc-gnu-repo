@@ -1,3 +1,33 @@
+2011-02-10  Brendan Kehoe  <brendan@zen.org>
+
+	Add support for disabling the LR insn with FPX extension regs;
+	involves the replacement the DFmode patterns.
+	* config/arc/arc.c (arc_init): Give an error if -mno-dpfp-lrsr
+	is used without -mdpfp.
+	(arc_register_move_cost): Make the cost of direct Dx->Dy moves
+	to be 100 to prevent it from being generated.
+	(arc_process_double_reg_moves, arc_split_move): New functions.
+	(arc_secondary_reload): Make sure CONST_DOUBLE gets split up
+	into normal registers, since we cannot explicitly load D1 or D2
+	in a MOV insn.
+	* config/arc/arc.md (VUNSPEC_DEXCL, VUNSPEC_DEXCL_NORES,
+	VUNSPEC_LR_HIGH): New constants for our unspec_volatile
+	patterns.
+	(*movdf_insn): Simplify.  Create accompanying define_split
+	which will use arc_split_move() after reload_completed.
+	(*movdf_insn_nolrsr): New insn and split pair to generate
+	DADDHxy and DEXCLx insns to do the work LR would've done.
+	* config/arc/fpx.md (*lr_double_lower): Only allow if
+	!TARGET_DPFP_DISABLE_LRSR; require operand1 to not just be
+	a register, but be arc_double_register_operand.
+	(*lr_double_higher): New pattern.
+	(*dexcl_3op_peep2_insn): Define new one as VUNSPEC_DEXCL.
+	(*dexcl_3op_peep2_insn_lr): Original VUNSPEC_LR version as
+	long as !TARGET_DPFP_DISABLE_LRSR.
+	(*dexcl_3op_peep2_insn_nores): New pattern.
+	(define_peephole2): Only allow patterns with VUNSPEC_LR if
+	!TARGET_DPFP_DISABLE_LRSR.
+
 2011-01-07  Brendan Kehoe  <brendan@zen.org>
 
         Back-port fixed FPX extension support from ARC_GNU 3.0 trunk

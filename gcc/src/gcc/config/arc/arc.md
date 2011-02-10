@@ -139,6 +139,9 @@
    (VUNSPEC_UNIMP_S 28) ; blockage insn for unimp_s generation
    (VUNSPEC_EPILOGUE 29)
    (ARC_UNSPEC_PROLOGUE_USE 30)
+   (VUNSPEC_DEXCL 31) ; blockage insn for reading an auxiliary register without LR support
+   (VUNSPEC_DEXCL_NORES 32) ; blockage insn for reading an auxiliary register without LR support
+   (VUNSPEC_LR_HIGH 33) ; blockage insn for reading an auxillary register 
    (LP_COUNT 60)
    (LP_START 144)
    (LP_END 145)
@@ -805,65 +808,59 @@
 (define_insn "*movdf_insn"
   [(set (match_operand:DF 0 "move_dest_operand"      "=D,r,c,c,r,m")
 	(match_operand:DF 1 "move_double_src_operand" "r,D,c,E,m,c"))]
-  "register_operand (operands[0], DFmode)
-   || register_operand (operands[1], DFmode)"
-  "*
-{
-  switch (which_alternative)
-    {
-    default:
-	gcc_unreachable ();
-    case 0:
-        if (!TARGET_DPFP)
-          {
-            fatal_error (\"DPFP register allocated without -mdpfp\\n\");
-          }
-        return \"dexcl%F0 0, %H1, %L1\";
-    case 1:
-        return \"lr %H0,[%H1h]\;lr %L0,[%H1l] ; double reg moves\";
-    case 2 :
-      /* We normally copy the low-numbered register first.  However, if
-	 the first register operand 0 is the same as the second register of
-	 operand 1, we must copy in the opposite order.  */
-      if (REGNO (operands[0]) == REGNO (operands[1]) + 1)
-	return \"mov %R0,%R1\;mov %0,%1\";
-      else
-      return \"mov%? %0,%1\;mov%? %R0,%R1\";
-    case 3 :
-      return \"mov%? %L0,%L1\;mov%? %H0,%H1 ; %A1\";
-    case 4 :
-      /* If the low-address word is used in the address, we must load it
-	 last.  Otherwise, load it first.  Note that we cannot have
-	 auto-increment in that case since the address register is known to be
-	 dead.  */
-      if (refers_to_regno_p (REGNO (operands[0]), REGNO (operands[0]) + 1,
-			     operands [1], 0))
-	return \"ld%V1 %R0,%R1\;ld%V1 %0,%1\";
-      else switch (GET_CODE (XEXP(operands[1], 0)))
-	{
-	case POST_MODIFY: case POST_INC: case POST_DEC:
-	  return \"ld%V1 %R0,%R1\;ld%U1%V1 %0,%1\";
-	case PRE_MODIFY: case PRE_INC: case PRE_DEC:
-	  return \"ld%U1%V1 %0,%1\;ld%V1 %R0,%R1\";
-	default:
-	  return \"ld%U1%V1 %0,%1\;ld%U1%V1 %R0,%R1\";
-	}
-    case 5 :
-      switch (GET_CODE (XEXP(operands[0], 0)))
-	{
-	case POST_MODIFY: case POST_INC: case POST_DEC:
-     	  return \"st%V0 %R1,%R0\;st%U0%V0 %1,%0\";
-	case PRE_MODIFY: case PRE_INC: case PRE_DEC:
-     	  return \"st%U0%V0 %1,%0\;st%V0 %R1,%R0\";
-	default:
-     	  return \"st%U0%V0 %1,%0\;st%U0%V0 %R1,%R0\";
-	}
-    }
-}"
-  [(set_attr "type" "move,lr,move,move,load,store")
+  "register_operand (operands[0], DFmode) || register_operand (operands[1], DFmode)"
+  "#"
+  [(set_attr "type" "move,move,move,move,load,store")
    (set_attr "cond" "nocond,nocond,canuse,canuse,nocond,nocond")
    ;; ??? The ld/st values could be 16 if it's [reg,bignum].
    (set_attr "length" "4,16,8,16,16,16")])
+
+(define_split
+  [(set (match_operand:DF 0 "move_dest_operand" "")
+        (match_operand:DF 1 "move_double_src_operand" ""))]
+  "reload_completed"
+  [(match_dup 2)]
+  "operands[2] = arc_split_move (operands);")
+
+(define_insn_and_split "*movdf_insn_nolrsr"
+  [(set (match_operand:DF 0 "register_operand"       "=r")
+	(match_operand:DF 1 "arc_double_register_operand" "D"))
+   (use (match_operand:SI 2 "" "N")) ; aka const1_rtx
+   ]
+  "TARGET_DPFP && TARGET_DPFP_DISABLE_LRSR"
+  "#"
+  "&& 1"
+  [
+    ; mov r0, 0
+    (set (match_dup 0) (match_dup 3))
+
+    ; daddh?? r1, r0, r0
+    (parallel [
+    	(set (match_dup 1) (plus:DF (match_dup 1) (match_dup 0)))
+    	(use (const_int 1))
+    	(use (const_int 1))
+    	(set (match_dup 0) (plus:DF (match_dup 1) (match_dup 0))) ; r1 in op 0
+    ])
+
+    ; We have to do this twice, once to read the value into R0 and 
+    ; second time to put back the contents which the first DEXCLx
+    ; will have overwritten
+    ; dexcl2 r0, r1, r0
+    (set (match_dup 4) ; aka r0result
+     	 ; aka DF, r1, r0
+         (unspec_volatile:SI [(match_dup 1) (match_dup 5) (match_dup 4)] VUNSPEC_DEXCL ))
+    ; Generate the second, which makes sure operand5 and operand4 values
+    ; are put back in the Dx register properly.
+    (unspec_volatile:SI [(match_dup 1) (match_dup 5) (match_dup 4)] VUNSPEC_DEXCL_NORES )
+    
+    ; Note: we cannot use a (clobber (match_scratch)) here because
+    ; the combine pass will end up replacing uses of it with 0
+  ]
+  "operands[3] = CONST0_RTX (DFmode);
+   operands[4] = simplify_gen_subreg(SImode,operands[0],DFmode,0);
+   operands[5] = simplify_gen_subreg(SImode,operands[0],DFmode,4);"
+  [(set_attr "type" "move")
+   (set_attr "cond" "nocond")])
 ;; END ARC LOCAL fpx support
 
 ;; Load/Store with update instructions.

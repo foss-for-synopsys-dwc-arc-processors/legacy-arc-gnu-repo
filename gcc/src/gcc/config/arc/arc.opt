@@ -152,6 +152,12 @@ mdpfp_fast
 Target Report Mask(DPFP_FAST_SET) 
 FPX: Generate Double Precision FPX (fast) instructions.
 
+; START ARC LOCAL
+mno-dpfp-lrsr
+Target Report Mask(DPFP_DISABLE_LRSR)
+Disable LR and SR instructions from using FPX extension aux registers.
+; END ARC LOCAL
+
 msimd
 Target Report Mask(SIMD_SET)
 Enable generation of ARC SIMD instructions via target-specific builtins.
