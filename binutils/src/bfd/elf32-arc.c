@@ -664,7 +664,11 @@ with a binary incompatible %s binary(%s)"),
 static bfd_boolean
 arc_elf_object_p (bfd *abfd)
 {
-  int mach;
+   /* Make sure this is initialised, or you'll have the potential of
+      passing garbage---or misleading values---into the call to
+      bfd_default_set_arch_mach().  */
+  int mach = 0;
+
   unsigned long arch = elf_elfheader (abfd)->e_flags & EF_ARC_MACH;
 
   switch (arch)
@@ -683,11 +687,20 @@ arc_elf_object_p (bfd *abfd)
       break;
     default:
       /* Unknown cpu type.  ??? What to do?  */
-      return FALSE;
+      /* We do not do this:
+       *   return FALSE;
+       * since all other BFD ports either return TRUE from
+       * their equivalent *_elf_object_p() function, or give back
+       * the result of the set_arch_mach callback---most without
+       * doing any sort of checking at all.
+       */
+       /* No-op */
+      break;
     }
 
-  (void) bfd_default_set_arch_mach (abfd, bfd_arch_arc, mach);
-  return TRUE;
+  /* We could return TRUE, but we may as well benefit from a little
+   * more sanity-checking done by _bfd_elf_set_arch_mach.  */
+  return bfd_default_set_arch_mach (abfd, bfd_arch_arc, mach);
 }
 
 /* The final processing done just before writing out an ARC ELF object file.
