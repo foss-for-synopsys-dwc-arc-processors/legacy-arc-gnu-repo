@@ -134,3 +134,4 @@ extern rtx gen_acc1 (void);
 extern rtx gen_acc2 (void);
 extern rtx gen_mlo (void);
 extern rtx gen_mhi (void);
+extern rtx arc_split_move (rtx *operands);

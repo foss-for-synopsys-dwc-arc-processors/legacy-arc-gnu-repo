@@ -1,3 +1,23 @@
+2011-02-22  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/fpx.md (muldf3_insn): Add third alternative to
+	avoid combine merging two conflicting (and unworkable) patterns,
+	usually replacing a CONST_DOUBLE with a reg.
+	(adddf3_insn, subdf3_insn): Likewise.
+	(define_peepholder2): Add to both peep2.
+	(*daddh_peep2_insn, *dmulh_peep2_insn, *dsubh_peep2_insn):
+	Add USE placeholder.
+	* config/arc/arc.md (*movdf_insn_nolrsr): Likewise.
+
+	* config/arc/arc-protos.h (arc_split_move): Add decl.
+
+2011-02-21  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.c (arc_secondary_reload): Don't be conditional
+	on suggesting GENERAL_REGS for reloads involving DOUBLE_REGS;
+	otherwise, memory loads/stores end up being attempted with
+	the Dx regs and fail.
+
 2011-02-10  Brendan Kehoe  <brendan@zen.org>
 
 	Further fixes to domain error handling.

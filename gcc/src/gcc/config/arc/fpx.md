@@ -238,6 +238,9 @@
 		 (match_operand:DF 2 "nonmemory_operand" "!r,G")))
   (use (match_operand:SI 3 "" "N,r"))
   (use (match_operand:SI 4 "" "N,Q"))
+  ; Prevent can_combine_p from combining muldf3_insn patterns with
+  ; different USE pairs.
+  (use (match_dup 2))
   ]
   "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
@@ -278,6 +281,9 @@
 		 (match_operand:DF 2 "nonmemory_operand" "!r,G")))
   (use (match_operand:SI 3 "" "N,!r"))
   (use (match_operand:SI 4 "" "N,Q"))
+  ; Prevent can_combine_p from combining muldf3_insn patterns with
+  ; different USE pairs.
+  (use (match_dup 2))
   ]
   "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
@@ -327,7 +333,9 @@
 			    (match_operand:DF 2 "nonmemory_operand" "!r,G,D,D")))
   (use (match_operand:SI 3 "" "N,r,N,r"))
   (use (match_operand:SI 4 "" "N,Q,N,Q"))
-]
+  ; Prevent can_combine_p from combining muldf3_insn patterns with
+  ; different USE pairs.
+  (use (match_dup 2))]
   "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT) &&
    !(GET_CODE(operands[1]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
@@ -430,11 +438,12 @@
 	(match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 			   (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))
-	     (use (match_operand:SI 5 "" ""))])
-  (set (match_operand:DF 6 "register_operand" "")
+	     (use (match_operand:SI 5 "" ""))
+	     (use (match_operand:SI 6 "" ""))])
+  (set (match_operand:DF 7 "register_operand" "")
        (match_dup 0))
   (set (match_dup 0)
-       (match_operand:DF 7 "register_operand" "")) 
+       (match_operand:DF 8 "register_operand" "")) 
   ]
   "TARGET_DPFP && !TARGET_DPFP_DISABLE_LRSR"
   [
@@ -443,17 +452,17 @@
 				   (match_dup 3)]))
 	    (use (match_dup 4))
 	    (use (match_dup 5))
-            (set (match_dup 6)
+            (set (match_dup 7)
 		 (match_op_dup:DF  1 [(match_dup 2)
 				   (match_dup 3)]))])
   (parallel [
-;;	    (set (subreg:SI (match_dup 6) 0)
-	    (set (match_dup 8)
+;;	    (set (subreg:SI (match_dup 7) 0)
+	    (set (match_dup 9)
 		 (unspec_volatile:SI [(match_dup 0)] VUNSPEC_LR ))
-	    (set (match_dup 0) (match_dup 7))]
+	    (set (match_dup 0) (match_dup 8))]
 	    )
   ]
-  "operands[8] = simplify_gen_subreg(SImode,operands[6],DFmode,0);"
+  "operands[9] = simplify_gen_subreg(SImode,operands[7],DFmode,0);"
   )
 
 ;; ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -534,8 +543,9 @@
 		   (match_operator:DF 1 "arc_dpfp_operator" [(match_operand:DF 2 "nonmemory_operand" "")
 				      (match_operand:DF 3 "nonmemory_operand" "")]))
 	     (use (match_operand:SI 4 "" ""))
-	     (use (match_operand:SI 5 "" ""))])
-  (set (match_operand:DF 6 "register_operand" "")
+	     (use (match_operand:SI 5 "" ""))
+	     (use (match_operand:SI 6 "" ""))])
+  (set (match_operand:DF 7 "register_operand" "")
        (match_dup 0)) 
   ]
   "TARGET_DPFP  && !TARGET_DPFP_DISABLE_LRSR"
@@ -545,14 +555,14 @@
 				   (match_dup 3)]))
 	    (use (match_dup 4))
 	    (use (match_dup 5))
-            (set (match_dup 6)
+            (set (match_dup 7)
 		 (match_op_dup:DF  1 [(match_dup 2)
 				   (match_dup 3)]))])
-;  (set (subreg:SI (match_dup 6) 0)
-  (set (match_dup 7)
+;  (set (subreg:SI (match_dup 7) 0)
+  (set (match_dup 8)
        (unspec_volatile:SI [(match_dup 0)] VUNSPEC_LR ))
   ]
-  "operands[7] = simplify_gen_subreg(SImode,operands[6],DFmode,0);"
+  "operands[8] = simplify_gen_subreg(SImode,operands[7],DFmode,0);"
   )
 
 ;; ;;            _______________________________________________________
@@ -584,14 +594,15 @@
 			    (match_operand:DF 2 "nonmemory_operand" "r,G")))
 	     (use (match_operand:SI 3 "" "N,r"))
 	     (use (match_operand:SI 4 "" "N,Q"))
-	     (set (match_operand:DF 5 "register_operand" "=r,r")
+	     (use (match_operand:SI 5 "" ""))
+	     (set (match_operand:DF 6 "register_operand" "=r,r")
 		  (plus:DF (match_dup 1)
 			   (match_dup 2)))])]
  "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
  "@
-    daddh%F0%F1 %H5, %H2, %L2
-    daddh%F0%F1 %H5, %3, %L2"
+    daddh%F0%F1 %H6, %H2, %L2
+    daddh%F0%F1 %H6, %3, %L2"
  [(set_attr "type" "dpfp_addsub")
  (set_attr "length" "4,8")]
 )
@@ -606,14 +617,15 @@
 			    (match_operand:DF 2 "nonmemory_operand" "r,G")))
 	     (use (match_operand:SI 3 "" "N,r"))
 	     (use (match_operand:SI 4 "" "N,Q"))
-	     (set (match_operand:DF 5 "register_operand" "=r,r")
+	     (use (match_operand:SI 5 "" ""))
+	     (set (match_operand:DF 6 "register_operand" "=r,r")
 		  (mult:DF (match_dup 1)
 				      (match_dup 2)))])]
  "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
  "@
-    dmulh%F0%F1 %H5, %H2, %L2
-    dmulh%F0%F1 %H5, %3, %L2"
+    dmulh%F0%F1 %H6, %H2, %L2
+    dmulh%F0%F1 %H6, %3, %L2"
  [(set_attr "type" "dpfp_mult")
  (set_attr "length" "4,8")]
 )
@@ -633,17 +645,18 @@
 			     (match_operand:DF 2 "nonmemory_operand" "r,G,D,D")))
 	     (use (match_operand:SI 3 "" "N,r,N,r"))
 	     (use (match_operand:SI 4 "" "N,Q,N,Q"))
-	     (set (match_operand:DF 5 "register_operand" "=r,r,r,r")
+	     (use (match_operand:SI 5 "" ""))
+	     (set (match_operand:DF 6 "register_operand" "=r,r,r,r")
 		  (minus:DF (match_dup 1)
 				      (match_dup 2)))])]
  "TARGET_DPFP &&
    !(GET_CODE(operands[2]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)  &&
    !(GET_CODE(operands[1]) == CONST_DOUBLE && GET_CODE(operands[3]) == CONST_INT)"
  "@
-  dsubh%F0%F1 %H5, %H2, %L2
-  dsubh%F0%F1 %H5, %3, %L2
-  drsubh%F0%F2 %H5, %H1, %L1
-  drsubh%F0%F2 %H5, %3, %L1"
+  dsubh%F0%F1 %H6, %H2, %L2
+  dsubh%F0%F1 %H6, %3, %L2
+  drsubh%F0%F2 %H6, %H1, %L1
+  drsubh%F0%F2 %H6, %3, %L1"
  [(set_attr "type" "dpfp_addsub")
   (set_attr "length" "4,8,4,8")]
 )

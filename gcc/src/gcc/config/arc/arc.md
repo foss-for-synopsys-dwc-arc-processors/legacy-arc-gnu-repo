@@ -839,6 +839,7 @@
     	(set (match_dup 1) (plus:DF (match_dup 1) (match_dup 0)))
     	(use (const_int 1))
     	(use (const_int 1))
+	(use (match_dup 0)) ; used to block can_combine_p
     	(set (match_dup 0) (plus:DF (match_dup 1) (match_dup 0))) ; r1 in op 0
     ])
 

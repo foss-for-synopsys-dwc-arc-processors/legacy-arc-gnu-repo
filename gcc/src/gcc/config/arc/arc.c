@@ -7207,24 +7207,7 @@ arc_secondary_reload (bool in_p, rtx x, enum reg_class class,
 {
   /* START ARC LOCAL fpx support */
   if (class == DOUBLE_REGS)
-    {
-      /* We can't load/store DOUBLE_REGS directly. */
-      if (MEM_P (x))
-        return GENERAL_REGS;
-
-      /* Any attempt to save to a DOUBLE_REGS register will require
-         an intermediate register in order to use "*movdf_insn".  */
-      if (in_p && REG_P (x))
-      {
-        return GENERAL_REGS;
-      }
-      
-      /* Make sure double constants are loaded into feeder registers. */
-      if (GET_CODE (x) == CONST_DOUBLE || GET_CODE (x) == CONST_INT)
-      {
-        return GENERAL_REGS;
-      }
-    }
+    return GENERAL_REGS;
   /* END ARC LOCAL fpx support */
 
   /* The loop counter register can be stored, but not loaded directly.  */
@@ -7740,7 +7723,7 @@ gen_mhi (void)
 /* Handle DOUBLE_REGS uses.
    Operand 0: destination register
    Operand 1: source register  */
-rtx
+static rtx
 arc_process_double_reg_moves (rtx *operands)
 {
   rtx dest = operands[0];
