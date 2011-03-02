@@ -1,11 +1,10 @@
 /* Disassembler structures definitions for the ARC.
    Copyright 2009
    Free Software Foundation, Inc.
-   Copyright 2009 ARC International (UK) LTD
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
+   the Free Software Foundation; either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -21,9 +20,7 @@
 #define ARCOMPACT_DIS_H
 
 
-void print_arc_disassembler_options (FILE *stream);
-
-disassembler_ftype arcompact_get_disassembler (void *);
+void arc_print_disassembler_options (FILE *stream);
 
 struct arcDisState
 arcAnalyzeInstr(bfd_vma           address,

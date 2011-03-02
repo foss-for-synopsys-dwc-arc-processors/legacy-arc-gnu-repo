@@ -37,8 +37,10 @@
 #include "arc-opc-cgen.h"
 #include "opintl.h"
 
+#ifdef UNUSED
 /* Prototypes */
 int print_insn_arc (bfd_vma pc, disassemble_info *info);
+#endif
 
 
 /* Default text to print if an instruction isn't recognized.  */
@@ -63,15 +65,15 @@ static int read_insn
 /* -- disassembler routines inserted here.  */
 
 /* -- dis.c */
-char limm_str[11] = "0x";
+char arc_limm_str[11] = "0x";
 
-/* Read a long immediate and write it hexadecimally into limm_str.  */
+/* Read a long immediate and write it hexadecimally into arc_limm_str.  */
 static void
 read_limm (CGEN_EXTRACT_INFO *ex_info, bfd_vma pc)
 {
   char buf[2];
   int i;
-  char *limmp = limm_str + 2;
+  char *limmp = arc_limm_str + 2;
   disassemble_info *dis_info = (disassemble_info *) ex_info->dis_info;
 
   for (i = 0; i < 2; i++, limmp +=4, pc += 2)
@@ -90,7 +92,7 @@ read_limm (CGEN_EXTRACT_INFO *ex_info, bfd_vma pc)
    of the opcode - 2 or 4 bytes - and the absence or presence of a (4 byte)
    long immediate.
    Also, if a long immediate is present, put its hexadecimal representation
-   into limm_str.
+   into arc_limm_str.
    ??? cgen-opc.c:cgen_lookup_insn has a 'sanity' check of the length
    that will fail if its input length differs from the result of
    CGEN_EXTRACT_FN.  Need to check when this could trigger.  */
@@ -133,7 +135,7 @@ arc_insn_length (unsigned long insn_value, const CGEN_INSN *insn,
 
 /* -- */
 
-void arc_cgen_print_operand
+static void arc_cgen_print_operand
   (CGEN_CPU_DESC, int, PTR, CGEN_FIELDS *, void const *, bfd_vma, int);
 
 /* Main entry point for printing operands.
@@ -151,7 +153,7 @@ void arc_cgen_print_operand
    separate makes clear the interface between `print_insn_normal' and each of
    the handlers.  */
 
-void
+static void
 arc_cgen_print_operand (CGEN_CPU_DESC cd,
 			   int opindex,
 			   void * xinfo,
@@ -398,7 +400,7 @@ arc_cgen_print_operand (CGEN_CPU_DESC cd,
   }
 }
 
-cgen_print_fn * const arc_cgen_print_handlers[] =
+static cgen_print_fn * const arc_cgen_print_handlers[] =
 {
   print_insn_normal,
 };
@@ -408,9 +410,9 @@ void
 arc_cgen_init_dis (CGEN_CPU_DESC cd)
 {
   arc_cgen_init_opcode_table (cd);
-  arc_cgen_init_ibld_table (cd);
+  arc_cgen_init_ibld_table   (cd);
   cd->print_handlers = & arc_cgen_print_handlers[0];
-  cd->print_operand = arc_cgen_print_operand;
+  cd->print_operand  = arc_cgen_print_operand;
 }
 
 
@@ -709,6 +711,8 @@ typedef struct cpu_desc_list
   CGEN_CPU_DESC cd;
 } cpu_desc_list;
 
+
+#ifdef UNUSED
 int
 print_insn_arc (bfd_vma pc, disassemble_info *info)
 {
@@ -822,4 +826,4 @@ print_insn_arc (bfd_vma pc, disassemble_info *info)
   (*info->fprintf_func) (info->stream, UNKNOWN_INSN_MSG);
   return cd->default_insn_bitsize / 8;
 }
-
+#endif

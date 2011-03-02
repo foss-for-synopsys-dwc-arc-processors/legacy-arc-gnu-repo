@@ -55,6 +55,7 @@
 #include "regset.h"
 #include "dis-asm.h"
 #include "opcode/arc.h"
+#include "opcodes/arc-dis.h"
 
 /* ARC header files */
 /* deprecated tm.h support in 6.8 fix */

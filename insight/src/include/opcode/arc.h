@@ -1,5 +1,5 @@
 /* Opcode table for the ARC.
-   Copyright 1994, 1995, 1997, 2001, 2002, 2003
+   Copyright 1994, 1995, 1997, 1998, 2000, 2001, 2002, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
    Contributed by Doug Evans (dje@cygnus.com).
 
@@ -42,7 +42,7 @@
 #define ARC_MACH_ARC7 8
 
 /* Additional cpu values can be inserted here and ARC_MACH_BIG moved down.  */
-#define ARC_MACH_BIG 16
+#define ARC_MACH_BIG 32
 
 /* ARC processors which implement ARCompact ISA. */
 #define ARCOMPACT (ARC_MACH_ARC5 | ARC_MACH_ARC6 | ARC_MACH_ARC7)
@@ -59,6 +59,7 @@ struct arc_opcode {
   char *syntax;			/* syntax of insn */
   unsigned long mask, value;	/* recognize insn if (op&mask)==value */
   int flags;			/* various flag bits */
+
 
 /* Values for `flags'.  */
 
@@ -83,8 +84,7 @@ struct arc_opcode {
 #define SUFFIX_COND		(SUFFIX_NONE            << 1)
 #define SUFFIX_FLAG		(SUFFIX_COND            << 1)
 #define SYNTAX_VALID		(SUFFIX_FLAG	        << 1)
-
-
+#define SIMD_LONG_INST          (SYNTAX_VALID           << 1)
 
 #define AC_SYNTAX_3OP		(0x01)
 #define AC_SYNTAX_2OP		(AC_SYNTAX_3OP          << 1)
@@ -94,9 +94,11 @@ struct arc_opcode {
 #define AC_OP1_DEST_IGNORED	(AC_SYNTAX_SIMD		<< 1)
 #define AC_OP1_MUST_BE_IMM	(AC_OP1_DEST_IGNORED    << 1)
 #define AC_OP1_IMM_IMPLIED	(AC_OP1_MUST_BE_IMM     << 1)
+#define AC_SIMD_SYNTAX_DISC     (AC_OP1_IMM_IMPLIED     << 1)
+#define AC_SIMD_IREGA           (AC_SIMD_SYNTAX_DISC    << 1)
+#define AC_SIMD_IREGB           (AC_SIMD_IREGA          << 1)
 
-
-#define AC_SIMD_SYNTAX_VVV      (AC_OP1_IMM_IMPLIED     << 1)
+#define AC_SIMD_SYNTAX_VVV      (AC_SIMD_IREGB          << 1)
 #define AC_SIMD_SYNTAX_VV0      (AC_SIMD_SYNTAX_VVV     << 1)
 #define AC_SIMD_SYNTAX_VbI0     (AC_SIMD_SYNTAX_VV0     << 1)
 #define AC_SIMD_SYNTAX_Vb00     (AC_SIMD_SYNTAX_VbI0    << 1)
@@ -113,6 +115,10 @@ struct arc_opcode {
 #define AC_SIMD_SYNTAX_DC       (AC_SIMD_SYNTAX_C0      << 1)
 #define AC_SIMD_SYNTAX_D0       (AC_SIMD_SYNTAX_DC      << 1)
 #define AC_SIMD_SYNTAX_VD       (AC_SIMD_SYNTAX_D0      << 1)
+#define AC_SIMD_SYNTAX_VVL      (AC_SIMD_SYNTAX_VD      << 1)
+#define AC_SIMD_SYNTAX_VU0      (AC_SIMD_SYNTAX_VVL     << 1)
+#define AC_SIMD_SYNTAX_VL0      (AC_SIMD_SYNTAX_VU0     << 1)
+#define AC_SIMD_SYNTAX_C00      (AC_SIMD_SYNTAX_VL0     << 1)
 
 
   //#define AC_SUFFIX_NONE		(AC_SIMD_SYNTAX_VD      << 1)
@@ -129,10 +135,22 @@ struct arc_opcode {
 #define AC_SIMD_SCALE_2         (AC_SIMD_SCALE_1        << 1)
 #define AC_SIMD_SCALE_3         (AC_SIMD_SCALE_2        << 1)
 #define AC_SIMD_SCALE_4         (AC_SIMD_SCALE_3        << 1)
-#define AC_SIMD_ENCODE_LIMM     (AC_SIMD_SCALE_4        << 1)
-
-
-
+#define AC_SIMD_SCALE_0         (AC_SIMD_SCALE_4        << 1)
+#define AC_SIMD_ENCODE_LIMM     (AC_SIMD_SCALE_0        << 1)
+#define AC_SIMD_EXTENDED        (AC_SIMD_ENCODE_LIMM    << 1)
+#define AC_SIMD_EXTEND2         (AC_SIMD_EXTENDED       << 1)
+#define AC_SIMD_EXTEND3         (AC_SIMD_EXTEND2        << 1)
+#define AC_SUFFIX_LANEMASK      (AC_SIMD_EXTEND3        << 1)
+#define AC_SIMD_ENCODE_S12      (AC_SUFFIX_LANEMASK     << 1)
+#define AC_SIMD_ZERVA           (AC_SIMD_ENCODE_S12     << 1)
+#define AC_SIMD_ZERVB           (AC_SIMD_ZERVA          << 1)
+#define AC_SIMD_ZERVC           (AC_SIMD_ZERVB          << 1)
+#define AC_SIMD_SETLM           (AC_SIMD_ZERVC          << 1)
+#define AC_SIMD_EXTEND1         (AC_SIMD_SETLM          << 1)
+#define AC_SIMD_KREG            (AC_SIMD_EXTEND1        << 1)
+#define AC_SIMD_ENCODE_U16      (AC_SIMD_KREG           << 1)
+#define AC_SIMD_ENCODE_ZR       (AC_SIMD_ENCODE_U16     << 1)
+#define AC_EXTENDED_MULTIPLY    AC_SIMD_EXTENDED
 
 #define I(x) (((unsigned) (x) & 31) << 27)
 #define A(x) (((unsigned) (x) & ARC_MASK_REG) << ARC_SHIFT_REGA)
@@ -156,6 +174,7 @@ struct arc_opcode {
      underlying mechanism.  */
 #define ARC_OPCODE_NEXT_ASM(op) ((op)->next_asm)
 #define ARC_OPCODE_NEXT_DIS(op) ((op)->next_dis)
+  unsigned long mask2,value2;   /* second word for 64 bit instructions*/
 };
 
 struct arc_operand_value {
@@ -174,8 +193,8 @@ struct arc_operand_value {
 
 struct arc_ext_operand_value {
   struct arc_ext_operand_value *next;
-  struct arc_operand_value     operand;
-} *arc_ext_operands;
+  struct arc_operand_value operand;
+};
 
 /* List of extension condition codes, core registers and auxiliary registers.
    Calls to gas/config/tc-arc.c:arc_extoper built up this list.  */
@@ -298,12 +317,18 @@ struct arc_operand {
 #define ARC_SIMD_SCALE2  (ARC_SIMD_SCALE1 << 0x1)
 #define ARC_SIMD_SCALE3  (ARC_SIMD_SCALE2 << 0x1)
 #define ARC_SIMD_SCALE4  (ARC_SIMD_SCALE3 << 0x1)
-
+#define ARC_SIMD_LANEMASK (ARC_SIMD_SCALE4 <<0x1)
+#define ARC_SIMD_REGISTER (ARC_SIMD_LANEMASK <<0x1)
+#define ARC_SIMD_ZERVA    (ARC_SIMD_REGISTER <<0x1)
+#define ARC_SIMD_ZERVB    (ARC_SIMD_ZERVA    <<0x1)
+#define ARC_SIMD_ZERVC    (ARC_SIMD_ZERVB    <<0x1)
+#define ARC_SIMD_SETLM    (ARC_SIMD_ZERVC    <<0x1)
 
 /* Registers for the Aurora SIMD ISA*/
 #define ARC_REGISTER_SIMD_VR 0x10
 #define ARC_REGISTER_SIMD_I  0x20
 #define ARC_REGISTER_SIMD_DR 0x40
+#define ARC_REGISTER_SIMD_K  0x80
 
 
   /* Insertion function.  This is used by the assembler.  To insert an
@@ -322,9 +347,12 @@ struct arc_operand {
      string (the operand will be inserted in any case).  If the
      operand value is legal, *ERRMSG will be unchanged.
 
-     REG is non-NULL when inserting a register value.  */
+     REG is non-NULL when inserting a register value.  
+     extend is only meaningful for extended length instructions
+     and the special fields that use them.
+  */
 
-  arc_insn (*insert) (arc_insn insn, const struct arc_operand *operand,
+  arc_insn (*insert) (arc_insn insn, long *extend, const struct arc_operand *operand,
 		      int mods, const struct arc_operand_value *reg,
 		      long value, const char **errmsg);
 
@@ -355,82 +383,6 @@ struct arc_operand {
   long (*extract) (arc_insn *insn,
 		   const struct arc_operand *operand, int mods,
 		   const struct arc_operand_value **opval, int *invalid);
-};
-
-enum
-{
-  BR_exec_when_no_jump,
-  BR_exec_always,
-  BR_exec_when_jump
-};
-enum ARC_Debugger_OperandType
-{
-    ARC_UNDEFINED,
-    ARC_LIMM,
-    ARC_SHIMM,
-    ARC_REGISTER, 
-    ARCOMPACT_REGISTER /* Valid only for the 
-			  registers allowed in
-			  16 bit mode */
-};
-
-enum Flow
-{
-  noflow,
-  direct_jump,
-  direct_call,
-  indirect_jump,
-  indirect_call,
-  invalid_instr
-};
-
-enum { no_reg = 99 };
-enum { allOperandsSize = 256 };
-
-struct arcDisState
-{
-  void *_this;
-  int instructionLen;
-  void (*err)(void*, const char*);
-  const char *(*coreRegName)(void*, int);
-  const char *(*auxRegName)(void*, int);
-  const char *(*condCodeName)(void*, int);
-  const char *(*instName)(void*, int, int, int*);
-
-  unsigned char* instruction;
-  unsigned index;
-  const char *comm[6]; /* instr name, cond, NOP, 3 operands */
-
-  union {
-    unsigned int registerNum;
-    unsigned int shortimm;
-    unsigned int longimm;
-  } source_operand;
-
-  enum ARC_Debugger_OperandType sourceType;
-
-  int opWidth;
-  int targets[4];
-  int addresses[4];
-  /* Set as a side-effect of calling the disassembler.
-     Used only by the debugger.  */
-  enum Flow flow;
-  int register_for_indirect_jump;
-  int ea_reg1, ea_reg2, _offset;
-  int _cond, _opcode;
-  unsigned long words[2];
-  char *commentBuffer;
-  char instrBuffer[40];
-  char operandBuffer[allOperandsSize];
-  char _ea_present;
-  char _addrWriteBack; /* Address writeback */
-  char _mem_load;
-  char _load_len;
-  char nullifyMode;
-  unsigned char commNum;
-  unsigned char isBranch;
-  unsigned char tcnt;
-  unsigned char acnt;
 };
 
 /* Bits that say what version of cpu we have.
@@ -468,28 +420,24 @@ struct arcDisState
 /* Non-zero if X will fit in a signed 9 bit field.  */
 #define ARC_SHIMM_CONST_P(x) ((long) (x) >= -256 && (long) (x) <= 255)
 
-extern const struct arc_operand arc_operands_a4[];
-extern const struct arc_operand arc_operands_ac[];
 extern const struct arc_operand *arc_operands;
-extern int arc_operand_count;
-//extern /*const*/ struct arc_opcode arc_opcodes[];
-//extern const int arc_opcodes_count;
-extern const struct arc_operand_value arc_suffixes_a4[];
-extern const struct arc_operand_value arc_suffixes_ac[];
-extern const struct arc_operand_value *arc_suffixes;
-extern int arc_suffixes_count;
-extern const struct arc_operand_value arc_reg_names_a4[];
-extern const struct arc_operand_value arc_reg_names_ac[];
-extern const struct arc_operand_value *arc_reg_names;
-extern int arc_reg_names_count;
-extern unsigned char arc_operand_map_a4[];
-extern unsigned char arc_operand_map_ac[];
-extern unsigned char *arc_operand_map;
-//extern int mach_a4;
-//extern int compact_insn_16;
+extern int                       arc_operand_count;
 
-int mach_a4;
-int compact_insn_16;
+extern const struct arc_operand_value *arc_suffixes;
+extern int                       arc_suffixes_count;
+
+extern const struct arc_operand_value *arc_reg_names;
+extern int                       arc_reg_names_count;
+
+extern unsigned char *arc_operand_map;
+
+/* Nonzero if we've seen a 'q' suffix (condition code).
+ *   'Q'        FORCELIMM       set `arc_cond_p' to 1 to ensure a constant is a limm */
+extern int           arc_cond_p;
+
+extern int           arc_mach_a4;
+extern unsigned long arc_ld_ext_mask;
+extern int           arc_user_mode_only;
 
 /* Utility fns in arc-opc.c.  */
 int arc_get_opcode_mach (int, int);
@@ -506,9 +454,9 @@ int arc_opval_supported (const struct arc_operand_value *);
 int arc_insn_not_jl (arc_insn);
 
 extern char *arc_aux_reg_name (int);
-extern struct arc_operand_value *get_ext_suffix (char *);
+extern struct arc_operand_value *get_ext_suffix (char *,char);
 
-extern int ac_branch_or_jump_insn (arc_insn);
+extern int ac_branch_or_jump_insn (arc_insn, int);
 extern int ac_lpcc_insn (arc_insn);
 extern int ac_constant_operand (const struct arc_operand *);
 extern int ac_register_operand (const struct arc_operand *);
@@ -519,3 +467,4 @@ extern int ac_add_reg_sdasym_insn (arc_insn);
 extern int ac_get_load_sdasym_insn_type (arc_insn, int);
 extern int ac_get_store_sdasym_insn_type (arc_insn, int);
 extern int arc_limm_fixup_adjust (arc_insn);
+extern int arc_test_wb (void);

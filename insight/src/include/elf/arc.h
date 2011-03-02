@@ -1,6 +1,7 @@
 /* ARC ELF support for BFD.
-   Copyright 1995, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
-   Contributed by Doug Evans, (dje@cygnus.com)
+   Copyright 1995, 1997, 1998, 2000, 2001, 2002, 2005, 2006, 2007, 2008, 2009
+   Free Software Foundation, Inc.
+   Contributed by Doug Evans (dje@cygnus.com).
 
 This file is part of BFD, the Binary File Descriptor library.
 
@@ -110,6 +111,7 @@ END_RELOC_NUMBERS (R_ARC_max)
 #define E_ARC_MACH_A4		0x00000000
 #define E_ARC_MACH_A5		0x00000001
 #define E_ARC_MACH_ARC600	0x00000002
+#define E_ARC_MACH_ARC601	0x00000004
 #define E_ARC_MACH_ARC700	0x00000003
 
 

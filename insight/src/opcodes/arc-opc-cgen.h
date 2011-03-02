@@ -22,8 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 */
 
-#ifndef ARC_OPC_H
-#define ARC_OPC_H
+#ifndef ARC_OPC_CGEN_H
+#define ARC_OPC_CGEN_H
 
 /* -- opc.h */
 
@@ -39,7 +39,7 @@ extern unsigned int arc_cgen_dis_hash (const char *, int);
    we must make sure we read all the bits while we have the information how
    to read them.  */
 #define CGEN_INSN_DISASM_BITSIZE(insn) 64
-extern char limm_str[];
+extern char arc_limm_str[];
 
 /* cgen can't generate correct decoders for variable-length insns,
    so we have it generate a decoder that assumes all insns are 32 bit.
@@ -62,9 +62,9 @@ ARC_CGEN_EXTRACT_FN (CGEN_CPU_DESC cd, const CGEN_INSN *insn,
   if (!initialized)
     {
       static CGEN_KEYWORD_ENTRY arc_cgen_opval_limm_entry0 =
-	{ limm_str, 62, {0, {{{0, 0}}}}, 0, 0 };
+	{ arc_limm_str, 62, {0, {{{0, 0}}}}, 0, 0 };
       static CGEN_KEYWORD_ENTRY arc_cgen_opval_limm_entry1 =
-	{ limm_str, 62, {0, {{{0, 0}}}}, 0, 0 };
+	{ arc_limm_str, 62, {0, {{{0, 0}}}}, 0, 0 };
 
       cgen_keyword_add (&arc_cgen_opval_cr_names, &arc_cgen_opval_limm_entry0);
       cgen_keyword_add (&arc_cgen_opval_h_noilink, &arc_cgen_opval_limm_entry1);
@@ -303,4 +303,4 @@ struct cgen_fields
 }
 
 
-#endif /* ARC_OPC_H */
+#endif /* ARC_OPC_CGEN_H */
