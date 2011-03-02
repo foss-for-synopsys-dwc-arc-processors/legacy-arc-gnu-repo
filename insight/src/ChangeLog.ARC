@@ -1,3 +1,7 @@
+2011-03-02  Brendan Kehoe  <brendan@zen.org>
+
+	* gdb/version.in: Bump to "6.8 (ARC_2.3.1)".
+
 2011-03-01  Brendan Kehoe  <brendan@zen.org>
 
 	Bring better disassembly in from binutils-2.19; this includes
