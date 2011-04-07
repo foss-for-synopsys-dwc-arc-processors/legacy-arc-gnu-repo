@@ -22,7 +22,6 @@
  * Thus ldso needs a equivalent def
  */
 #define __syscall_error(X) (X)
-#define MMAP2_PAGE_SHIFT PAGE_SHIFT
 
 #include "sys/syscall.h"
-
+#include <bits/uClibc_page.h>

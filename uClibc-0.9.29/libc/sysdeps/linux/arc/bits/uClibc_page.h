@@ -33,4 +33,9 @@
 
 #define MMAP2_PAGE_SHIFT PAGE_SHIFT
 
+/* for ldso */
+#define ADDR_ALIGN      (PAGE_SIZE -1)
+#define PAGE_ALIGN      PAGE_MASK
+#define OFFS_ALIGN      PAGE_MASK
+
 #endif /* _UCLIBC_PAGE_H */

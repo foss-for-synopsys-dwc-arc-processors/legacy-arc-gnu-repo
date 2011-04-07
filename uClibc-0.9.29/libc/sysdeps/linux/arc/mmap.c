@@ -26,15 +26,12 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <bits/uClibc_page.h>  // MMAP2_PAGE_SHIFT
 
 libc_hidden_proto(mmap)
 
 #if defined  (__NR_mmap2)
 #define __NR__mmap __NR_mmap2
-
-#ifndef MMAP2_PAGE_SHIFT
-# define MMAP2_PAGE_SHIFT 13
-#endif
 
 static inline _syscall6(__ptr_t, _mmap, void *, start, size_t, length,
 		int, prot, int, flags, int, fd, off_t, offset);

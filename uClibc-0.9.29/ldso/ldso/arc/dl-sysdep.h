@@ -233,11 +233,6 @@ do { \
 #define ELF_RESOLVE_TDEP unsigned long nbucket_inv;
 #endif
 
-/* 8192 bytes alignment */
-#define PAGE_ALIGN 0xffffe000
-#define ADDR_ALIGN 0x1fff
-#define OFFS_ALIGN 0x7fffe000
-
 /* ELF_RTYPE_CLASS_PLT iff TYPE describes relocation of a PLT entry, so
    PLT entries should not be allowed to define the value.
    ELF_RTYPE_CLASS_NOCOPY iff TYPE should not be allowed to resolve to one
