@@ -457,7 +457,8 @@ struct elf_resolve *_dl_load_elf_shared_library(int secure,
 		flags |= MAP_FIXED;
 
 	status = (char *) _dl_mmap((char *) (piclib ? 0 : minvma),
-			maxvma - minvma, PROT_NONE, flags | MAP_ANONYMOUS, -1, 0);
+//			maxvma - minvma, PROT_NONE, flags | MAP_ANONYMOUS, -1, 0);
+            maxvma - minvma, PROT_NONE, flags | MAP_ANONYMOUS | 0x20000,  infile, 0);
 	if (_dl_mmap_check_error(status)) {
 		_dl_dprintf(2, "%s:%i: can't map '%s'\n", _dl_progname, __LINE__, libname);
 		_dl_internal_error_number = LD_ERROR_MMAP_FAILED;
