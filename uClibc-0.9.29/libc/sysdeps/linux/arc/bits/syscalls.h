@@ -31,8 +31,6 @@
 
 #include <features.h>
 #include <bits/sysnum.h>
-#include <asm/unistd.h>
-#include <asm/system.h>
 #ifndef __ASSEMBLER__
 #include <errno.h>
 #endif

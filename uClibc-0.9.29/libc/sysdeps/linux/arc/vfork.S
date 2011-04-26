@@ -20,9 +20,6 @@
  */
 
 #define __ASSEMBLY__
-#include <asm/errno.h>
-#include <asm/system.h>
-#include <asm/unistd.h>
 #include <sys/syscall.h>
 
 .text

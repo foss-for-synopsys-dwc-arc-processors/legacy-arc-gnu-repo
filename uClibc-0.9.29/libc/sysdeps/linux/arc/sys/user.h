@@ -23,59 +23,11 @@
    too much into it.  Don't use it for anything other than GDB unless
    you know what you are doing.  */
 
-#if 0
-struct user_fpregs
-{
-  struct fp_reg
-  {
-    unsigned int sign1:1;
-    unsigned int unused:15;
-    unsigned int sign2:1;
-    unsigned int exponent:14;
-    unsigned int j:1;
-    unsigned int mantissa1:31;
-    unsigned int mantissa0:32;
-  } fpregs[8];
-  unsigned int fpsr:32;
-  unsigned int fpcr:32;
-  unsigned char ftype[8];
-  unsigned int init_flag;
-};
-
-struct user_regs
-{
-  unsigned long int uregs[18];
-};
-
-struct user
-{
-  struct user_regs regs;	/* General registers */
-  int u_fpvalid;		/* True if math co-processor being used. */
-
-  unsigned long int u_tsize;	/* Text segment size (pages). */
-  unsigned long int u_dsize;	/* Data segment size (pages). */
-  unsigned long int u_ssize;	/* Stack segment size (pages). */
-
-  unsigned long start_code;	/* Starting virtual address of text. */
-  unsigned long start_stack;	/* Starting virtual address of stack. */
-
-  long int signal;     		/* Signal that caused the core dump. */
-  int reserved;			/* No longer used */
-  struct user_regs *u_ar0;	/* help gdb to find the general registers. */
-
-  unsigned long magic;		/* uniquely identify a core file */
-  char u_comm[32];		/* User command that was responsible */
-  int u_debugreg[8];
-  struct user_fpregs u_fp;	/* Floating point registers */
-  struct user_fpregs *u_fp0;	/* help gdb to find the FP registers. */
-};
-#else /* !0 */
 #include <linux/user.h>
 
 struct user_regs
 {
   struct user_regs_struct s;
 };
-#endif
 
 #endif  /* sys/user.h */

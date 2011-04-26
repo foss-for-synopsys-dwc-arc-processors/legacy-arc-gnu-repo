@@ -18,7 +18,6 @@
 #ifndef _PT_MACHINE_H
 #define _PT_MACHINE_H   1
 #include <features.h>
-#include <asm/system.h>
 
 #ifndef PT_EI
 # define PT_EI extern inline
