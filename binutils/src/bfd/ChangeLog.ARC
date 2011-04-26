@@ -1,3 +1,8 @@
+2011-04-25  Brendan Kehoe  <brendan@kaylee>
+
+	* elf.c (_bfd_elf_map_sections_to_segments): Do not put a
+	read-only section like .dynamic into a writable segment.
+
 2011-02-11  Brendan Kehoe  <brendan@zen.org>
 
 	* elf32-arc.c (arc_elf_object_p): Init MACH with 0.
