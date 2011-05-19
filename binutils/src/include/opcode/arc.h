@@ -83,7 +83,7 @@ struct arc_opcode {
 #define SUFFIX_NONE		(OP1_IMM_IMPLIED        << 1)
 #define SUFFIX_COND		(SUFFIX_NONE            << 1)
 #define SUFFIX_FLAG		(SUFFIX_COND            << 1)
-#define SYNTAX_VALID		(SUFFIX_FLAG	        << 1)
+#define SYNTAX_VALID		(SUFFIX_FLAG            << 1)
 #define SIMD_LONG_INST          (SYNTAX_VALID           << 1)
 
 #define AC_SYNTAX_3OP		(0x01)
@@ -123,7 +123,10 @@ struct arc_opcode {
 
   //#define AC_SUFFIX_NONE		(AC_SIMD_SYNTAX_VD      << 1)
 #define AC_SUFFIX_NONE          (0x1)
-#define AC_SUFFIX_COND		(AC_SUFFIX_NONE         << 1)
+/* START ARC LOCAL */
+#define AC_SUFFIX_DIRECT	(AC_SUFFIX_NONE         << 1)
+/* END ARC LOCAL */
+#define AC_SUFFIX_COND		(AC_SUFFIX_DIRECT       << 1)
 #define AC_SUFFIX_FLAG		(AC_SUFFIX_COND         << 1)
 #define AC_SIMD_FLAGS_NONE      (AC_SUFFIX_FLAG         << 1)
 #define AC_SIMD_FLAG_SET        (AC_SIMD_FLAGS_NONE     << 1)

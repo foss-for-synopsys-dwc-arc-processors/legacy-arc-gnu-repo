@@ -1,3 +1,22 @@
+2010-05-17  Brendan Kehoe  <brendan@zen.org>
+
+	* config/extlib/arcextlib.s: Add ARC700 4.10 extension instructions.
+	* config/tc-arc.c (suffixclass): Add SUFFIX_DIRECT.
+	(LOCK_INSNS, SWAPE_INSN, RTSC_INSN): Define.
+	(enum options): Add OPTION_LOCK, OPTION_SWAPE, and OPTION_RTSC.
+	(md_longopts): Add processing of -mlock, -mswape, and -mrtsc.
+	(md_parse_option, case OPTION_LOCK): New case.
+	(md_parse_option, case OPTION_SWAPE): New case.
+	(md_parse_option, case OPTION_RTSC): New case.
+	(extension_macros): Add __Xlock, __Xswape, and __Xrtsc.
+	(arc_process_extinstr_options): Add checks for LOCK_INSNS,
+	SWAP_INSN, and OPTION_RTSC.
+	(ac_suffixclass): Add SUFFIX_DIRECT.
+	(arc_add_ext_inst): Handle SUFFIX_DIRECT.
+	(arc_generate_extinst32_operand_strings): Add SUFFIX_DIRECT
+	patterns.
+	* doc/c-arc.texi: Document -mlock, -mswape, and -mrtsc.
+
 2010-09-17  Michael Eager  <eager@eagercon.com>
 
 	* Bug 100549 -- Apply PR gas/10704

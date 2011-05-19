@@ -604,3 +604,29 @@
 	; No known BCR check for CRC.
     .endif
 .endif
+
+;; ARC700 4.10 extensions
+.ifdef __ARCCOMPACT__
+    .ifdef __ARC700__
+	.ifdef __Xlock
+	    .extInstruction llock, 0x04, 0x10, SUFFIX_DIRECT, SYNTAX_2OP
+;	    .extInstruction llock, 0x04, 0x10, SUFFIX_DIRECT, SYNTAX_2OP|OP1_MUST_BE_IMM
+	    .extInstruction scond, 0x04, 0x11, SUFFIX_DIRECT, SYNTAX_2OP
+;	    .extInstruction scond, 0x04, 0x11, SUFFIX_DIRECT, SYNTAX_2OP|OP1_MUST_BE_IMM
+	.endif
+
+	.ifdef __Xswape
+	    .extInstruction swape, 0x05, 0x09, SUFFIX_FLAG, SYNTAX_2OP
+	.endif
+
+	.ifdef __Xrtsc
+	    ; Time Stamp Counter
+	    .extInstruction rtsc,  0x06, 0x1a, SUFFIX_NONE, SYNTAX_2OP
+	    .extAuxRegister tsch,      0x58, r|w
+	.endif
+
+	; Data Cache Flush enhancements
+	.extAuxRegister dc_startr, 0x4d, r|w
+	.extAuxRegister dc_endr,   0x4e, r|w
+    .endif
+.endif

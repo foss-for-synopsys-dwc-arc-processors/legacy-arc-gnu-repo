@@ -120,6 +120,23 @@ extension available with the ARC 700 and later processors.
 Option -mmul64 enables support for the 32-bit multiply extension
 instructions and registers.
 
+@c START ARC LOCAL
+@cindex @code{-mlock} command line option, ARC
+@item -mlock
+Option -mlock enables @code{LLOCK} and @code{SCOND} extension
+instructions added with the ARC700 core 4 processor, version v4.10.
+
+@cindex @code{-mswape} command line option, ARC
+@item -mswape
+Option -mswape enables @code{SWAPE} extension
+instruction added with the ARC700 core 4 processor, version v4.10.
+
+@cindex @code{-mrtsc} command line option, ARC
+@item -mrtsc
+Option -mrtsc enables @code{RTSC} extension
+instruction added with the ARC700 core 4 processor, version v4.10.
+@c END ARC LOCAL
+
 @end table
 
 

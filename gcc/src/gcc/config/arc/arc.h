@@ -100,12 +100,26 @@ Boston, MA 02111-1307, USA.  */
       builtin_define ("__big_endian__"); \
 } while(0)
 
+/* START ARC LOCAL */
+/* For the macro symbols defined in gas/config/tc-arc.c, make
+   the same be created so C inline assembly, for xample, can
+   be similarly checked for what's actually available.  */
+
 /* Additional flags for the preprocessor.  */
 #ifndef USE_UCLIBC
 #define CPP_SPEC "\
 %{mA4:-D__A4__} %{mA5:-D__A5__} %{mA6:-D__A6__ -D__ARC600__} %{mA7:-D__A7__ -D__ARC700__} \
 %{mARC600:-D__A6__ -D__ARC600__} %{mARC700:-D__A7__ -D__ARC700__} \
 %{mmixed-code|!mA4:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-D__A5__}}}}}} \
+%{msimd:-D__Xsimd} %{mno-mpy:-D__Xno_mpy} %{mswap:-D__Xswap} \
+%{mnorm:-D__Xnorm} %{mbarrel_shifter:-D__Xbarrel_shifter} \
+%{mmin_max:-D__Xmin_max} %{mEA:-D__Xea} \
+%{mspfp:-D__Xspfp} %{mspfp_compact:-D__Xspfp} %{mspfp_fast:-D__Xspfp} \
+%{mdpfp:-D__Xdpfp} %{mdpfp_compact:-D__Xdpfp} %{mdpfp_fast:-D__Xdpfp} \
+%{mmac_d16:-D__Xxmac_d16} %{mmac_24:-D__Xxmac_24} \
+%{mdsp_packa:-D__Xdsp_packa} %{mcrc:-D__Xcrc} %{mdvbf:-D__Xdvbf} \
+%{mtelephony:-D__Xtelephony} %{mxy:-D__Xxy} %{mmul64: -D__Xmult32} \
+%{mlock:-D__Xlock} %{mswape:-D__Xswape} %{mrtsc:-D__Xrtsc} \
 "
 
 #else
@@ -116,9 +130,19 @@ Boston, MA 02111-1307, USA.  */
 %{mARC600:-D__A6__ -D__ARC600__} %{mARC700:-D__A7__ -D__ARC700__} \
 %{!mA4:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:%{!mmixed-code:-D__A5__}}}}}}} \
 %{mmixed-code:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-D__A5__}}}}}} \
+%{msimd:-D__Xsimd} %{mno-mpy:-D__Xno_mpy} %{mswap:-D__Xswap} \
+%{mnorm:-D__Xnorm} %{mbarrel_shifter:-D__Xbarrel_shifter} \
+%{mmin_max:-D__Xmin_max} %{mEA:-D__Xea} \
+%{mspfp:-D__Xspfp} %{mspfp_compact:-D__Xspfp} %{mspfp_fast:-D__Xspfp} \
+%{mdpfp:-D__Xdpfp} %{mdpfp_compact:-D__Xdpfp} %{mdpfp_fast:-D__Xdpfp} \
+%{mmac_d16:-D__Xxmac_d16} %{mmac_24:-D__Xxmac_24} \
+%{mdsp_packa:-D__Xdsp_packa} %{mcrc:-D__Xcrc} %{mdvbf:-D__Xdvbf} \
+%{mtelephony:-D__Xtelephony} %{mxy:-D__Xxy} \
+%{mmul64: -D__Xmult32} \
+%{mlock:-D__Xlock} %{mswape:-D__Xswape} %{mrtsc:-D__Xrtsc} \
 "
-
-#endif 
+#endif
+/* END ARC LOCAL */
 
 /* Pass -mmangle-cpu if we get -mA* : Not applicable any more.
    Doing it this way lets one have it on as default with -mA*,
@@ -133,20 +157,28 @@ Boston, MA 02111-1307, USA.  */
 %{v} %{mbig-endian|EB:-EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} \
 %{mA7} %{mARC700} \
 %{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
-%{msimd} %{mmixed-code|!mA4:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}}" 
+%{msimd} %{mmixed-code|!mA4:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}} \
+%{mmac_d16} %{mmac_24} %{!mA4:%{mdsp_packa}} %{mcrc} %{mdvbf} %{mtelephony} %{mxy} \
+%{mARC700|mA7:%{mlock}} %{mARC700|mA7:%{mswape}} %{mARC700|mA7:%{mrtsc}} \
+"
 #else
 
 #ifndef TARGET_CPU_arc700
 #define ASM_SPEC  "\
 %{v} %{mbig-endian:-EB} %{EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} %{mA7} %{mARC700} \
 %{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
-%{msimd} %{mmixed-code:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}}" 
+%{msimd} %{mmixed-code:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}} \
+%{mmac_d16} %{mmac_24} %{!mA4:%{mdsp_packa}} %{mcrc} %{mdvbf} %{mtelephony} %{mxy} \
+%{mARC700|mA7:%{mlock}} %{mARC700|mA7:%{mswape}} %{mARC700|mA7:%{mrtsc}} \
+"
 #else
 
 #define ASM_SPEC  "\
 %{v} %{mbig-endian:-EB} %{EB} %{EL} %{mA4} %{mA5} %{mA6} %{mARC600} %{mA7} %{mARC700} \
 %{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
-%{msimd} %{mmixed-code:%{-mA7}}" 
+%{msimd} %{mmixed-code:%{-mA7}} \
+%{mmac_d16} %{mmac_24} %{!mA4:%{mdsp_packa}} %{mcrc} %{mdvbf} %{mtelephony} %{mxy} \
+"
 
 #endif
 #endif

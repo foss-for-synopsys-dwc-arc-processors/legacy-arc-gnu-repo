@@ -1,6 +1,6 @@
 ; Options for the Argonaut ARC port of the compiler
 ;
-; Copyright (C) 2005 Free Software Foundation, Inc.
+; Copyright (C) 2005, 2011 Free Software Foundation, Inc.
 ;
 ; This file is part of GCC.
 ;
@@ -229,3 +229,46 @@ Use dynamic libraries for linking
 mmul32x16
 Target Report Mask(MULMAC_32BY16_SET)
 Generate 32x16 multiply and mac instructions
+
+; START ARC LOCAL
+; Flags used by the assembler, but for which we define preprocessor
+; macro symbols as well.
+mcrc
+Target Report RejectNegative
+Enable variable polynomial CRC extension
+
+mdsp_packa
+Target Report RejectNegative
+Enable DSP 3.1 Pack A extensions
+
+mdvbf
+Target Report RejectNegative
+Enable dual viterbi butterfly extension
+
+mmac_d16
+Target Report RejectNegative Undocumented
+
+mmac_24
+Target Report RejectNegative Undocumented
+
+mtelephony
+Target Report RejectNegative
+Enable Dual and Single Operand Instructions for Telephony
+
+mxy
+Target Report RejectNegative
+Enable XY Memory extension (DSP version 3)
+
+; ARC700 4.10 extension instructions
+mlock
+Target Report RejectNegative
+Enable Locked Load/Store Conditional extension
+
+mswape
+Target Report RejectNegative
+Enable swap byte ordering extension instruction
+
+mrtsc
+Target Report RejectNegative
+Enable 64-bit Time-Stamp Counter extension instruction
+; END ARC LOCAL

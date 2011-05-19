@@ -599,7 +599,9 @@ write_instr_name_(struct arcDisState *state,
 enum
 {
   op_BC = 0, op_BLC = 1, op_LD  = 2, op_ST = 3, op_MAJOR_4  = 4,
-  op_MAJOR_5 = 5, op_SIMD=9,      op_LD_ADD = 12, op_ADD_SUB_SHIFT  = 13,
+  /* START ARC LOCAL */
+  op_MAJOR_5 = 5, op_MAJOR_6 = 6, op_SIMD=9,      op_LD_ADD = 12, op_ADD_SUB_SHIFT  = 13,
+  /* END ARC LOCAL */
   op_ADD_MOV_CMP = 14, op_S = 15, op_LD_S = 16, op_LDB_S = 17,
   op_LDW_S = 18, op_LDWX_S  = 19, op_ST_S = 20, op_STB_S = 21,
   op_STW_S = 22, op_Su5     = 23, op_SP   = 24, op_GP    = 25, op_Pcl = 26,
@@ -893,6 +895,11 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
 	    decodingClass = 34;
 	    break; // ramana adds
 
+	  /* START ARC LOCAL */
+	  case 16: instrName = "llock"; decodingClass = 34; break;
+	  case 17: instrName = "scond"; decodingClass = 34; break;
+	  /* END ARC LOCAL */
+
 	  case 63:
 	    decodingClass = 26;
 	    switch (BITS(state->words[0],24,26))
@@ -976,8 +983,12 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
 	  case 6: instrName = "negsw"; decodingClass = 1; break;
 	  case 7: instrName = "negs"; decodingClass = 1; break;
 
-
 	  case 8: instrName = "normw"; decodingClass = 1; break;
+
+	  /* START ARC LOCAL */
+	  case 9: instrName = "swape"; decodingClass = 1; break;
+	  /* END ARC LOCAL */
+
 	  default:
 	    instrName = "???";
 	    state->flow =invalid_instr;
@@ -992,6 +1003,20 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
       }
     break;
 
+  /* START ARC LOCAL */
+  case op_MAJOR_6:
+      decodingClass = 44;  /* Default for Major opcode 6 ... */
+      subopcode = BITS(state->words[0],0,5);
+      switch (subopcode)
+        {
+	case 26: /* 0x1a */ instrName = "rtsc"; break;
+        default:
+	  instrName = "??? (2[3])";
+	  state->flow = invalid_instr;
+	  break;
+	}
+    break;
+  /* END ARC LOCAL */
 
     /* Aurora SIMD instruction support*/
   case op_SIMD:
@@ -3508,6 +3533,22 @@ dsmOneArcInst (bfd_vma addr, struct arcDisState *state, disassemble_info * info)
     my_sprintf(state, state->operandBuffer, formatString, fieldB);
 
     break;
+    
+  /* START ARC LOCAL */
+  case 44:
+      /* rtsc instruction */
+      /* The source operand has no use.  */
+      fieldB = fieldBisReg = 0;
+
+      write_instr_name();
+      WRITE_FORMAT_x(A);
+      WRITE_FORMAT_COMMA_x(B);
+      WRITE_NOP_COMMENT();
+      my_sprintf(state, state->operandBuffer, formatString, fieldA,
+		 fieldB);
+      break;
+  /* END ARC LOCAL */
+
     /*******SIMD instructions decoding follows*************/
   case 37:
   case 39:

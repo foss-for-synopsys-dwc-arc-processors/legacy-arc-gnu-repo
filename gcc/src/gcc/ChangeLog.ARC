@@ -1,3 +1,18 @@
+2011-05-17  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.h (CPP_SPEC) [!USE_UCLIBC, USE_UCLIBC]: For
+	assembler target-specific flags, define the macro symbols used by
+	the assembler's definition of those extension instructions so they
+	can be used by the preprocessor in C/C++ code.
+	* config/arc/arc.opt: Make the compiler accept and ignore the
+	flags -mcrc, -mdsp_packa, -mdvbf, -mmac_d16, -mmac_24,
+	-mtelephony, -mxy, -mlock, -mswape, and -mrtsc.
+
+	* testsuite/gcc.target/arc: New directory.
+	* testsuite/gcc.target/arc/arc.exp: New file.
+	* testsuite/gcc.target/arc/*.c: Tests to confirm preprocessor macros
+	are defined properly for given flags.
+
 2011-02-22  Brendan Kehoe  <brendan@zen.org>
 
 	* config/arc/fpx.md (muldf3_insn): Add third alternative to

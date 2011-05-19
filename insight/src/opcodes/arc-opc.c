@@ -3965,6 +3965,13 @@ static const struct arc_operand_value arc_reg_names_a700[] =
   { "int_vector_base",0x25, AUXREG_AC, 0 },
   { "aux_irq_lv12" ,  0x43, AUXREG_AC, 0 },
   /* Optional extension auxiliary registers */
+  /* START ARC LOCAL */
+  /* Data Cache Flush */
+  { "dc_startr",      0x4d, AUXREG_AC, 0 },
+  { "dc_endr",        0x4e, AUXREG_AC, 0 },
+  /* Time Stamp Counter */
+  { "tsch",           0x58, AUXREG_AC, 0 },
+  /* END ARC LOCAL */
   { "multiply_build", 0x7b, AUXREG_AC, ARC_REGISTER_READONLY },
   { "swap_build",     0x7c, AUXREG_AC, ARC_REGISTER_READONLY },
   { "norm_build",     0x7d, AUXREG_AC, ARC_REGISTER_READONLY },

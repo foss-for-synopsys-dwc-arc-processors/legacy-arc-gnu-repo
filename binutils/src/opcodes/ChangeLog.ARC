@@ -1,3 +1,10 @@
+2010-05-17  Brendan Kehoe  <brendan@zen.org>
+
+	* arcompact-dis.c (op_MAJOR_6): Add to anon enum.
+	(dsmOneArcInst): Add support for llock, scond, swape, and rtsc.
+	* arc-opc.c (arc_reg_names_a700): Add dc_startr, dc_endr,
+	and tsch.
+
 2008-04-09  J"orn Rennecke  <joern.rennecke@arc.com>
 
 	* arc-ext.c (arcExtMap_add): Fix pointer signedness mismatch.

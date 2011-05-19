@@ -1,6 +1,6 @@
 /* tc-arc.c -- Assembler for the ARC
    Copyright 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-   2006  Free Software Foundation, Inc.
+   2006, 2011  Free Software Foundation, Inc.
    Contributed by Doug Evans (dje@cygnus.com).
 
    Support for PIC : Added by Codito Technologies.
@@ -88,6 +88,9 @@ const struct suffix_classes
   { "SUFFIX_COND|SUFFIX_FLAG",23 },
   { "SUFFIX_FLAG", 11 },
   { "SUFFIX_COND", 11 },
+  /* START ARC LOCAL */
+  { "SUFFIX_DIRECT", 13 },
+  /* END ARC LOCAL */
   { "SUFFIX_NONE", 11 }
 };
 
@@ -195,7 +198,11 @@ static unsigned long extinsnlib = 0;
 #define DVBF                    (CRC           << 1)
 #define TELEPHONY               (DVBF          << 1)
 #define XYMEMORY                (TELEPHONY     << 1)
-
+/* START ARC LOCAL */
+#define LOCK_INSNS              (XYMEMORY      << 1)
+#define SWAPE_INSN              (LOCK_INSNS    << 1)
+#define RTSC_INSN               (SWAPE_INSN    << 1)
+/* END ARC LOCAL */
 
 static struct hash_control *arc_suffix_hash = NULL;
 
@@ -227,7 +234,12 @@ enum options
   OPTION_CRC,
   OPTION_DVBF,
   OPTION_TELEPHONY,
-  OPTION_XYMEMORY
+  OPTION_XYMEMORY,
+  /* START ARC LOCAL */
+  OPTION_LOCK,
+  OPTION_SWAPE,
+  OPTION_RTSC  
+  /* END ARC LOCAL */
 /* ARC Extension library options.  */  
 };
 
@@ -266,6 +278,12 @@ struct option md_longopts[] =
   { "mdvbf", no_argument, NULL, OPTION_DVBF},
   { "mtelephony", no_argument, NULL, OPTION_TELEPHONY},
   { "mxy", no_argument, NULL, OPTION_XYMEMORY},
+  /* START ARC LOCAL */
+  /* ARC700 4.10 extensions */
+  { "mlock", no_argument, NULL, OPTION_LOCK},
+  { "mswape", no_argument, NULL, OPTION_SWAPE},
+  { "mrtsc", no_argument, NULL, OPTION_RTSC},
+  /* END ARC LOCAL */
   { NULL, no_argument, NULL, 0 }
 };
 
@@ -608,6 +626,17 @@ md_parse_option (int c, char *arg ATTRIBUTE_UNUSED)
     case OPTION_XYMEMORY:
       extinsnlib |= XYMEMORY;
       break;
+    /* START ARC LOCAL */
+    case OPTION_LOCK:
+      extinsnlib |= LOCK_INSNS;
+      break;
+    case OPTION_SWAPE:
+      extinsnlib |= SWAPE_INSN;
+      break;
+    case OPTION_RTSC:
+      extinsnlib |= RTSC_INSN;
+      break;
+    /* END ARC LOCAL */
 
     default:
       return 0;
@@ -667,7 +696,12 @@ static struct extension_macro extension_macros[]=
     {CRC, "__Xcrc"},
     {DVBF, "__Xdvbf"},
     {TELEPHONY, "__Xtelephony"},
-    {XYMEMORY, "__Xxy"}
+    {XYMEMORY, "__Xxy"},
+    /* START ARC LOCAL */
+    {LOCK_INSNS, "__Xlock"},
+    {SWAPE_INSN, "__Xswape"},
+    {RTSC_INSN, "__Xrtsc"}
+    /* END ARC LOCAL */
   };
 
 static unsigned short n_extension_macros = (sizeof (extension_macros) /
@@ -741,6 +775,26 @@ arc_process_extinstr_options (void)
       exit (1);
     }
   
+  /* START ARC LOCAL */
+  if ((extinsnlib & LOCK_INSNS ) && ( arc_mach_type != bfd_mach_arc_arc700))
+    {
+      as_bad ("-mlock and -mscond can only be used with ARC 700 v4.10");
+      exit (1);
+    }
+
+  if ((extinsnlib & SWAPE_INSN ) && ( arc_mach_type != bfd_mach_arc_arc700))
+    {
+      as_bad ("-mswape can only be used with ARC 700 v4.10");
+      exit (1);
+    }
+  
+  if ((extinsnlib & RTSC_INSN ) && ( arc_mach_type != bfd_mach_arc_arc700))
+    {
+      as_bad ("-mrtsc can only be used with ARC 700 v4.10");
+      exit (1);
+    }
+  /* END ARC LOCAL */  
+
   sym = (symbolS *) local_symbol_make (temp, absolute_section, 1,
 				       &zero_address_frag);
   symbol_table_insert (sym);
@@ -1809,6 +1863,9 @@ struct attributes {
 const struct attributes ac_suffixclass[] = {
   { "SUFFIX_FLAG", 11, AC_SUFFIX_FLAG},
   { "SUFFIX_COND", 11, AC_SUFFIX_COND},
+  /* START ARC LOCAL */
+  { "SUFFIX_DIRECT", 13, AC_SUFFIX_DIRECT},
+  /* END ARC LOCAL */
   { "SUFFIX_NONE", 11, AC_SUFFIX_NONE},
   { "FLAGS_NONE" , 10, AC_SIMD_FLAGS_NONE},
   { "FLAG_SET"   ,  8, AC_SIMD_FLAG_SET},
@@ -1914,7 +1971,7 @@ const struct attributes ac_syntaxclassmodifier[] = {
 #endif
 
 /* This function generates the list of extension instructions.  The last
-   argument is used to append a .f or a .cc to the instruction name.  */
+   argument is used to append a .f, .di, or a .cc to the instruction name.  */
 static void
 arc_add_ext_inst (char *name, char *operands, unsigned long value,
 		  unsigned long mask ATTRIBUTE_UNUSED, unsigned flags, unsigned suffix)
@@ -1929,7 +1986,13 @@ arc_add_ext_inst (char *name, char *operands, unsigned long value,
   if(suffix & AC_SUFFIX_COND){
     strcat(realsyntax,"%.q");
       }
-    
+  
+  /* START ARC LOCAL */  
+  if(suffix & AC_SUFFIX_DIRECT){
+    strcat(realsyntax,"%.V");
+      }
+  /* END ARC LOCAL */
+
   if(suffix & AC_SUFFIX_FLAG){
     strcat(realsyntax,"%.f");
       }
@@ -2320,6 +2383,54 @@ arc_generate_extinst32_operand_strings (char *instruction_name,
 			INSN_32(-1,-1,-1,-1,0,0),
 			(syntax_class | syntax_class_modifiers),
 			suffix_class & (AC_SUFFIX_FLAG));
+
+      /* START ARC LOCAL */
+      if(suffix_class & AC_SUFFIX_DIRECT)
+      {
+         arc_add_ext_inst (instruction_name, " %#,[%C]",
+			   INSN_32(major_opcode,
+				   0x2f,
+				   0, sub_opcode, 0, 0),
+			   INSN_32(-1, -1, -1, -1, 0, 0),
+			   (syntax_class | syntax_class_modifiers),
+			   syntax_class & (AC_SUFFIX_DIRECT));
+          arc_add_ext_inst (instruction_name, " %#,[%L]",
+			    INSN_32(major_opcode,
+				    0x2f,
+				    0, sub_opcode, 0, 62),
+			    INSN_32(-1, -1, -1, -1, 0, -1),
+			    (syntax_class | syntax_class_modifiers),
+			    syntax_class & (AC_SUFFIX_DIRECT));
+          arc_add_ext_inst (instruction_name, " %#,[%u]",
+			    INSN_32(major_opcode,
+				    0x2f,
+				    1, sub_opcode, 0, 62),
+			    INSN_32(-1, -1, -1, -1, 0, -1),
+			    (syntax_class | syntax_class_modifiers),
+			    syntax_class & (AC_SUFFIX_DIRECT));
+          arc_add_ext_inst (instruction_name, " 0,[%C]",
+			    INSN_32(major_opcode,
+				    0x2f,
+				    0, sub_opcode, 62, 0),
+			    INSN_32(-1, -1, -1, -1, -1, 0),
+			    (syntax_class | syntax_class_modifiers),
+			    syntax_class & (AC_SUFFIX_DIRECT));
+          arc_add_ext_inst (instruction_name, " 0,[%L]",
+			    INSN_32(major_opcode,
+				    0x2f,
+				    0, sub_opcode, 62, 62),
+			    INSN_32(-1, -1, -1, -1, -1, 0),
+			    (syntax_class | syntax_class_modifiers),
+			    syntax_class & (AC_SUFFIX_DIRECT));
+          arc_add_ext_inst (instruction_name, " 0,[%u]",
+			    INSN_32(major_opcode,
+				    0x2f,
+				    1, sub_opcode, 62, 62),
+			    INSN_32(-1, -1, -1, -1, -1, 0),
+			    (syntax_class | syntax_class_modifiers),
+			    syntax_class & (AC_SUFFIX_DIRECT));
+      }
+      /* END ARC LOCAL */
 
       if (syntax_class_modifiers & AC_OP1_IMM_IMPLIED)
       {
