@@ -169,7 +169,6 @@ Boston, MA 02111-1307, USA.  */
 %{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
 %{msimd} %{mmixed-code:%{!mA5:%{!mA6:%{!mARC600:%{!mA7:%{!mARC700:-mA5}}}}}} \
 %{mmac_d16} %{mmac_24} %{!mA4:%{mdsp_packa}} %{mcrc} %{mdvbf} %{mtelephony} %{mxy} \
-%{mARC700|mA7:%{mlock}} %{mARC700|mA7:%{mswape}} %{mARC700|mA7:%{mrtsc}} \
 "
 #else
 
@@ -178,6 +177,7 @@ Boston, MA 02111-1307, USA.  */
 %{mbarrel_shifter} %{mno-mpy} %{mmul64} %{mmul32x16:-mdsp} %{mnorm} %{mswap} %{mARC700|mA7:-mEA} %{mEA} %{mmin_max} %{mspfp*} %{mdpfp*} \
 %{msimd} %{mmixed-code:%{-mA7}} \
 %{mmac_d16} %{mmac_24} %{!mA4:%{mdsp_packa}} %{mcrc} %{mdvbf} %{mtelephony} %{mxy} \
+%{mARC700|mA7:%{mlock}} %{mARC700|mA7:%{mswape}} %{mARC700|mA7:%{mrtsc}} \
 "
 
 #endif
