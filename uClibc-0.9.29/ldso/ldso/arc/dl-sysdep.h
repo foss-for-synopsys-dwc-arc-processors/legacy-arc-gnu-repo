@@ -2,9 +2,7 @@
  * Copyright Synopsys, Inc. (www.synopsys.com) Oct 01, 2004
  * 
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  *
  *****************************************************************************/
 /* Copyright (C) 2000-2004 by Erik Andersen <andersen@codepoet.org> */
