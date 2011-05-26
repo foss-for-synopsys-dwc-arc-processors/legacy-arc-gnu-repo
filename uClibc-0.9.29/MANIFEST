@@ -1,4 +1,4 @@
-Files added by Codito:
+Files added by Synopsys:
   extra/Configs/Config.arc
   ldso/ldso/arc
   ldso/ldso/arc/dl-syscalls.h
@@ -39,7 +39,7 @@ Files added by Codito:
   libpthread/linuxthreads/sysdeps/arc/stackinfo.h
   libpthread/linuxthreads/sysdeps/arc/sigcontextinfo.h
   libpthread/linuxthreads/sysdeps/arc/pt-machine.h
-Files changed by Codito:
+Files changed by Synopsys:
   include/elf.h
   extra/Configs/Config.in
   utils/ldd.c

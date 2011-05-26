@@ -1,7 +1,7 @@
 #ifndef ARC_NEWLIB_ASM_H
 #define ARC_NEWLIB_ASM_H
 
-/* Copyright (C) 2007, 2008 ARC International (UK) LTD */
+/* Copyright (C) 2007, 2008 Synopsys, Inc. (www.synopsys.com) */
 
 #define _ENTRY(name) \
 	.text ` .balign 4 ` .globl name ` name:

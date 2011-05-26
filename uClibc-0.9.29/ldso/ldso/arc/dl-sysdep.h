@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright Codito Technologies (www.codito.com) Oct 01, 2004
+ * Copyright Synopsys, Inc. (www.synopsys.com) Oct 01, 2004
  * 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 /* Copyright (C) 2000-2004 by Erik Andersen <andersen@codepoet.org> */
-/* Copyright (C) 2007 ARC International (UK) LTD */
+/* Copyright (C) 2007 Synopsys, Inc. (www.synopsys.com) */
 
 /*
  * Various assmbly language/system dependent  hacks that are required

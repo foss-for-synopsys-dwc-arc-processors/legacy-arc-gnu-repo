@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 ARC International (UK) LTD */
+/* Copyright (C) 2007 Synopsys, Inc. (www.synopsys.com) */
 
 static const char *_dl_reltypes_tab[] =
 {

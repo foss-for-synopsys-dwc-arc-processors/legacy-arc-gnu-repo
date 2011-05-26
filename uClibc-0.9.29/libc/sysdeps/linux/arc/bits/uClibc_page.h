@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright Codito Technologies (www.codito.com) May 12, 2005
+ * Copyright Synopsys, Inc. (www.synopsys.com) May 12, 2005
  * 
  *
  * This program is free software; you can redistribute it and/or modify

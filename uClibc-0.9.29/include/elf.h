@@ -2925,7 +2925,7 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_NIOS2_NUM				22
 
 /*
- * Relocation Types for ARC International 
+ * Relocation Types for ARC Cores
  * These values will have to change once the
  * values are made to sync up with the Metaware
  * toolchain 
