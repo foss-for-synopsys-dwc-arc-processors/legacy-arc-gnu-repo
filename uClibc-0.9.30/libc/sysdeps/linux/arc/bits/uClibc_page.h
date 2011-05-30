@@ -1,10 +1,8 @@
 /******************************************************************************
- * Copyright Codito Technologies (www.codito.com) May 12, 2005
+ * Copyright Synopsys, Inc. (www.synopsys.com) May 12, 2005
  * 
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  *
  *****************************************************************************/
 
@@ -13,9 +11,7 @@
  *
  *  Copyright (C) 
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  *
  * Authors: Amit Bhor
  */

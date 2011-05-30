@@ -1,4 +1,10 @@
-/* Copyright (C) 2007 ARC International (UK) LTD */
+/******************************************************************************
+ * Copyright Synopsys, Inc. (www.synopsys.com) 2007
+ *
+ *
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+ *
+ *****************************************************************************/
 
 static const char *_dl_reltypes_tab[] =
 {

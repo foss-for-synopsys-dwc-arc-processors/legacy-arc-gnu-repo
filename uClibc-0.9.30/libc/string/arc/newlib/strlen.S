@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 ARC International (UK) LTD */
+/* Copyright (C) 2007 Synopsys, Inc. (www.synopsys.com) */
 
 #include "asm.h"
 #ifdef __ARC700__

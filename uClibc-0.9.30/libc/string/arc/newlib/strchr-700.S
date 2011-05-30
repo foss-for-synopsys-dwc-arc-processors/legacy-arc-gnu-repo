@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 ARC International (UK) LTD */
+/* Copyright (C) 2007 Synopsys, Inc. (www.synopsys.com) */
 /* ARC700 has a relatively long pipeline and branch prediction, so we want
    to avoid branches that are hard to predict.  On the other hand, the
    presence of the norm instruction makes it easier to operate on whole

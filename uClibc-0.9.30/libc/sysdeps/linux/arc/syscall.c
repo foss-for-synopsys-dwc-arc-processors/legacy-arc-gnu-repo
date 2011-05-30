@@ -1,7 +1,7 @@
  /* syscall for uClibc/ARC
   *
   * Copyright (C) 2002 by Erik Andersen <andersen@uclibc.org>
-  * Copyright (C) 2003 by ARC International
+  * Copyright (C) 2003 by Synopsys, Inc. (www.synopsys.com)
   *
   * This program is free software; you can redistribute it and/or modify it
   * under the terms of the GNU Library General Public License as published by

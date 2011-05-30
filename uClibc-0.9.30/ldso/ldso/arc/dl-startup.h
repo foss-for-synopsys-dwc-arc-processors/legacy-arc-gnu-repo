@@ -1,9 +1,12 @@
 /*
  * Architecture specific code used by dl-startup.c
  *
- * Copyright Codito Technologies (www.codito.com) Oct 01, 2004
+ * Copyright Synopsys, Inc. (www.synopsys.com) Oct 01, 2004
  * Copyright (C) 2005 by Erik Andersen <andersen@codepoet.org>
- * Copyright (C) 2007 ARC International (UK) LTD
+ * Copyright (C) 2007 Synopsys, Inc. (www.synopsys.com)
+ *
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+ *
  */
 
 #include <sys/syscall.h>
