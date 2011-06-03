@@ -1,3 +1,9 @@
+2011-06-01  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.c (arc_rtx_costs, case CONST_DOUBLE): Correct to
+	reflect TARGET_DPFP still has a cost of 2 insns, since we'll
+	still be splitting into the pair of regs used by the DPFP insns.
+
 2011-05-17  Brendan Kehoe  <brendan@zen.org>
 
 	* config/arc/arc.h (CPP_SPEC) [!USE_UCLIBC, USE_UCLIBC]: For

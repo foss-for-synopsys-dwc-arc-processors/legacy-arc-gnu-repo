@@ -4290,7 +4290,10 @@ arc_rtx_costs (rtx x, int code, int outer_code ATTRIBUTE_UNUSED, int *total)
 
 	if (TARGET_DPFP) 
 	  {
-	    *total = COSTS_N_INSNS (1);
+	    /* Make sure to account for the fact that we will be
+	       loading a pair of registers in preparation for
+	       the DPFP insn.  */
+	    *total = COSTS_N_INSNS (2);
 	    return true;
 	  }
 	/* FIXME: correct the order of high,low */
