@@ -5027,7 +5027,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpdf_eq"
@@ -5042,7 +5051,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpsf_gt"
@@ -5057,7 +5075,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpdf_gt"
@@ -5072,7 +5099,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpsf_ge"
@@ -5087,7 +5123,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpdf_ge"
@@ -5102,7 +5147,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpsf_uneq"
@@ -5117,7 +5171,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpdf_uneq"
@@ -5132,7 +5195,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 (define_insn "*cmpsf_ord"
@@ -5147,7 +5219,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 	      
 ;; N.B. double precision fpx sets bit 31 for NaNs.  We need bit 51 set
@@ -5164,7 +5245,16 @@
 	       (const_string "call")
 	       (ne (symbol_ref "flag_pic") (const_int 0))
 	       (const_string "sfunc")]
-	      (const_string "call_no_delay_slot")))]
+	      (const_string "call_no_delay_slot")))
+	; For -fpic -mlong-calls, our arc_output_libcall will be emitting
+	; two instructions; adjust the width so these libcalls occurring
+	; between a BRcc and its target label are measured properly to see
+	; when a label offset is out of range.
+	(set (attr "length")
+	 (cond [(and (ne (symbol_ref "TARGET_LONG_CALLS_SET") (const_int 0))
+	 		     (ne (symbol_ref "flag_pic") (const_int 0)))
+			(const_int 8)]
+		   (const_int 4)))]
 )
 
 (define_insn "abssf2"

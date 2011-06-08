@@ -1,3 +1,10 @@
+2011-06-07  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.md (cmp{sf,df}_{eq,gt,ge,uneq,ord}): Adjust
+	LENGTH attr when -fpic -mlong-calls are used together, since
+	they make arc_output_libcall produce 2 insns instead of 1 which
+	can change the accuracy of branch offsets.
+
 2011-06-01  Brendan Kehoe  <brendan@zen.org>
 
 	* config/arc/arc.c (arc_rtx_costs, case CONST_DOUBLE): Correct to
