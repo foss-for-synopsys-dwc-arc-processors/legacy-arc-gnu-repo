@@ -56,7 +56,9 @@ struct arcDisState
   const char *comm[6]; /* instr name, cond, NOP, 3 operands */
   int opWidth;
   int targets[4];
-  int addresses[4];
+  /* START ARC LOCAL */
+  unsigned int addresses[4];
+  /* END ARC LOCAL */
   /* Set as a side-effect of calling the disassembler.
      Used only by the debugger.  */
   enum Flow flow;

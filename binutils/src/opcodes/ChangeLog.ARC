@@ -1,3 +1,7 @@
+2011-06-09  Brendan Kehoe  <brendan@zen.org>
+
+	* arc-dis.h (struct arcDisState): Make ADDRESSES unsigned int.
+
 2010-05-17  Brendan Kehoe  <brendan@zen.org>
 
 	* arcompact-dis.c (op_MAJOR_6): Add to anon enum.
