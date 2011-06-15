@@ -69,7 +69,7 @@ struct arcDisState arcAnalyzeInstr (bfd_vma, disassemble_info*);
 #define _NELEM(ary)	(sizeof(ary) / sizeof(ary[0]))
 
 #define BIT(word,n)       ((word) & (1 << n))
-#define BITS(word,s,e)    (((word) << (31-e)) >> (s+(31-e)))
+#define BITS(word,s,e)    (((word) << (sizeof(word)*8-1 - e)) >> (s+(sizeof(word)*8-1 - e)))
 #define OPCODE(word)      (BITS ((word), 27, 31))
 #define FIELDA(word)      (BITS ((word), 0, 5))
 #define FIELDb(word)      (BITS ((word), 24, 26))
