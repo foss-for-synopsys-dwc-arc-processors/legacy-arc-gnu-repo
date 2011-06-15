@@ -66,7 +66,9 @@ typedef enum
 } a4_decoding_class;
 
 #define BIT(word,n)	((word) & (1 << n))
+/* START ARC LOCAL */
 #define BITS(word,s,e)  (((word) << (sizeof(word)*8-1 - e)) >> (s + (sizeof(word)*8-1 - e)))
+/* END ARC LOCAL */
 #define OPCODE(word)	(BITS ((word), 27, 31))
 #define FIELDA(word)	(BITS ((word), 21, 26))
 #define FIELDB(word)	(BITS ((word), 15, 20))
