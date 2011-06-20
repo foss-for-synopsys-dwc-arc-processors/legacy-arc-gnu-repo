@@ -4724,7 +4724,6 @@
 ; be available for the loop end.
 (define_insn "doloop_begin_i"
   [(unspec:SI [(pc)] UNSPEC_LP)
-   (clobber (reg:SI LP_COUNT)) ; make sure the life of LP_COUNT is clear
    (clobber (reg:SI LP_START))
    (clobber (reg:SI LP_END))
    (use (match_operand:SI 0 "register_operand" "l,l,????*X"))
@@ -4752,12 +4751,19 @@
        is known.  But that would require extra testing.  */
     return ".p2align 2\;push_s r0\;add r0,pcl,%4-.+2\;sr r0,[2]; LP_START\;add r0,pcl,.L__GCC__LP%1-.+2\;sr r0,[3]; LP_END\;pop_s r0";
   /* Check if the loop end is in range to be set by the lp instruction.  */
+#if 0
+  /* ??? no-op given doloop_begin pattern check, and also negated by the
+	     for-stmt init list */
   size = INTVAL (operands[3]) < 2 ? 0 : 2048;
+#endif
   for (size = 0, scan = insn; scan && size < 2048; scan = NEXT_INSN (scan))
     {
       if (!INSN_P (scan))
 	continue;
-      if (recog_memoized (scan) == CODE_FOR_doloop_end_i)
+      if ((recog_memoized (scan) == CODE_FOR_doloop_end_i)
+        /* Only match the end of our loop, not just any loop.
+	   Make sure we are comparing like in arc.c:arc_reorg.  */
+	&& (INTVAL (operands[2]) == INSN_UID (scan)))
 	break;
       len = get_attr_length (scan);
       size += len;
@@ -4833,13 +4839,23 @@
   return "lp .L__GCC__LP%1";
 }
   [(set_attr "type" "loop_setup")
+   ; ??? doloop_begin only makes us use alternative 0, really; this needs
+   ;     to be cleaned up/completed, including the ARC600 inaccuracy for PIC
    (set_attr_alternative "length"
      [(if_then_else (ne (symbol_ref "TARGET_ARC600") (const_int 0))
-		    (const_int 16) (const_int 4))
+		       (const_int 16)
+		     (if_then_else (ne (symbol_ref "flag_pic") (const_int 0))
+		        ; N.B.: both sets of PIC insns above are 28 bytes long
+			(const_int 28)
+		      ; ??? FIXME ideally this should be size>=2048, and let
+		      ; us use a length of 4 for the common LP case.
+		      (const_int 16))
+		    )
       (if_then_else (ne (symbol_ref "flag_pic") (const_int 0))
 		    (const_int 28) (const_int 16))
       (const_int 0)])]
-  ;; ??? strictly speaking, we should branch shorten this insn, but then
+
+      ;; ??? strictly speaking, we should branch shorten this insn, but then
   ;; we'd need a proper label first.  We could say it is always 24 bytes in
   ;; length, but that would be very pessimistic; also, when the loop insn
   ;; goes out of range, it is very likely that the same insns that have
@@ -4860,8 +4876,7 @@
 ; ??? ARC600 might want to check if the loop has few iteration and only a
 ; single insn - loop setup is expensive then.
 (define_expand "doloop_end"
-  [(use (reg:SI LP_COUNT)) ; make sure the life of LP_COUNT is clear
-   (use (match_operand 0 "register_operand" ""))
+  [(use (match_operand 0 "register_operand" ""))
    (use (match_operand:QI 1 "const_int_operand" ""))
    (use (match_operand:QI 2 "const_int_operand" ""))
    (use (match_operand:QI 3 "const_int_operand" ""))

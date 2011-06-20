@@ -1,3 +1,14 @@
+2011-06-19  Brendan Kehoe  <brendan@zen.org>
+
+	* config/arc/arc.md (doloop_begin_i): Only match
+	CODE_FOR_doloop_end_i referencing the correct loop begin label.
+	Remove LP_COUNT CLOBBER.  Fix LENGTH attr to be 28 for PIC, and
+	16 otherwise.	Note this is a workaround; this length can be just
+	4 on non-PIC when size<2048, but it's computed too late to be used
+	for the LENGTH attr; the doloop_begin*/doloop_end* stuff need to
+	be rewritten.
+	(doloop_end): Remove LP_COUNT USE.
+
 2011-06-07  Brendan Kehoe  <brendan@zen.org>
 
 	* config/arc/arc.md (cmp{sf,df}_{eq,gt,ge,uneq,ord}): Adjust
