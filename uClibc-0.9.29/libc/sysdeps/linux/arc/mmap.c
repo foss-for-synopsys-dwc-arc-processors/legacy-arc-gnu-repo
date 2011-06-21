@@ -43,8 +43,11 @@ __ptr_t mmap(__ptr_t addr, size_t len, int prot,
     if (offset & ((1 << MMAP2_PAGE_SHIFT) - 1))
         return __syscall_error(-EINVAL);
 
-  return (__ptr_t) _mmap (addr, len, prot, flags,
-						  fd,(off_t) (offset >> MMAP2_PAGE_SHIFT));
+    return (__ptr_t) _mmap (addr, len, prot, flags, fd,
+			    /* Be careful: OFFSET is off_t, which is naturally
+			       signed and will make the shift result get
+			       sign-extended.  */
+			    ((__u_long) (offset >> MMAP2_PAGE_SHIFT)));
 }
 
 libc_hidden_def(mmap)

@@ -1,3 +1,8 @@
+2011-06-21  Brendan Kehoe  <brendan@zen.org>
+
+	* libc/sysdeps/linux/arc/mmap.c (mmap): Fix OFFSET shift in
+	return to use __u_long instead of default signedness of off_t.
+
 2008-09-05  Muhammad Khurram Riaz  <khurram.riaz@arc.com>
 
 	* arc_config: Locale support enables
