@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# *** Modified from dist version to build in build-uclibc not just build
+
 #	SCRIPT TO BUILD ARC-LINUX-UCLIBC TOOLKIT
 #	----------------------------------------
 
@@ -33,12 +35,13 @@ fi
 
 echo "#build binutils" > uclibc_log.txt
 echo "#-------------------------------------------------------------------" >> uclibc_log.txt
-cd binutils/build && rm -r -f *
+rm -rf binutils/build-uclibc && mkdir binutils/build-uclibc
+cd binutils/build-uclibc # && rm -r -f *
 echo "Start building BINUTILS!"
 echo "..."
 ../src/configure --prefix=$INSTALLDIR --target=arc-linux-uclibc --disable-werror > ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 
-if make >> ../../uclibc_log.txt 2>&1 ; then
+if make -j4 >> ../../uclibc_log.txt 2>&1 ; then
  echo "Finish building BINUTILS!"
 else
  echo [build_uclibc.sh] Fatal Error: BINUTILS build was not successful.
@@ -60,6 +63,9 @@ export RANLIB_FOR_TARGET=arc-linux-uclibc-ranlib
 
 #copy the bootstrap include files
 cp -r bootstrap $INSTALLDIR/arc-linux-uclibc/include
+
+# Get rid of permission-controlled SVN subdirs which can break the header copy
+find $INSTALLDIR/arc-linux-uclibc/include -type d -name .svn | xargs rm -rf
 
 #copy the required Linux headers
 if cp -r $LINUXDIR/include/linux $INSTALLDIR/arc-linux-uclibc/include ; then
@@ -83,12 +89,13 @@ fi
 
 echo "#-------------------------------------------------------------------" >> uclibc_log.txt
 echo "#build gcc" >> uclibc_log.txt
-cd gcc/build && rm -r -f *
+rm -rf gcc/build-uclibc && mkdir gcc/build-uclibc
+cd gcc/build-uclibc # && rm -r -f *
 echo "Start building GCC!"
 echo "..."
 ../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --with-headers=$INSTALLDIR/arc-linux-uclibc/include --enable-shared --disable-multilib --without-newlib --enable-languages=c,c++ --with-cpu=arc700 --disable-c99 >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 
-if make all-gcc >> ../../uclibc_log.txt 2>&1; then
+if make -j4 all-gcc >> ../../uclibc_log.txt 2>&1; then
 echo "Finish building GCC!"
 else
  echo [build_uclibc.sh] Fatal Error: GCC build was not successful.
@@ -129,10 +136,10 @@ cd ..
 
 echo "#-------------------------------------------------------------------" >> uclibc_log.txt
 echo "C/C++ libs" >> uclibc_log.txt
-cd gcc/build
+cd gcc/build-uclibc
 echo "Start building C++ libs!"
 echo "..."
-if make >> ../../uclibc_log.txt 2>&1; then
+if make -j4 >> ../../uclibc_log.txt 2>&1; then
  echo "Finish building C++ libs!"
 else
  echo [build_uclibc.sh] Fatal Error: C/C++ library build was not successful.
@@ -167,10 +174,11 @@ echo "#-------------------------------------------------------------------" >> u
 echo "# build insight/gdb" >> uclibc_log.txt
 echo "Start building insight/GDB!"
 echo "..."
-cd insight/build && rm -r -f *
+rm -rf insight/build-uclibc && mkdir insight/build-uclibc
+cd insight/build-uclibc # && rm -r -f *
 ../src/configure --target=arc-linux-uclibc --prefix=$INSTALLDIR --disable-werror >> ../../uclibc_log.txt 2>> ../../uclibc_log.txt
 
-if make >> ../../uclibc_log.txt 2>&1; then
+if make -j4 >> ../../uclibc_log.txt 2>&1; then
  echo "Finish building insight/GDB!"
 else
  echo [build_uclibc.sh] Fatal Error: insight/gdb build was not successful.
