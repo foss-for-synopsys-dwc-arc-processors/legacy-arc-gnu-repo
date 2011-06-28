@@ -1,3 +1,8 @@
+2011-06-28	Vineet Gupta  <vgupta@synopsys.com>
+	* libc/sysdeps/linux/arc/mmap.c (mmap): Tweaked the prev fix
+	need to make sure that operand, not operation, is sign safe.
+
+
 2011-06-21  Brendan Kehoe  <brendan@zen.org>
 
 	* libc/sysdeps/linux/arc/mmap.c (mmap): Fix OFFSET shift in
@@ -8,7 +13,7 @@
 	* arc_config: Locale support enables
 	* libc/string/arc/strcmp.S: features.h included
 	* extra/locale/Makefile.in: header UCLIBC_CTYPE_HEADER path corrected
-	* libc/sysdeps/linux/arc/bits/wchar.h: DELETED 
+	* libc/sysdeps/linux/arc/bits/wchar.h: DELETED
 
 
 2008-08-27  J"orn Rennecke  <joern.rennecke@arc.com>

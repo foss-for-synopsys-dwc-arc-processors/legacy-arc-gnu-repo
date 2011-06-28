@@ -18,7 +18,7 @@
  * __NR_mmap2 => 6 args and @pgoffset in PAGE sized units
  *
  * Note that uClibc has an option __UCLIBC_MMAP_HAS_6_ARGS__ to do old mmap
- * with with 6 args but ARC Linux doesnt support it, so I didn't bother to 
+ * with with 6 args but ARC Linux doesnt support it, so I didn't bother to
  * implement that case here
  */
 
@@ -47,7 +47,7 @@ __ptr_t mmap(__ptr_t addr, size_t len, int prot,
 			    /* Be careful: OFFSET is off_t, which is naturally
 			       signed and will make the shift result get
 			       sign-extended.  */
-			    ((__u_long) (offset >> MMAP2_PAGE_SHIFT)));
+			    (((__u_long) offset) >> MMAP2_PAGE_SHIFT));
 }
 
 libc_hidden_def(mmap)
