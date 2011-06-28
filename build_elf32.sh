@@ -8,8 +8,13 @@
 
 # INSTALLDIR = Directory where arc-elf32- toolkit will be installed.
 
-
 INSTALLDIR=$1
+
+# Building the simulator will fail if the user has their SHELL as csh, et al.
+# By forcing this in the environment, sim/common/genmloop.sh invoking ${SHELL}
+# will always invoke /bin/sh properly.
+SHELL=/bin/sh
+export SHELL
 
 #build binutils
 rm -rf binutils/build && mkdir binutils/build

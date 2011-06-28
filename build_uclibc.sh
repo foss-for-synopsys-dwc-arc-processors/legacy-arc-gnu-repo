@@ -14,6 +14,12 @@
 INSTALLDIR=$1
 LINUXDIR=$2
 
+# Building the simulator will fail if the user has their SHELL as csh, et al.
+# By forcing this in the environment, sim/common/genmloop.sh invoking ${SHELL}
+# will always invoke /bin/sh properly.
+SHELL=/bin/sh
+export SHELL
+
 function kernel_ver()
 {
     K_FILENM="${LINUXDIR}/Makefile"
