@@ -93,10 +93,13 @@ stamp-5mloop: $(srcdir)/../common/genmloop.sh mloop5.in Makefile
 	touch stamp-5mloop
 mloop5.o: mloop5.c sem5-switch.c $(ARC5_INCLUDE_DEPS)
 
-cpu5.o: cpu5.c $(ARCBF_INCLUDE_DEPS)
-decode5.o: decode5.c $(ARCBF_INCLUDE_DEPS)
-sem5.o: sem5.c $(ARCBF_INCLUDE_DEPS)
-model5.o: model5.c $(ARCBF_INCLUDE_DEPS)
+# START ARC LOCAL
+# Correct ARCBF to ARC5
+cpu5.o: cpu5.c $(ARC5_INCLUDE_DEPS)
+decode5.o: decode5.c $(ARC5_INCLUDE_DEPS)
+sem5.o: sem5.c $(ARC5_INCLUDE_DEPS)
+model5.o: model5.c $(ARC5_INCLUDE_DEPS)
+# END ARC LOCAL
 
 # ARC600 objs
 
