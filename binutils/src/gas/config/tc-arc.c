@@ -4727,7 +4727,7 @@ md_assemble (char *str)
   static int init_tables_p = 0;
   current_special_sym_flag = NO_TYPE;
   char insn_name[64]={0};
-  unsigned int insn_name_idx = 0;
+  int insn_name_idx = 0;
 
   assembling_instruction = 1;
 
