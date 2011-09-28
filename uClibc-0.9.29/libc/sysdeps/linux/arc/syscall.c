@@ -27,5 +27,5 @@
 
 long syscall(long sysnum, long a, long b, long c, long d, long e, long f)
 {
-    return INLINE_SYSCALL_WITH_NUM(6, sysnum, a,b,c,f,e,f);
+    return INLINE_SYSCALL_WITH_NUM(6, sysnum, a,b,c,d,e,f);
 }
