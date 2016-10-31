@@ -289,7 +289,7 @@ The extension instructions are not macros.  The assembler creates
 encodings for use of these instructions according to the specification
 by the user.  The parameters are:
 
-@table @bullet
+@table @code
 @item @var{name}
 Name of the extension instruction.  In case of the ARCompact, if the
 instruction name is suffixed with _s it indicates a 16-bit extension

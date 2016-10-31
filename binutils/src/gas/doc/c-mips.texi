@@ -196,10 +196,10 @@ the @samp{mad} and @samp{madu} instruction, and to not schedule @samp{nop}
 instructions around accesses to the @samp{HI} and @samp{LO} registers.
 @samp{-no-m4650} turns off this option.
 
-@itemx -m3900
-@itemx -no-m3900
-@itemx -m4100
-@itemx -no-m4100
+@item -m3900
+@item -no-m3900
+@item -m4100
+@item -no-m4100
 For each option @samp{-m@var{nnnn}}, generate code for the MIPS
 @sc{r@var{nnnn}} chip.  This tells the assembler to accept instructions
 specific to that chip, and to schedule for that chip's hazards.

@@ -375,7 +375,7 @@ to @samp{-Bdynamic}.  This option may be used any number of times.
 @kindex -A@var{arch}
 @item -A@var{architecture}
 @kindex --architecture=@var{arch}
-@itemx --architecture=@var{architecture}
+@item --architecture=@var{architecture}
 In the current release of @command{ld}, this option is useful only for the
 Intel 960 family of architectures.  In that @command{ld} configuration, the
 @var{architecture} argument identifies the particular architecture in
@@ -394,7 +394,7 @@ other architecture families.
 @cindex input format
 @cindex input format
 @item -b @var{input-format}
-@itemx --format=@var{input-format}
+@item --format=@var{input-format}
 @command{ld} may be configured to support more than one kind of object
 file.  If your @command{ld} is configured this way, you can use the
 @samp{-b} option to specify the binary format for input object files
@@ -429,7 +429,7 @@ see @ref{Format Commands}.
 @kindex --mri-script=@var{MRI-cmdfile}
 @cindex compatibility, MRI
 @item -c @var{MRI-commandfile}
-@itemx --mri-script=@var{MRI-commandfile}
+@item --mri-script=@var{MRI-commandfile}
 For compatibility with linkers produced by MRI, @command{ld} accepts script
 files written in an alternate, restricted command language, described in
 @ifclear man
@@ -449,8 +449,8 @@ specified by any @samp{-L} options.
 @kindex -dc
 @kindex -dp
 @item -d
-@itemx -dc
-@itemx -dp
+@item -dc
+@item -dp
 These three options are equivalent; multiple forms are supported for
 compatibility with other linkers.  They assign space to common symbols
 even if a relocatable output file is specified (with @samp{-r}).  The
@@ -461,7 +461,7 @@ script command @code{FORCE_COMMON_ALLOCATION} has the same effect.
 @kindex -e @var{entry}
 @kindex --entry=@var{entry}
 @item -e @var{entry}
-@itemx --entry=@var{entry}
+@item --entry=@var{entry}
 Use @var{entry} as the explicit symbol for beginning execution of your
 program, rather than the default entry point.  If there is no symbol
 named @var{entry}, the linker will try to parse @var{entry} as a number,
@@ -485,7 +485,7 @@ be treated as hidden.
 @kindex -E
 @kindex --export-dynamic
 @item -E
-@itemx --export-dynamic
+@item --export-dynamic
 When creating a dynamically linked executable, add all symbols to the
 dynamic symbol table.  The dynamic symbol table is the set of symbols
 which are visible from dynamic objects at run time.
@@ -519,7 +519,7 @@ Link little-endian objects.  This affects the default output format.
 @kindex -f
 @kindex --auxiliary
 @item -f
-@itemx --auxiliary @var{name}
+@item --auxiliary @var{name}
 When creating an ELF shared object, set the internal DT_AUXILIARY field
 to the specified name.  This tells the dynamic linker that the symbol
 table of the shared object should be used as an auxiliary filter on the
@@ -541,7 +541,7 @@ will be created in the order in which they appear on the command line.
 @kindex -F
 @kindex --filter
 @item -F @var{name}
-@itemx --filter @var{name}
+@item --filter @var{name}
 When creating an ELF shared object, set the internal DT_FILTER field to
 the specified name.  This tells the dynamic linker that the symbol table
 of the shared object which is being created should be used as a filter
@@ -583,7 +583,7 @@ Ignored.  Provided for compatibility with other tools.
 @kindex --gpsize
 @cindex object size
 @item -G@var{value}
-@itemx --gpsize=@var{value}
+@item --gpsize=@var{value}
 Set the maximum size of objects to be optimized using the GP register to
 @var{size}.  This is only meaningful for object file formats such as
 MIPS ECOFF which supports putting large and small objects into different
@@ -593,7 +593,7 @@ sections.  This is ignored for other object file formats.
 @kindex -h@var{name}
 @kindex -soname=@var{name}
 @item -h@var{name}
-@itemx -soname=@var{name}
+@item -soname=@var{name}
 When creating an ELF shared object, set the internal DT_SONAME field to
 the specified name.  When an executable is linked with a shared object
 which has a DT_SONAME field, then when the executable is run the dynamic
@@ -617,7 +617,7 @@ function to call.
 @kindex -l@var{namespec}
 @kindex --library=@var{namespec}
 @item -l@var{namespec}
-@itemx --library=@var{namespec}
+@item --library=@var{namespec}
 Add the archive or object file specified by @var{namespec} to the
 list of files to link.  This option may be used any number of times.
 If @var{namespec} is of the form @file{:@var{filename}}, @command{ld}
@@ -655,7 +655,7 @@ behaviour of the AIX linker.
 @kindex -L@var{dir}
 @kindex --library-path=@var{dir}
 @item -L@var{searchdir}
-@itemx --library-path=@var{searchdir}
+@item --library-path=@var{searchdir}
 Add path @var{searchdir} to the list of paths that @command{ld} will search
 for archive libraries and @command{ld} control scripts.  You may use this
 option any number of times.  The directories are searched in the order
@@ -693,7 +693,7 @@ configured.
 @kindex -M
 @kindex --print-map
 @item -M
-@itemx --print-map
+@item --print-map
 Print a link map to the standard output.  A link map provides
 information about the link, including the following:
 
@@ -740,7 +740,7 @@ scripts.
 @cindex NMAGIC
 @kindex --nmagic
 @item -n
-@itemx --nmagic
+@item --nmagic
 Turn off page alignment of sections, and mark the output as
 @code{NMAGIC} if possible.
 
@@ -749,7 +749,7 @@ Turn off page alignment of sections, and mark the output as
 @cindex read/write from cmd line
 @cindex OMAGIC
 @item -N
-@itemx --omagic
+@item --omagic
 Set the text and data sections to be readable and writable.  Also, do
 not page-align the data segment, and disable linking against shared
 libraries.  If the output format supports Unix style magic numbers,
@@ -769,7 +769,7 @@ shared libraries.  Use @option{-Bdynamic} for this.
 @kindex --output=@var{output}
 @cindex naming the output file
 @item -o @var{output}
-@itemx --output=@var{output}
+@item --output=@var{output}
 Use @var{output} as the name for the program produced by @command{ld}; if this
 option is not specified, the name @file{a.out} is used by default.  The
 script command @code{OUTPUT} can also specify the output file name.
@@ -785,7 +785,7 @@ should only be enabled for the final binary.
 @kindex --emit-relocs
 @cindex retain relocations in final executable
 @item -q
-@itemx --emit-relocs
+@item --emit-relocs
 Leave relocation sections and contents in fully linked executables.
 Post link analysis and optimization tools may need this information in
 order to perform correct modifications of executables.  This results
@@ -804,7 +804,7 @@ to VxWorks targets.
 @kindex -r
 @kindex --relocatable
 @item -r
-@itemx --relocatable
+@item --relocatable
 Generate relocatable output---i.e., generate an output file that can in
 turn serve as input to @command{ld}.  This is often called @dfn{partial
 linking}.  As a side effect, in environments that support standard Unix
@@ -827,7 +827,7 @@ This option does the same thing as @samp{-i}.
 @kindex --just-symbols=@var{file}
 @cindex symbol-only input
 @item -R @var{filename}
-@itemx --just-symbols=@var{filename}
+@item --just-symbols=@var{filename}
 Read symbol names and their addresses from @var{filename}, but do not
 relocate it or include it in the output.  This allows your output file
 to refer symbolically to absolute locations of memory defined in other
@@ -841,28 +841,28 @@ the @option{-rpath} option.
 @kindex --strip-all
 @cindex strip all symbols
 @item -s
-@itemx --strip-all
+@item --strip-all
 Omit all symbol information from the output file.
 
 @kindex -S
 @kindex --strip-debug
 @cindex strip debugger symbols
 @item -S
-@itemx --strip-debug
+@item --strip-debug
 Omit debugger symbol information (but not all symbols) from the output file.
 
 @kindex -t
 @kindex --trace
 @cindex input files, displaying
 @item -t
-@itemx --trace
+@item --trace
 Print the names of the input files as @command{ld} processes them.
 
 @kindex -T @var{script}
 @kindex --script=@var{script}
 @cindex script files
 @item -T @var{scriptfile}
-@itemx --script=@var{scriptfile}
+@item --script=@var{scriptfile}
 Use @var{scriptfile} as the linker script.  This script replaces
 @command{ld}'s default linker script (rather than adding to it), so
 @var{commandfile} must specify everything necessary to describe the
@@ -875,7 +875,7 @@ options accumulate.
 @kindex --default-script=@var{script}
 @cindex script files
 @item -dT @var{scriptfile}
-@itemx --default-script=@var{scriptfile}
+@item --default-script=@var{scriptfile}
 Use @var{scriptfile} as the default linker script.  @xref{Scripts}.
 
 This option is similar to the @option{--script} option except that
@@ -891,7 +891,7 @@ the command line is being constructed by another tool, such as
 @kindex --undefined=@var{symbol}
 @cindex undefined symbol
 @item -u @var{symbol}
-@itemx --undefined=@var{symbol}
+@item --undefined=@var{symbol}
 Force @var{symbol} to be entered in the output file as an undefined
 symbol.  Doing this may, for example, trigger linking of additional
 modules from standard libraries.  @samp{-u} may be repeated with
@@ -925,8 +925,8 @@ in a linker script.
 @kindex --version
 @cindex version
 @item -v
-@itemx --version
-@itemx -V
+@item --version
+@item -V
 Display the version number for @command{ld}.  The @option{-V} option also
 lists the supported emulations.
 
@@ -934,14 +934,14 @@ lists the supported emulations.
 @kindex --discard-all
 @cindex deleting local symbols
 @item -x
-@itemx --discard-all
+@item --discard-all
 Delete all local symbols.
 
 @kindex -X
 @kindex --discard-locals
 @cindex local symbols, deleting
 @item -X
-@itemx --discard-locals
+@item --discard-locals
 Delete all temporary local symbols.  (These symbols start with
 system-specific local label prefixes, typically @samp{.L} for ELF systems
 or @samp{L} for traditional a.out systems.)
@@ -950,7 +950,7 @@ or @samp{L} for traditional a.out systems.)
 @kindex --trace-symbol=@var{symbol}
 @cindex symbol tracing
 @item -y @var{symbol}
-@itemx --trace-symbol=@var{symbol}
+@item --trace-symbol=@var{symbol}
 Print the name of each linked file in which @var{symbol} appears.  This
 option may be given any number of times.  On many systems it is necessary
 to prepend an underscore.
@@ -1055,7 +1055,7 @@ Other keywords are ignored for Solaris compatibility.
 @kindex -(
 @cindex groups of archives
 @item -( @var{archives} -)
-@itemx --start-group @var{archives} --end-group
+@item --start-group @var{archives} --end-group
 The @var{archives} should be a list of archive files.  They may be
 either explicit file names, or @samp{-l} options.
 
@@ -1075,7 +1075,7 @@ more archives.
 @kindex --accept-unknown-input-arch
 @kindex --no-accept-unknown-input-arch
 @item --accept-unknown-input-arch
-@itemx --no-accept-unknown-input-arch
+@item --no-accept-unknown-input-arch
 Tells the linker to accept input files whose architecture cannot be
 recognised.  The assumption is that the user knows what they are doing
 and deliberately wants to link in these unknown input files.  This was
@@ -1087,7 +1087,7 @@ restore the old behaviour.
 @kindex --as-needed
 @kindex --no-as-needed
 @item --as-needed
-@itemx --no-as-needed
+@item --no-as-needed
 This option affects ELF DT_NEEDED tags for dynamic libraries mentioned
 on the command line after the @option{--as-needed} option.  Normally,
 the linker will add a DT_NEEDED tag for each dynamic library mentioned
@@ -1100,7 +1100,7 @@ which is undefined at the point that the library was linked.
 @kindex --add-needed
 @kindex --no-add-needed
 @item --add-needed
-@itemx --no-add-needed
+@item --no-add-needed
 This option affects the treatment of dynamic libraries from ELF
 DT_NEEDED tags in dynamic libraries mentioned on the command line after
 the @option{--no-add-needed} option.  Normally, the linker will add
@@ -1117,8 +1117,8 @@ This option is ignored for SunOS compatibility.
 @kindex -dy
 @kindex -call_shared
 @item -Bdynamic
-@itemx -dy
-@itemx -call_shared
+@item -dy
+@item -call_shared
 Link against dynamic libraries.  This is only meaningful on platforms
 for which shared libraries are supported.  This option is normally the
 default on such platforms.  The different variants of this option are
@@ -1139,9 +1139,9 @@ only meaningful on ELF platforms which support shared libraries.
 @kindex -non_shared
 @kindex -static
 @item -Bstatic
-@itemx -dn
-@itemx -non_shared
-@itemx -static
+@item -dn
+@item -non_shared
+@item -static
 Do not link against shared libraries.  This is only meaningful on
 platforms for which shared libraries are supported.  The different
 variants of this option are for compatibility with various systems.  You
@@ -1197,7 +1197,7 @@ Provide the builtin dynamic list for C++ runtime type identification.
 @kindex --check-sections
 @kindex --no-check-sections
 @item --check-sections
-@itemx --no-check-sections
+@item --no-check-sections
 Asks the linker @emph{not} to check section addresses after they have
 been assigned to see if there are any overlaps.  Normally the linker will
 perform this check, and if it finds any overlaps it will produce
@@ -1255,7 +1255,7 @@ space between @var{symbol}, the equals sign (``@key{=}''), and
 @kindex --demangle[=@var{style}]
 @kindex --no-demangle
 @item --demangle[=@var{style}]
-@itemx --no-demangle
+@item --no-demangle
 These options control whether to demangle symbol names in error messages
 and other output.  When the linker is told to demangle, it tries to
 present symbol names in a readable fashion: it strips leading
@@ -1295,7 +1295,7 @@ it ends in a @code{.exe} suffix.
 @kindex --no-gc-sections
 @cindex garbage collection
 @item --gc-sections
-@itemx --no-gc-sections
+@item --no-gc-sections
 Enable garbage collection of unused input sections.  It is ignored on
 targets that do not support this option.  This option is not compatible
 with @samp{-r} or @samp{--emit-relocs}. The default behaviour (of not
@@ -1306,7 +1306,7 @@ performing this garbage collection) can be restored by specifying
 @kindex --no-print-gc-sections
 @cindex garbage collection
 @item --print-gc-sections
-@itemx --no-print-gc-sections
+@item --no-print-gc-sections
 List all sections removed by garbage collection.  The listing is
 printed on stderr.  This option is only effective if garbage
 collection has been enabled via the @samp{--gc-sections}) option.  The
@@ -1341,7 +1341,7 @@ while linking a large executable.
 @kindex --no-undefined
 @kindex -z defs
 @item --no-undefined
-@itemx -z defs
+@item -z defs
 Report unresolved symbol references from regular object files.  This
 is done even if the linker is creating a non-symbolic shared library.
 The switch @option{--[no-]allow-shlib-undefined} controls the
@@ -1351,7 +1351,7 @@ libraries being linked in.
 @kindex --allow-multiple-definition
 @kindex -z muldefs
 @item --allow-multiple-definition
-@itemx -z muldefs
+@item -z muldefs
 Normally when a symbol is defined multiple times, the linker will
 report a fatal error. These options allow multiple definitions and the
 first definition will be used.
@@ -1359,7 +1359,7 @@ first definition will be used.
 @kindex --allow-shlib-undefined
 @kindex --no-allow-shlib-undefined
 @item --allow-shlib-undefined
-@itemx --no-allow-shlib-undefined
+@item --no-allow-shlib-undefined
 Allows (the default) or disallows undefined symbols in shared libraries.
 This switch is similar to @option{--no-undefined} except that it
 determines the behaviour when the undefined symbols are in a
@@ -1440,7 +1440,7 @@ this option overrides it.  @xref{BFD}.
 @kindex -pie
 @kindex --pic-executable
 @item -pie
-@itemx --pic-executable
+@item --pic-executable
 @cindex position independent executables
 Create a position independent executable.  This is currently only supported on
 ELF platforms.  Position independent executables are similar to shared
@@ -1608,7 +1608,7 @@ warning and continue with the link.
 @kindex -shared
 @kindex -Bshareable
 @item -shared
-@itemx -Bshareable
+@item -Bshareable
 @cindex shared libraries
 Create a shared library.  This is currently only supported on ELF, XCOFF
 and SunOS platforms.  On SunOS, the linker will automatically create a
@@ -1695,8 +1695,8 @@ sign (``@key{=}''), and @var{org}.
 @kindex -Ttext @var{org}
 @cindex segment origins, cmd line
 @item -Tbss @var{org}
-@itemx -Tdata @var{org}
-@itemx -Ttext @var{org}
+@item -Tdata @var{org}
+@item -Ttext @var{org}
 Same as --section-start, with @code{.bss}, @code{.data} or
 @code{.text} as the @var{sectionname}.
 
@@ -1734,14 +1734,14 @@ can change this to a warning.
 @kindex --verbose
 @cindex verbose
 @item --dll-verbose
-@itemx --verbose
+@item --verbose
 Display the version number for @command{ld} and list the linker emulations
 supported.  Display which input files can and cannot be opened.  Display
 the linker script being used by the linker.
 
 @kindex --version-script=@var{version-scriptfile}
 @cindex version script, symbol versions
-@itemx --version-script=@var{version-scriptfile}
+@item --version-script=@var{version-scriptfile}
 Specify the name of a version script to the linker.  This is typically
 used when creating shared libraries to specify additional information
 about the version hierarchy for the library being created.  This option
@@ -1943,7 +1943,7 @@ Request creation of @code{.eh_frame_hdr} section and ELF
 @kindex --enable-new-dtags
 @kindex --disable-new-dtags
 @item --enable-new-dtags
-@itemx --disable-new-dtags
+@item --disable-new-dtags
 This linker can create the new dynamic tags in ELF. But the older ELF
 systems may not understand them. If you specify
 @option{--enable-new-dtags}, the dynamic tags will be created as needed.
@@ -2029,7 +2029,7 @@ file.
 @kindex --enable-stdcall-fixup
 @kindex --disable-stdcall-fixup
 @item --enable-stdcall-fixup
-@itemx --disable-stdcall-fixup
+@item --disable-stdcall-fixup
 If the link finds a symbol that it cannot resolve, it will attempt to
 do ``fuzzy linking'' by looking for another defined symbol that differs
 only in the format of the symbol name (cdecl vs stdcall) and will
@@ -2088,7 +2088,7 @@ file offsets which are multiples of this number.  This defaults to
 @cindex heap size
 @kindex --heap
 @item --heap @var{reserve}
-@itemx --heap @var{reserve},@var{commit}
+@item --heap @var{reserve},@var{commit}
 Specify the amount of memory to reserve (and optionally commit) to be
 used as heap for this program.  The default is 1Mb reserved, 4K
 committed.
@@ -2358,7 +2358,7 @@ addresses which are a multiple of this number.  Defaults to 0x1000.
 @cindex stack size
 @kindex --stack
 @item --stack @var{reserve}
-@itemx --stack @var{reserve},@var{commit}
+@item --stack @var{reserve},@var{commit}
 Specify the amount of memory to reserve (and optionally commit) to be
 used as stack for this program.  The default is 2Mb reserved, 4K
 committed.
@@ -2366,8 +2366,8 @@ committed.
 
 @kindex --subsystem
 @item --subsystem @var{which}
-@itemx --subsystem @var{which}:@var{major}
-@itemx --subsystem @var{which}:@var{major}.@var{minor}
+@item --subsystem @var{which}:@var{major}
+@item --subsystem @var{which}:@var{major}.@var{minor}
 Specifies the subsystem under which your program will execute.  The
 legal values for @var{which} are @code{native}, @code{windows},
 @code{console}, @code{posix}, and @code{xbox}.  You may optionally set
@@ -2703,7 +2703,7 @@ with the @option{-L} option.  You can nest calls to @code{INCLUDE} up to
 10 levels deep.
 
 @item INPUT(@var{file}, @var{file}, @dots{})
-@itemx INPUT(@var{file} @var{file} @dots{})
+@item INPUT(@var{file} @var{file} @dots{})
 @kindex INPUT(@var{files})
 @cindex input files in linker scripts
 @cindex input object files in linker scripts
@@ -2735,7 +2735,7 @@ files will be included in the link at the point at which the linker
 script file is included.  This can affect archive searching.
 
 @item GROUP(@var{file}, @var{file}, @dots{})
-@itemx GROUP(@var{file} @var{file} @dots{})
+@item GROUP(@var{file} @var{file} @dots{})
 @kindex GROUP(@var{files})
 @cindex grouping input files
 The @code{GROUP} command is like @code{INPUT}, except that the named
@@ -2744,7 +2744,7 @@ new undefined references are created.  See the description of @samp{-(}
 in @ref{Options,,Command Line Options}.
 
 @item AS_NEEDED(@var{file}, @var{file}, @dots{})
-@itemx AS_NEEDED(@var{file} @var{file} @dots{})
+@item AS_NEEDED(@var{file} @var{file} @dots{})
 @kindex AS_NEEDED(@var{files})
 This construct can appear only inside of the @code{INPUT} or @code{GROUP}
 commands, among other filenames.  The files listed will be handled
@@ -2796,7 +2796,7 @@ A couple of linker script commands deal with object file formats.
 
 @table @code
 @item OUTPUT_FORMAT(@var{bfdname})
-@itemx OUTPUT_FORMAT(@var{default}, @var{big}, @var{little})
+@item OUTPUT_FORMAT(@var{default}, @var{big}, @var{little})
 @kindex OUTPUT_FORMAT(@var{bfdname})
 @cindex output file format in linker script
 The @code{OUTPUT_FORMAT} command names the BFD format to use for the
@@ -2923,14 +2923,14 @@ You may assign to a symbol using any of the C assignment operators:
 
 @table @code
 @item @var{symbol} = @var{expression} ;
-@itemx @var{symbol} += @var{expression} ;
-@itemx @var{symbol} -= @var{expression} ;
-@itemx @var{symbol} *= @var{expression} ;
-@itemx @var{symbol} /= @var{expression} ;
-@itemx @var{symbol} <<= @var{expression} ;
-@itemx @var{symbol} >>= @var{expression} ;
-@itemx @var{symbol} &= @var{expression} ;
-@itemx @var{symbol} |= @var{expression} ;
+@item @var{symbol} += @var{expression} ;
+@item @var{symbol} -= @var{expression} ;
+@item @var{symbol} *= @var{expression} ;
+@item @var{symbol} /= @var{expression} ;
+@item @var{symbol} <<= @var{expression} ;
+@item @var{symbol} >>= @var{expression} ;
+@item @var{symbol} &= @var{expression} ;
+@item @var{symbol} |= @var{expression} ;
 @end table
 
 The first case will define @var{symbol} to the value of
@@ -3794,9 +3794,9 @@ parentheses.  The following types are defined:
 The section should be marked as not loadable, so that it will not be
 loaded into memory when the program is run.
 @item DSECT
-@itemx COPY
-@itemx INFO
-@itemx OVERLAY
+@item COPY
+@item INFO
+@item OVERLAY
 These type names are supported for backward compatibility, and are
 rarely used.  They all have the same effect: the section should be
 marked as not allocatable, so that no memory is allocated for the
@@ -4975,7 +4975,7 @@ SECTIONS @{ @dots{}
 @end smallexample
 
 @item ALIGN(@var{align})
-@itemx ALIGN(@var{exp},@var{align})
+@item ALIGN(@var{exp},@var{align})
 @kindex ALIGN(@var{align})
 @kindex ALIGN(@var{exp},@var{align})
 @cindex round up location counter
@@ -5158,7 +5158,7 @@ SECTIONS@{ @dots{}
 @end smallexample
 
 @item SIZEOF_HEADERS
-@itemx sizeof_headers
+@item sizeof_headers
 @kindex SIZEOF_HEADERS
 @cindex header size
 Return the size in bytes of the output file's headers.  This is
@@ -6688,7 +6688,7 @@ The following list shows only the upper-case form of each command.
 @table @code
 @cindex @code{ABSOLUTE} (MRI)
 @item ABSOLUTE @var{secname}
-@itemx ABSOLUTE @var{secname}, @var{secname}, @dots{} @var{secname}
+@item ABSOLUTE @var{secname}, @var{secname}, @dots{} @var{secname}
 Normally, @command{ld} includes in the output file all sections from all
 the input files.  However, in an MRI-compatible script, you can use the
 @code{ABSOLUTE} command to restrict the sections that will be present in
@@ -6717,7 +6717,7 @@ absolute addresses) in the output file.
 
 @cindex @code{CHIP} (MRI)
 @item CHIP @var{expression}
-@itemx CHIP @var{expression}, @var{expression}
+@item CHIP @var{expression}, @var{expression}
 This command does nothing; it is accepted only for compatibility.
 
 @cindex @code{END} (MRI)
@@ -6751,7 +6751,7 @@ same line, with no change in its effect.
 
 @cindex @code{LOAD} (MRI)
 @item LOAD @var{filename}
-@itemx LOAD @var{filename}, @var{filename}, @dots{} @var{filename}
+@item LOAD @var{filename}, @var{filename}, @dots{} @var{filename}
 Include one or more object file @var{filename} in the link; this has the
 same effect as specifying @var{filename} directly on the @command{ld}
 command line.
@@ -6764,7 +6764,7 @@ option @samp{-o} or the general script language command @code{OUTPUT}.
 
 @cindex @code{ORDER} (MRI)
 @item ORDER @var{secname}, @var{secname}, @dots{} @var{secname}
-@itemx ORDER @var{secname} @var{secname} @var{secname}
+@item ORDER @var{secname} @var{secname} @var{secname}
 Normally, @command{ld} orders the sections in its output file in the
 order in which they first appear in the input files.  In an MRI-compatible
 script, you can override this ordering with the @code{ORDER} command.  The
@@ -6773,15 +6773,15 @@ file, in the order specified.
 
 @cindex @code{PUBLIC} (MRI)
 @item PUBLIC @var{name}=@var{expression}
-@itemx PUBLIC @var{name},@var{expression}
-@itemx PUBLIC @var{name} @var{expression}
+@item PUBLIC @var{name},@var{expression}
+@item PUBLIC @var{name} @var{expression}
 Supply a value (@var{expression}) for external symbol
 @var{name} used in the linker input files.
 
 @cindex @code{SECT} (MRI)
 @item SECT @var{secname}, @var{expression}
-@itemx SECT @var{secname}=@var{expression}
-@itemx SECT @var{secname} @var{expression}
+@item SECT @var{secname}=@var{expression}
+@item SECT @var{secname} @var{expression}
 You can use any of these three forms of the @code{SECT} command to
 specify the start address (@var{expression}) for section @var{secname}.
 If you have more than one @code{SECT} statement for the same
@@ -6796,7 +6796,7 @@ If you have more than one @code{SECT} statement for the same
 @printindex cp
 
 @tex
-% I think something like @colophon should be in texinfo.  In the
+% I think something like @@colophon should be in texinfo.  In the
 % meantime:
 \long\def\colophon{\hbox to0pt{}\vfill
 \centerline{The body of this manual is set in}
@@ -6807,7 +6807,7 @@ If you have more than one @code{SECT} statement for the same
 \centerline{{\sl\fontname\tensl\/}}
 \centerline{are used for emphasis.}\vfill}
 \page\colophon
-% Blame: doc@cygnus.com, 28mar91.
+% Blame: doc@@cygnus.com, 28mar91.
 @end tex
 
 @bye
