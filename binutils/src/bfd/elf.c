@@ -961,13 +961,10 @@ _bfd_elf_make_section_from_shdr (bfd *abfd,
 }
 
 /*
-INTERNAL_FUNCTION
 	bfd_elf_find_section
 
-SYNOPSIS
 	struct elf_internal_shdr *bfd_elf_find_section (bfd *abfd, char *name);
 
-DESCRIPTION
 	Helper functions for GDB to locate the string tables.
 	Since BFD hides string tables from callers, GDB needs to use an
 	internal hook to find them.  Sun's .stabstr, in particular,
