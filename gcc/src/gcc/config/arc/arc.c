@@ -2295,6 +2295,9 @@ arc_output_function_epilogue (FILE *file,HOST_WIDE_INT size)
 		}
 	    }
 	}
+      else if ((arc_store_hazard - (MUST_SAVE_RETURN_ADDR ? 1 : 0))
+	       <= (current_frame_info.reg_size/4))
+	fprintf (file, "\tnop_s\n");
 
       /* Restore stack pointer to the beginning of saved register area for
          ARCompact ISA */
@@ -5694,6 +5697,46 @@ arc_invalid_within_doloop (rtx insn)
   return NULL;
 }
 
+/* Insert NOPs whenever we detect an ARC anomaly.  */
+
+static void
+workaround_arc_anomaly (void)
+{
+  rtx insn1, insn = get_insns ();
+  rtx set;
+
+  if (!arc_store_hazard)
+    return;
+
+  /* Check for ARC's STORE hazard.  */
+  while (insn)
+    {
+      int loads = arc_store_hazard - 1;
+      gcc_assert (arc_store_hazard > 0);
+      for (insn1 = insn; insn1 && (loads > 0); insn1 = next_active_insn (insn1))
+	if (single_set (insn1) && get_attr_type (insn1) == TYPE_LOAD)
+	  {
+	    set = single_set (insn);
+	    if (set && (GET_MODE (SET_DEST (set)) == DImode))
+	      loads -= 2;
+	    else
+	      --loads;
+	  }
+	else
+	  break;
+
+      if (loads <= 0)
+	{
+	  warning (0, "Potential lockup sequence found, patching");
+	  emit_insn_after (gen_nopv (), insn);
+	  insn = insn1;
+	}
+      else
+	insn = next_active_insn (insn);
+    }
+}
+
+
 /* ARC's machince specific reorg function.  */
 static void
 arc_reorg (void)
@@ -5702,7 +5745,9 @@ arc_reorg (void)
   rtx pc_target;
   long offset;
   int changed;
- 
+
+  workaround_arc_anomaly ();
+
   /* Emit special sections for profiling.  */
   if (current_function_profile)
     {

@@ -217,3 +217,7 @@ Use dynamic libraries for linking
 mmul32x16
 Target Report Mask(MULMAC_32BY16_SET)
 Generate 32x16 multiply and mac instructions
+
+mstore-hazard=
+Target RejectNegative Joined UInteger Var(arc_store_hazard) Init(0)
+Checks for store cacheline fill hazard.  The number of loads is specify by command line.
