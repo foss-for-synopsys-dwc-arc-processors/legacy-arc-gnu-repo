@@ -3878,6 +3878,7 @@ md_number_to_chars (char *buf, valueT val, int n)
     case 2:
     case 3:
     case 4:
+    case 8:
       endian (buf, val, n);
       break;
     case -4:
