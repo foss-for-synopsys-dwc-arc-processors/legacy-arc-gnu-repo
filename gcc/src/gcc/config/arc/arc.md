@@ -142,6 +142,7 @@
    (VUNSPEC_DEXCL 31) ; blockage insn for reading an auxiliary register without LR support
    (VUNSPEC_DEXCL_NORES 32) ; blockage insn for reading an auxiliary register without LR support
    (VUNSPEC_LR_HIGH 33) ; blockage insn for reading an auxillary register 
+   (VUNSPEC_ARC_NOP 34) ; Volatile unspec NOP_S instruction.
    (LP_COUNT 60)
    (LP_START 144)
    (LP_END 145)
@@ -3919,6 +3920,14 @@
     else
       return \"nop\";"
   [(set_attr "type" "misc")])
+
+(define_insn "nopv"
+  [(unspec_volatile [(const_int 0)] VUNSPEC_ARC_NOP)]
+  ""
+  "nop_s"
+  [(set_attr "type" "misc")
+   (set_attr "iscompact" "true")
+   (set_attr "length" "2")])
 
 ;; Special pattern to flush the icache.
 ;; ??? Not sure what to do here.  Some ARC's are known to support this.

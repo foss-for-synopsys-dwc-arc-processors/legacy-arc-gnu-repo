@@ -5758,6 +5758,39 @@ arc_invalid_within_doloop (rtx insn)
   return NULL;
 }
 
+/* Insert NOPs whenever we detect an ARC anomaly.  */
+
+static void
+workaround_arc_anomaly (void)
+{
+  rtx insn1, insn = get_insns ();
+
+  if (!arc_store_hazard)
+    return;
+
+  /* Check for ARC's STORE hazard.  */
+  while (insn)
+    {
+      int loads = arc_store_hazard - 1;
+      gcc_assert (arc_store_hazard > 0);
+      for (insn1 = insn; insn1 && loads; insn1 = next_active_insn (insn1))
+	if (single_set (insn1) && get_attr_type (insn1) == TYPE_LOAD)
+	  --loads;
+	else
+	  break;
+
+      if (loads == 0)
+	{
+	  warning (0, "Potential lockup sequence found, patching");
+	  emit_insn_after (gen_nopv (), insn);
+	  insn = insn1;
+	}
+      else
+	insn = next_active_insn (insn);
+    }
+}
+
+
 /* ARC's machince specific reorg function.  */
 static void
 arc_reorg (void)
@@ -5766,7 +5799,9 @@ arc_reorg (void)
   rtx pc_target;
   long offset;
   int changed;
- 
+
+  workaround_arc_anomaly ();
+
   /* Emit special sections for profiling.  */
   if (current_function_profile)
     {

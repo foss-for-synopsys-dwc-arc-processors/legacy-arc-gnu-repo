@@ -272,3 +272,7 @@ mrtsc
 Target Report RejectNegative
 Enable 64-bit Time-Stamp Counter extension instruction
 ; END ARC LOCAL
+
+mstore-hazard=
+Target RejectNegative Joined UInteger Var(arc_store_hazard) Init(0)
+Checks for store cacheline fill hazard.  The number of loads is specify by command line.
