@@ -531,7 +531,7 @@ read_integral_parameter (const char *p, const char *pname, const int  defval)
    for floor_log2 and exact_log2; see toplev.h.  That construct, however,
    conflicts with the ISO C++ One Definition Rule.   */
 
-#if GCC_VERSION < 3004 || !defined (__cplusplus)
+#if GCC_VERSION < 3004
 
 /* Given X, an unsigned number, return the largest int Y such that 2**Y <= X.
    If X is 0, return -1.  */
@@ -570,6 +570,7 @@ floor_log2 (unsigned HOST_WIDE_INT x)
 
 /* Return the logarithm of X, base 2, considering X unsigned,
    if X is a power of 2.  Otherwise, returns -1.  */
+
 
 int
 exact_log2 (unsigned HOST_WIDE_INT x)
